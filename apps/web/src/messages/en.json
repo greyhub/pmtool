@@ -1,0 +1,42 @@
+{
+  "common": {
+    "appName": "PMTool",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "continue": "Continue",
+    "or": "or"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back to PMTool",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start managing PMP-standard projects",
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign up",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    }
+  },
+  "onboarding": {
+    "createOrganization": {
+      "title": "Create your organization",
+      "subtitle": "Each organization is a separate workspace for your company or team",
+      "name": "Organization name",
+      "slug": "Slug (URL identifier)",
+      "slugHint": "Lowercase letters, numbers and hyphens only, e.g. acme-corp",
+      "submit": "Create organization"
+    }
+  }
+}

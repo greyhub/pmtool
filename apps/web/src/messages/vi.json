@@ -1,0 +1,42 @@
+{
+  "common": {
+    "appName": "PMTool",
+    "loading": "Đang tải...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "create": "Tạo mới",
+    "continue": "Tiếp tục",
+    "or": "hoặc"
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Chào mừng bạn quay lại PMTool",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "submit": "Đăng nhập",
+      "noAccount": "Chưa có tài khoản?",
+      "registerLink": "Đăng ký ngay"
+    },
+    "register": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Bắt đầu quản lý dự án chuẩn PMP",
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "submit": "Đăng ký",
+      "hasAccount": "Đã có tài khoản?",
+      "loginLink": "Đăng nhập"
+    }
+  },
+  "onboarding": {
+    "createOrganization": {
+      "title": "Tạo tổ chức của bạn",
+      "subtitle": "Mỗi tổ chức là một không gian làm việc riêng biệt cho công ty hoặc nhóm của bạn",
+      "name": "Tên tổ chức",
+      "slug": "Slug (định danh trong URL)",
+      "slugHint": "Chỉ gồm chữ thường, số và dấu gạch ngang, ví dụ: cong-ty-abc",
+      "submit": "Tạo tổ chức"
+    }
+  }
+}
