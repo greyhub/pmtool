@@ -1,0 +1,34 @@
+/**
+ * Semantic tokens — the ONLY color layer components should reference
+ * (via the Tailwind classes generated from these names, e.g. `bg-surface`,
+ * `text-primary`, `bg-action-primary`). Values here map to the primitive
+ * scales in `tokens/color.ts`; dark mode overrides live in `dark.css`.
+ */
+:root {
+  --color-bg: #f9fafb; /* gray.50 */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f9fafb; /* gray.50 */
+  --color-border-default: #e5e7eb; /* gray.200 */
+  --color-border-strong: #d1d5db; /* gray.300 */
+
+  --color-text-primary: #111827; /* gray.900 */
+  --color-text-secondary: #4b5563; /* gray.600 */
+  --color-text-muted: #9ca3af; /* gray.400 */
+  --color-text-on-primary: #111827; /* dark text on the yellow primary action */
+
+  --color-action-primary-bg: #f59e0b; /* yellow.500 */
+  --color-action-primary-bg-hover: #d97706; /* yellow.600 */
+  --color-action-secondary-bg: #f3f4f6; /* gray.100 */
+  --color-action-secondary-bg-hover: #e5e7eb; /* gray.200 */
+
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-success: #16a34a;
+  --color-success-bg: #f0fdf4;
+  --color-info: #2563eb;
+  --color-info-bg: #eff6ff;
+
+  --color-focus-ring: #f59e0b; /* yellow.500 */
+}

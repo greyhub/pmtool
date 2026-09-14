@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { createOrganizationSchema, CreateOrganizationInput } from '@pmtool/shared-types';
 import { useCreateOrganization, ApiError } from '@pmtool/api-client';
+import { Button, FormField, Input } from '@pmtool/ui';
 import { useRouter } from '../../i18n/navigation';
 
 function slugify(value: string): string {
@@ -40,48 +41,31 @@ export function CreateOrganizationForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {t('name')}
-        </label>
-        <input
+      <FormField label={t('name')} htmlFor="name" error={errors.name?.message}>
+        <Input
           id="name"
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/30 dark:border-gray-600 dark:bg-gray-900"
+          invalid={!!errors.name}
           {...register('name', {
             onChange: (e) => {
               if (!slugTouched) setValue('slug', slugify(e.target.value));
             },
           })}
         />
-        {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="slug" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {t('slug')}
-        </label>
-        <input
-          id="slug"
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/30 dark:border-gray-600 dark:bg-gray-900"
-          {...register('slug', { onChange: () => setSlugTouched(true) })}
-        />
-        <p className="text-xs text-gray-400">{t('slugHint')}</p>
-        {errors.slug && <p className="text-sm text-red-600">{errors.slug.message}</p>}
-      </div>
+      <FormField label={t('slug')} htmlFor="slug" hint={t('slugHint')} error={errors.slug?.message}>
+        <Input id="slug" invalid={!!errors.slug} {...register('slug', { onChange: () => setSlugTouched(true) })} />
+      </FormField>
 
       {createOrganization.isError && (
-        <p className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {createOrganization.error instanceof ApiError ? createOrganization.error.message : 'Có lỗi xảy ra'}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={createOrganization.isPending || !name}
-        className="mt-2 rounded-md bg-yellow-500 px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-yellow-400 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={createOrganization.isPending || !name} className="mt-2">
         {t('submit')}
-      </button>
+      </Button>
     </form>
   );
 }

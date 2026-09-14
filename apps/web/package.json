@@ -13,6 +13,7 @@
   "dependencies": {
     "@pmtool/api-client": "workspace:*",
     "@pmtool/shared-types": "workspace:*",
+    "@pmtool/ui": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
     "@tanstack/react-query": "^5.62.7",
     "class-variance-authority": "^0.7.1",

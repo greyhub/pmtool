@@ -2,11 +2,24 @@
 
 import { useEffect } from 'react';
 import { useOrganization } from '@pmtool/api-client';
+import { Sidebar, ThemeSwitcher, TopBar } from '@pmtool/ui';
 import { RequireAuth } from '../auth/require-auth';
-import { useRouter } from '../../i18n/navigation';
+import { OrgSwitcherWidget } from '../shell/org-switcher-widget';
+import { LocaleSwitcherWidget } from '../shell/locale-switcher-widget';
+import { UserMenu } from '../shell/user-menu';
+import { Link, useRouter, usePathname } from '../../i18n/navigation';
+
+function SidebarLink({ href, className, children }: { href: string; className?: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
 
 function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const org = useOrganization(orgSlug);
 
   useEffect(() => {
@@ -19,12 +32,26 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
     return null;
   }
 
+  const sidebarItems = [{ href: `/${orgSlug}/dashboard`, label: 'Dashboard' }];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <header className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900">
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-50">{org.data.name}</span>
-      </header>
-      <main className="p-6">{children}</main>
+    <div className="flex min-h-screen bg-canvas">
+      <aside className="hidden w-56 shrink-0 border-r border-line bg-surface p-4 md:block">
+        <Sidebar items={sidebarItems} activeHref={pathname} LinkComponent={SidebarLink} />
+      </aside>
+      <div className="flex min-h-screen flex-1 flex-col">
+        <TopBar
+          left={<OrgSwitcherWidget current={org.data} />}
+          right={
+            <>
+              <LocaleSwitcherWidget />
+              <ThemeSwitcher />
+              <UserMenu />
+            </>
+          }
+        />
+        <main className="flex-1 p-6">{children}</main>
+      </div>
     </div>
   );
 }

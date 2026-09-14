@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { ThemeProvider } from '@pmtool/ui';
 import { locales, AppLocale } from '../../i18n/locales';
 import { QueryProvider } from '../../providers/query-provider';
-import { ThemeProvider } from '../../providers/theme-provider';
 import '../globals.css';
 
 export const metadata: Metadata = {
