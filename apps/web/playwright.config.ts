@@ -3,15 +3,17 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Assumes the API (with Postgres/Redis via `infra/docker-compose.yml`) is
  * already running on :3001 — matching this project's established local dev
- * workflow. `webServer` only manages the Next.js dev server; wiring a full
- * docker-composed stack for CI is Milestone J's job.
+ * workflow. `webServer` only manages the Next.js server: locally it starts
+ * the dev server on demand; in CI (`.github/workflows/ci.yml`) the `e2e` job
+ * starts a production server itself before this ever runs, and
+ * `reuseExistingServer` means that one is reused rather than started twice.
  */
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   workers: 1,
-  retries: 0,
-  reporter: [['list']],
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',
