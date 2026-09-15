@@ -71,7 +71,8 @@
     },
     "tabs": {
       "tasks": "Công việc",
-      "board": "Bảng"
+      "board": "Bảng",
+      "gantt": "Tiến độ"
     }
   },
   "board": {

@@ -71,7 +71,8 @@
     },
     "tabs": {
       "tasks": "Tasks",
-      "board": "Board"
+      "board": "Board",
+      "gantt": "Timeline"
     }
   },
   "board": {

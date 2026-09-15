@@ -1,0 +1,20 @@
+/* Recolors @svar-ui/react-gantt's default blue skin to the PMTool yellow accent, using the CSS variables its Willow/WillowDark themes expose. */
+.wx-willow-theme {
+  --wx-gantt-task-color: #f59e0b;
+  --wx-gantt-task-fill-color: #f59e0b;
+  --wx-gantt-task-border-color: #d97706;
+  --wx-gantt-task-font-color: #111827;
+  --wx-gantt-summary-color: #d97706;
+  --wx-gantt-summary-fill-color: #d97706;
+  --wx-gantt-milestone-color: #b45309;
+}
+
+.wx-willow-dark-theme {
+  --wx-gantt-task-color: #fbbf24;
+  --wx-gantt-task-fill-color: #fbbf24;
+  --wx-gantt-task-border-color: #f59e0b;
+  --wx-gantt-task-font-color: #111827;
+  --wx-gantt-summary-color: #f59e0b;
+  --wx-gantt-summary-fill-color: #f59e0b;
+  --wx-gantt-milestone-color: #fbbf24;
+}

@@ -67,6 +67,19 @@ export function useUpdateTask(orgSlug: string | undefined, projectKey: string | 
   });
 }
 
+/** Like useUpdateTask, but takes the taskId per-call instead of fixing it at hook creation — for lists (e.g. the Gantt) where any row can be the target. */
+export function useUpdateTaskById(orgSlug: string | undefined, projectKey: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, input }: { taskId: string; input: UpdateTaskInput }) =>
+      apiRequest<TaskDto>(`${base(orgSlug!, projectKey!)}/tasks/${taskId}`, { method: 'PATCH', body: input }),
+    onSuccess: (task) => {
+      queryClient.setQueryData(taskKeys.detail(orgSlug ?? '', projectKey ?? '', task.id), task);
+      invalidateProjectTasks(queryClient, orgSlug ?? '', projectKey ?? '');
+    },
+  });
+}
+
 /** Optimistically applies the move to the cached task list so a Kanban drag feels instant, rolling back on failure. */
 export function useMoveTask(orgSlug: string | undefined, projectKey: string | undefined) {
   const queryClient = useQueryClient();

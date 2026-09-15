@@ -21,3 +21,5 @@ export * from './components/Nav/TopBar';
 export * from './components/Kanban/KanbanBoard';
 export * from './components/Kanban/KanbanColumn';
 export * from './components/Kanban/KanbanCard';
+
+export * from './components/Gantt/GanttChart';
