@@ -8,6 +8,11 @@
     "continue": "Tiếp tục",
     "or": "hoặc"
   },
+  "landing": {
+    "tagline": "Ứng dụng quản lý dự án chuẩn PMP — kết hợp gamification và AI.",
+    "login": "Đăng nhập",
+    "register": "Đăng ký"
+  },
   "auth": {
     "login": {
       "title": "Đăng nhập",

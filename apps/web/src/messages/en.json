@@ -8,6 +8,11 @@
     "continue": "Continue",
     "or": "or"
   },
+  "landing": {
+    "tagline": "PMP-standard project management — with gamification and AI built in.",
+    "login": "Sign in",
+    "register": "Sign up"
+  },
   "auth": {
     "login": {
       "title": "Sign in",
