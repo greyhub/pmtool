@@ -3,8 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
-import { loginSchema, LoginInput } from '@pmtool/shared-types';
-import { useLogin, ApiError } from '@pmtool/api-client';
+import { loginSchema, LoginInput, OrganizationDto } from '@pmtool/shared-types';
+import { useLogin, ApiError, apiRequest } from '@pmtool/api-client';
 import { Button, FormField, Input } from '@pmtool/ui';
 import { useRouter } from '../../i18n/navigation';
 
@@ -20,7 +20,18 @@ export function LoginForm() {
 
   const onSubmit = handleSubmit((data) => {
     login.mutate(data, {
-      onSuccess: () => router.push('/onboarding/create-organization'),
+      onSuccess: async () => {
+        // An account can already belong to organizations — only send them
+        // to onboarding when they genuinely have none yet.
+        const organizations = await apiRequest<OrganizationDto[]>('/api/v1/organizations').catch(
+          () => [] as OrganizationDto[],
+        );
+        if (organizations.length > 0) {
+          router.push(`/${organizations[0]!.slug}/dashboard`);
+        } else {
+          router.push('/onboarding/create-organization');
+        }
+      },
     });
   });
 
