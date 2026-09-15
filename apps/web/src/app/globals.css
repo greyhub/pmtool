@@ -7,8 +7,11 @@
 
 body {
   background-color: var(--color-bg);
+  background-image: var(--gradient-canvas);
+  background-attachment: fixed;
   color: var(--color-text-primary);
   font-family: theme('fontFamily.sans');
+  min-height: 100vh;
 }
 
 @layer utilities {

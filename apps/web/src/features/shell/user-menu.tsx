@@ -36,9 +36,12 @@ export function UserMenu() {
       </button>
 
       {open && (
-        <div role="menu" className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-line bg-surface py-1 shadow-lg">
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-line-glass bg-surface-glass-strong py-1 shadow-xl shadow-black/10 backdrop-blur-2xl"
+        >
           <div className="px-3 py-2 text-sm text-ink-secondary">{user.email}</div>
-          <div className="my-1 border-t border-line" />
+          <div className="my-1 border-t border-line-glass" />
           <button
             type="button"
             role="menuitem"

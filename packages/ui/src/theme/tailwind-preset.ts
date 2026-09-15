@@ -21,10 +21,13 @@ const preset: Config = {
         surface: {
           DEFAULT: 'var(--color-surface)',
           subtle: 'var(--color-surface-subtle)',
+          glass: 'var(--color-surface-glass)',
+          'glass-strong': 'var(--color-surface-glass-strong)',
         },
         line: {
           DEFAULT: 'var(--color-border-default)',
           strong: 'var(--color-border-strong)',
+          glass: 'var(--color-border-glass)',
         },
         ink: {
           primary: 'var(--color-text-primary)',
@@ -53,6 +56,9 @@ const preset: Config = {
         md: '8px',
         lg: '12px',
         xl: '16px',
+      },
+      backgroundImage: {
+        canvas: 'var(--gradient-canvas)',
       },
     },
   },

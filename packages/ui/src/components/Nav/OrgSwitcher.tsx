@@ -49,7 +49,7 @@ export function OrgSwitcher({ current, options, onSelect, onCreateNew, createNew
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-20 mt-1 w-56 rounded-md border border-line bg-surface py-1 shadow-lg"
+          className="absolute left-0 top-full z-20 mt-1 w-56 rounded-md border border-line-glass bg-surface-glass-strong py-1 shadow-xl shadow-black/10 backdrop-blur-2xl"
         >
           {options.map((org) => (
             <button
@@ -71,7 +71,7 @@ export function OrgSwitcher({ current, options, onSelect, onCreateNew, createNew
           ))}
           {onCreateNew && (
             <>
-              <div className="my-1 border-t border-line" />
+              <div className="my-1 border-t border-line-glass" />
               <button
                 type="button"
                 onClick={() => {

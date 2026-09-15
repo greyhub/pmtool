@@ -35,8 +35,8 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
   const sidebarItems = [{ href: `/${orgSlug}/dashboard`, label: 'Dashboard' }];
 
   return (
-    <div className="flex min-h-screen bg-canvas">
-      <aside className="hidden w-56 shrink-0 border-r border-line bg-surface p-4 md:block">
+    <div className="flex min-h-screen">
+      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 border-r border-line-glass bg-surface-glass p-4 backdrop-blur-xl md:block">
         <Sidebar items={sidebarItems} activeHref={pathname} LinkComponent={SidebarLink} />
       </aside>
       <div className="flex min-h-screen flex-1 flex-col">

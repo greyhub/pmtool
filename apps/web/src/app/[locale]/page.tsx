@@ -6,7 +6,7 @@ export default function LandingPage() {
   const tLanding = useTranslations('landing');
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-canvas px-4 text-center">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 text-center">
       <h1 className="text-3xl font-bold text-ink-primary">{t('appName')}</h1>
       <p className="max-w-md text-ink-secondary">{tLanding('tagline')}</p>
       <div className="flex gap-3">
