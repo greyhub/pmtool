@@ -4,9 +4,19 @@ import { getRequestContext } from '../common/context/request-context';
 /**
  * Models that carry an `organizationId` column and must never be read or
  * written without that scope. Extend this set as new tenant-owned models
- * are added (Project, Task, RiskIssue, ActivityLog, ...).
+ * are added (RiskIssue, ActivityLog, ...).
  */
-const TENANT_SCOPED_MODELS = new Set(['Membership', 'MembershipInvite']);
+const TENANT_SCOPED_MODELS = new Set([
+  'Membership',
+  'MembershipInvite',
+  'Project',
+  'ProjectMember',
+  'Task',
+  'TaskAssignee',
+  'TaskDependency',
+  'BoardColumn',
+  'Comment',
+]);
 
 const FILTERABLE_READ_OPS = new Set([
   'findMany',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useOrganization } from '@pmtool/api-client';
 import { Sidebar, ThemeSwitcher, TopBar } from '@pmtool/ui';
 import { RequireAuth } from '../auth/require-auth';
@@ -21,6 +22,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
   const router = useRouter();
   const pathname = usePathname();
   const org = useOrganization(orgSlug);
+  const tNav = useTranslations('nav');
 
   useEffect(() => {
     if (org.isError) {
@@ -32,7 +34,10 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
     return null;
   }
 
-  const sidebarItems = [{ href: `/${orgSlug}/dashboard`, label: 'Dashboard' }];
+  const sidebarItems = [
+    { href: `/${orgSlug}/dashboard`, label: 'Dashboard' },
+    { href: `/${orgSlug}/projects`, label: tNav('projects') },
+  ];
 
   return (
     <div className="flex min-h-screen">

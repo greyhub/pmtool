@@ -43,5 +43,81 @@
       "slugHint": "Lowercase letters, numbers and hyphens only, e.g. acme-corp",
       "submit": "Create organization"
     }
+  },
+  "nav": {
+    "projects": "Projects"
+  },
+  "projects": {
+    "list": {
+      "title": "Projects",
+      "subtitle": "Projects in this organization",
+      "create": "New project",
+      "empty": "No projects yet. Create your first one to get started."
+    },
+    "create": {
+      "title": "Create a new project",
+      "key": "Project key",
+      "keyHint": "Uppercase letters and digits, e.g. PMT — used as the prefix for task keys",
+      "name": "Project name",
+      "description": "Description",
+      "submit": "Create project"
+    },
+    "status": {
+      "PLANNING": "Planning",
+      "ACTIVE": "Active",
+      "ON_HOLD": "On hold",
+      "COMPLETED": "Completed",
+      "ARCHIVED": "Archived"
+    },
+    "tabs": {
+      "tasks": "Tasks"
+    }
+  },
+  "tasks": {
+    "list": {
+      "title": "Tasks",
+      "create": "Add task",
+      "addSubtask": "Add subtask",
+      "empty": "No tasks yet."
+    },
+    "create": {
+      "title": "Create a new task",
+      "titleLabel": "Title",
+      "submit": "Create task"
+    },
+    "status": {
+      "TODO": "To do",
+      "IN_PROGRESS": "In progress",
+      "IN_REVIEW": "In review",
+      "DONE": "Done",
+      "BLOCKED": "Blocked"
+    },
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "detail": {
+      "backToList": "Back to list",
+      "description": "Description",
+      "descriptionPlaceholder": "Add a detailed description for this task...",
+      "status": "Status",
+      "priority": "Priority",
+      "assignees": "Assignees",
+      "noAssignees": "No assignees yet",
+      "subtasks": "Subtasks",
+      "comments": "Comments",
+      "addComment": "Write a comment...",
+      "sendComment": "Send",
+      "noComments": "No comments yet.",
+      "dependencies": "Dependencies",
+      "predecessors": "Must be done before this",
+      "successors": "Depend on this task",
+      "addDependency": "Add dependency",
+      "delete": "Delete task",
+      "deleteConfirmTitle": "Delete this task?",
+      "deleteConfirmDescription": "Its subtasks will be deleted too. This action cannot be undone."
+    }
   }
 }

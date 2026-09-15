@@ -1,0 +1,38 @@
+import { Task, TaskAssignee, User } from '@prisma/client';
+import { TaskDto } from '@pmtool/shared-types';
+import { fromRichText } from './rich-text.util';
+
+type TaskWithRelations = Task & {
+  assignees?: (TaskAssignee & {
+    user: Pick<User, 'id' | 'fullName' | 'avatarUrl'>;
+  })[];
+  _count?: { subtasks: number };
+};
+
+export function toTaskDto(task: TaskWithRelations): TaskDto {
+  return {
+    id: task.id,
+    organizationId: task.organizationId,
+    projectId: task.projectId,
+    humanKey: task.humanKey,
+    parentTaskId: task.parentTaskId,
+    title: task.title,
+    description: fromRichText(task.description),
+    status: task.status,
+    priority: task.priority,
+    startDate: task.startDate?.toISOString() ?? null,
+    dueDate: task.dueDate?.toISOString() ?? null,
+    estimateHours: task.estimateHours,
+    orderIndex: task.orderIndex,
+    boardColumnId: task.boardColumnId,
+    createdById: task.createdById,
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString(),
+    assignees: (task.assignees ?? []).map((a) => ({
+      id: a.user.id,
+      fullName: a.user.fullName,
+      avatarUrl: a.user.avatarUrl,
+    })),
+    subtaskCount: task._count?.subtasks,
+  };
+}

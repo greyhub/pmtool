@@ -30,6 +30,7 @@ export function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label={`Menu tài khoản (${user.fullName})`}
         className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <Avatar name={user.fullName} src={user.avatarUrl} size="sm" />

@@ -43,5 +43,81 @@
       "slugHint": "Chỉ gồm chữ thường, số và dấu gạch ngang, ví dụ: cong-ty-abc",
       "submit": "Tạo tổ chức"
     }
+  },
+  "nav": {
+    "projects": "Dự án"
+  },
+  "projects": {
+    "list": {
+      "title": "Dự án",
+      "subtitle": "Danh sách các dự án trong tổ chức",
+      "create": "Tạo dự án",
+      "empty": "Chưa có dự án nào. Tạo dự án đầu tiên để bắt đầu."
+    },
+    "create": {
+      "title": "Tạo dự án mới",
+      "key": "Mã dự án",
+      "keyHint": "Chữ hoa và số, ví dụ: PMT — dùng làm tiền tố cho mã công việc",
+      "name": "Tên dự án",
+      "description": "Mô tả",
+      "submit": "Tạo dự án"
+    },
+    "status": {
+      "PLANNING": "Lên kế hoạch",
+      "ACTIVE": "Đang triển khai",
+      "ON_HOLD": "Tạm dừng",
+      "COMPLETED": "Hoàn thành",
+      "ARCHIVED": "Lưu trữ"
+    },
+    "tabs": {
+      "tasks": "Công việc"
+    }
+  },
+  "tasks": {
+    "list": {
+      "title": "Công việc",
+      "create": "Thêm công việc",
+      "addSubtask": "Thêm công việc con",
+      "empty": "Chưa có công việc nào."
+    },
+    "create": {
+      "title": "Tạo công việc mới",
+      "titleLabel": "Tiêu đề",
+      "submit": "Tạo công việc"
+    },
+    "status": {
+      "TODO": "Cần làm",
+      "IN_PROGRESS": "Đang làm",
+      "IN_REVIEW": "Đang xem xét",
+      "DONE": "Hoàn thành",
+      "BLOCKED": "Bị chặn"
+    },
+    "priority": {
+      "LOW": "Thấp",
+      "MEDIUM": "Trung bình",
+      "HIGH": "Cao",
+      "CRITICAL": "Khẩn cấp"
+    },
+    "detail": {
+      "backToList": "Quay lại danh sách",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Thêm mô tả chi tiết cho công việc này...",
+      "status": "Trạng thái",
+      "priority": "Độ ưu tiên",
+      "assignees": "Người phụ trách",
+      "noAssignees": "Chưa có người phụ trách",
+      "subtasks": "Công việc con",
+      "comments": "Bình luận",
+      "addComment": "Viết bình luận...",
+      "sendComment": "Gửi",
+      "noComments": "Chưa có bình luận nào.",
+      "dependencies": "Phụ thuộc",
+      "predecessors": "Phải hoàn thành trước",
+      "successors": "Các công việc phụ thuộc vào công việc này",
+      "addDependency": "Thêm phụ thuộc",
+      "delete": "Xoá công việc",
+      "deleteConfirmTitle": "Xoá công việc này?",
+      "deleteConfirmDescription": "Mọi công việc con bên trong cũng sẽ bị xoá. Hành động này không thể hoàn tác."
+    }
   }
 }

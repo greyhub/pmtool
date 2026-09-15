@@ -25,7 +25,7 @@ export function Sidebar({ items, activeHref, LinkComponent, className }: Sidebar
   return (
     <nav aria-label="Điều hướng chính" className={cn('flex flex-col gap-1', className)}>
       {items.map((item) => {
-        const active = item.href === activeHref;
+        const active = activeHref === item.href || activeHref.startsWith(`${item.href}/`);
         return (
           <LinkTag
             key={item.href}

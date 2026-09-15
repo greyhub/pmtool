@@ -26,8 +26,11 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  memberships   Membership[]
-  refreshTokens RefreshToken[]
+  memberships     Membership[]
+  refreshTokens   RefreshToken[]
+  projectMembers  ProjectMember[]
+  taskAssignments TaskAssignee[]
+  comments        Comment[]
 
   @@map("users")
 }
@@ -39,8 +42,15 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships Membership[]
-  invites     MembershipInvite[]
+  memberships      Membership[]
+  invites          MembershipInvite[]
+  projects         Project[]
+  projectMembers   ProjectMember[]
+  tasks            Task[]
+  taskAssignees    TaskAssignee[]
+  taskDependencies TaskDependency[]
+  boardColumns     BoardColumn[]
+  comments         Comment[]
 
   @@map("organizations")
 }
@@ -92,4 +102,181 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  organizationId String
+  key            String // short project code, e.g. "PMT" — used in task human keys "PMT-123"
+  name           String
+  description    String?
+  status         ProjectStatus @default(PLANNING)
+  startDate      DateTime?
+  targetEndDate  DateTime?
+  taskSequence   Int           @default(0) // monotonically incremented to mint Task.humanKey
+  createdById    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      ProjectMember[]
+  tasks        Task[]
+  boardColumns BoardColumn[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  userId         String
+  role           OrgRole
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([organizationId])
+  @@map("project_members")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Task {
+  id             String        @id @default(cuid())
+  organizationId String // denormalized for the tenant-scoping Prisma extension + fast index
+  projectId      String
+  humanKey       String // e.g. "PMT-123", minted from Project.key + Project.taskSequence
+  parentTaskId   String? // self-relation -> WBS hierarchy (subtasks)
+  title          String
+  description    Json? // structured rich-text doc, not a plain string — AI features can parse it later without a migration
+  status         TaskStatus    @default(TODO)
+  priority       TaskPriority  @default(MEDIUM)
+  startDate      DateTime?
+  dueDate        DateTime?
+  estimateHours  Float?
+  orderIndex     Float // fractional index for drag-reorder within a WBS level/board column
+  boardColumnId  String?
+  createdById    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent       Task?            @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks     Task[]           @relation("TaskHierarchy")
+  boardColumn  BoardColumn?     @relation(fields: [boardColumnId], references: [id])
+  assignees    TaskAssignee[]
+  comments     Comment[]
+
+  dependenciesAsPredecessor TaskDependency[] @relation("PredecessorTask")
+  dependenciesAsSuccessor   TaskDependency[] @relation("SuccessorTask")
+
+  @@unique([projectId, humanKey])
+  @@index([organizationId])
+  @@index([projectId, status])
+  @@index([parentTaskId])
+  @@map("tasks")
+}
+
+model TaskAssignee {
+  organizationId String
+  taskId         String
+  userId         String
+  assignedAt     DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+  @@index([organizationId])
+  @@map("task_assignees")
+}
+
+enum DependencyType {
+  FINISH_TO_START
+  START_TO_START
+  FINISH_TO_FINISH
+  START_TO_FINISH
+}
+
+model TaskDependency {
+  id             String         @id @default(cuid())
+  organizationId String
+  predecessorId  String
+  successorId    String
+  type           DependencyType @default(FINISH_TO_START)
+  lagDays        Int            @default(0)
+  createdAt      DateTime       @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  predecessor  Task         @relation("PredecessorTask", fields: [predecessorId], references: [id], onDelete: Cascade)
+  successor    Task         @relation("SuccessorTask", fields: [successorId], references: [id], onDelete: Cascade)
+
+  @@unique([predecessorId, successorId])
+  @@index([organizationId])
+  @@map("task_dependencies")
+}
+
+model BoardColumn {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  name           String
+  orderIndex     Float
+  wipLimit       Int?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks        Task[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("board_columns")
+}
+
+model Comment {
+  id             String    @id @default(cuid())
+  organizationId String
+  taskId         String
+  authorId       String
+  body           Json // structured rich-text doc, same rationale as Task.description
+  createdAt      DateTime  @default(now())
+  editedAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author       User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([taskId])
+  @@map("comments")
 }

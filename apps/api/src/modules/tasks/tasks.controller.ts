@@ -1,0 +1,178 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Project } from '@prisma/client';
+import {
+  CommentDto,
+  CreateCommentInput,
+  createCommentSchema,
+  CreateTaskInput,
+  createTaskSchema,
+  MoveTaskInput,
+  moveTaskSchema,
+  TaskDto,
+  UpdateTaskInput,
+  updateTaskSchema,
+} from '@pmtool/shared-types';
+import { TasksService } from './tasks.service';
+import { CommentsService } from './comments.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { ProjectGuard } from '../../common/guards/project.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import {
+  CurrentOrg,
+  CurrentOrgContext,
+} from '../../common/decorators/current-org.decorator';
+import { CurrentProject } from '../../common/decorators/current-project.decorator';
+import { toTaskDto } from './task.mapper';
+import { toCommentDto } from './comment.mapper';
+
+const CAN_EDIT_TASKS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
+
+@ApiTags('tasks')
+@Controller({
+  path: 'organizations/:orgSlug/projects/:projectKey/tasks',
+  version: '1',
+})
+@UseGuards(OrgMembershipGuard, ProjectGuard)
+export class TasksController {
+  constructor(
+    private readonly tasksService: TasksService,
+    private readonly commentsService: CommentsService,
+  ) {}
+
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles(...CAN_EDIT_TASKS)
+  async create(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentProject() project: Project,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(createTaskSchema)) body: CreateTaskInput,
+  ): Promise<{ data: TaskDto }> {
+    const task = await this.tasksService.create(
+      ctx.organization.id,
+      project.id,
+      user.id,
+      body,
+    );
+    return { data: toTaskDto(task) };
+  }
+
+  @Get()
+  async list(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentProject() project: Project,
+    @Query('parentTaskId') parentTaskId?: string,
+    @Query('root') root?: string,
+  ): Promise<{ data: TaskDto[] }> {
+    const parent = root === 'true' ? null : parentTaskId;
+    const tasks = await this.tasksService.list(
+      ctx.organization.id,
+      project.id,
+      parent,
+    );
+    return { data: tasks.map(toTaskDto) };
+  }
+
+  @Get(':taskId')
+  async getOne(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+  ): Promise<{ data: TaskDto }> {
+    const task = await this.tasksService.findByIdOrThrow(
+      ctx.organization.id,
+      taskId,
+    );
+    return { data: toTaskDto(task) };
+  }
+
+  @Patch(':taskId')
+  @UseGuards(RolesGuard)
+  @Roles(...CAN_EDIT_TASKS)
+  async update(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+    @Body(new ZodValidationPipe(updateTaskSchema)) body: UpdateTaskInput,
+  ): Promise<{ data: TaskDto }> {
+    const task = await this.tasksService.update(
+      ctx.organization.id,
+      taskId,
+      body,
+    );
+    return { data: toTaskDto(task) };
+  }
+
+  @Patch(':taskId/move')
+  @UseGuards(RolesGuard)
+  @Roles(...CAN_EDIT_TASKS)
+  async move(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+    @Body(new ZodValidationPipe(moveTaskSchema)) body: MoveTaskInput,
+  ): Promise<{ data: TaskDto }> {
+    const task = await this.tasksService.move(
+      ctx.organization.id,
+      taskId,
+      body,
+    );
+    const withRelations = await this.tasksService.findByIdOrThrow(
+      ctx.organization.id,
+      task.id,
+    );
+    return { data: toTaskDto(withRelations) };
+  }
+
+  @Delete(':taskId')
+  @UseGuards(RolesGuard)
+  @Roles(...CAN_EDIT_TASKS)
+  async remove(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+  ): Promise<void> {
+    await this.tasksService.remove(ctx.organization.id, taskId);
+  }
+
+  @Get(':taskId/comments')
+  async listComments(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+  ): Promise<{ data: CommentDto[] }> {
+    const comments = await this.commentsService.list(
+      ctx.organization.id,
+      taskId,
+    );
+    return { data: comments.map(toCommentDto) };
+  }
+
+  @Post(':taskId/comments')
+  @UseGuards(RolesGuard)
+  @Roles(...CAN_EDIT_TASKS)
+  async createComment(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(createCommentSchema)) body: CreateCommentInput,
+  ): Promise<{ data: CommentDto }> {
+    const comment = await this.commentsService.create(
+      ctx.organization.id,
+      taskId,
+      user.id,
+      body,
+    );
+    return { data: toCommentDto(comment) };
+  }
+}
