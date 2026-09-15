@@ -32,6 +32,7 @@ model User {
   taskAssignments   TaskAssignee[]
   comments          Comment[]
   ownedRiskIssues   RiskIssue[]
+  activityLogs      ActivityLog[]
 
   @@map("users")
 }
@@ -53,6 +54,7 @@ model Organization {
   boardColumns     BoardColumn[]
   comments         Comment[]
   riskIssues       RiskIssue[]
+  activityLogs     ActivityLog[]
 
   @@map("organizations")
 }
@@ -321,4 +323,24 @@ model RiskIssue {
   @@index([organizationId])
   @@index([projectId, status])
   @@map("risk_issues")
+}
+
+/// Append-only event stream (actor, entity, action, metadata) written by
+/// AuditLogInterceptor after task/project/risk/comment mutations. Phase 1
+/// only surfaces it as a dashboard feed; Phase 2 gamification/AI reads it too.
+model ActivityLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorId        String
+  entityType     String
+  entityId       String
+  action         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User         @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("activity_logs")
 }

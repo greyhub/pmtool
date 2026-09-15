@@ -25,6 +25,7 @@ import {
 } from '@pmtool/shared-types';
 import { TasksService } from './tasks.service';
 import { CommentsService } from './comments.service';
+import { LogActivity } from '../../common/decorators/log-activity.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
@@ -57,6 +58,7 @@ export class TasksController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_TASKS)
+  @LogActivity('Task', 'created')
   async create(
     @CurrentOrg() ctx: CurrentOrgContext,
     @CurrentProject() project: Project,
@@ -103,6 +105,7 @@ export class TasksController {
   @Patch(':taskId')
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_TASKS)
+  @LogActivity('Task', 'updated')
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -119,6 +122,7 @@ export class TasksController {
   @Patch(':taskId/move')
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_TASKS)
+  @LogActivity('Task', 'moved')
   async move(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -139,6 +143,7 @@ export class TasksController {
   @Delete(':taskId')
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_TASKS)
+  @LogActivity('Task', 'deleted', 'taskId')
   async remove(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -161,6 +166,7 @@ export class TasksController {
   @Post(':taskId/comments')
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_TASKS)
+  @LogActivity('Comment', 'created')
   async createComment(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,

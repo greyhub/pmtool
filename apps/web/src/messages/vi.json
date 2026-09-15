@@ -167,6 +167,24 @@
       "CLOSED": "Đã đóng"
     }
   },
+  "activity": {
+    "feed": {
+      "title": "Hoạt động gần đây",
+      "empty": "Chưa có hoạt động nào."
+    },
+    "entity": {
+      "Project": "dự án",
+      "Task": "công việc",
+      "RiskIssue": "rủi ro/vấn đề",
+      "Comment": "bình luận"
+    },
+    "action": {
+      "created": "đã tạo",
+      "updated": "đã cập nhật",
+      "moved": "đã di chuyển",
+      "deleted": "đã xóa"
+    }
+  },
   "dashboard": {
     "org": {
       "title": "Tổng quan tổ chức",

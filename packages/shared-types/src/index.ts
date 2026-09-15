@@ -7,3 +7,4 @@ export * from './tasks/schemas';
 export * from './boards/schemas';
 export * from './risks/schemas';
 export * from './dashboard/schemas';
+export * from './activity/schemas';

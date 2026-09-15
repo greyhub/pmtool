@@ -16,6 +16,7 @@ import {
   updateProjectSchema,
 } from '@pmtool/shared-types';
 import { ProjectsService } from './projects.service';
+import { LogActivity } from '../../common/decorators/log-activity.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
@@ -37,6 +38,7 @@ export class ProjectsController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'ADMIN', 'PM')
+  @LogActivity('Project', 'created')
   async create(
     @CurrentOrg() ctx: CurrentOrgContext,
     @CurrentUser() user: AuthenticatedUser,
@@ -73,6 +75,7 @@ export class ProjectsController {
   @Patch(':projectKey')
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'ADMIN', 'PM')
+  @LogActivity('Project', 'updated')
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('projectKey') projectKey: string,

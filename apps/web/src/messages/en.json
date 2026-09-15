@@ -167,6 +167,24 @@
       "CLOSED": "Closed"
     }
   },
+  "activity": {
+    "feed": {
+      "title": "Recent activity",
+      "empty": "No activity yet."
+    },
+    "entity": {
+      "Project": "project",
+      "Task": "task",
+      "RiskIssue": "risk/issue",
+      "Comment": "comment"
+    },
+    "action": {
+      "created": "created",
+      "updated": "updated",
+      "moved": "moved",
+      "deleted": "deleted"
+    }
+  },
   "dashboard": {
     "org": {
       "title": "Organization dashboard",

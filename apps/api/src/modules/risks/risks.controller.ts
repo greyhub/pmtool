@@ -18,6 +18,7 @@ import {
   updateRiskIssueSchema,
 } from '@pmtool/shared-types';
 import { RisksService } from './risks.service';
+import { LogActivity } from '../../common/decorators/log-activity.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
@@ -55,6 +56,7 @@ export class RisksController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_RISKS)
+  @LogActivity('RiskIssue', 'created')
   async create(
     @CurrentOrg() ctx: CurrentOrgContext,
     @CurrentProject() project: Project,
@@ -74,6 +76,7 @@ export class RisksController {
   @Patch(':riskId')
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_RISKS)
+  @LogActivity('RiskIssue', 'updated')
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('riskId') riskId: string,
@@ -91,6 +94,7 @@ export class RisksController {
   @Delete(':riskId')
   @UseGuards(RolesGuard)
   @Roles(...CAN_EDIT_RISKS)
+  @LogActivity('RiskIssue', 'deleted', 'riskId')
   async remove(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('riskId') riskId: string,

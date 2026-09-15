@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@pmtool/ui';
 import { Link } from '../../i18n/navigation';
 import { StatCard } from './stat-card';
 import { StatusBreakdown } from './status-breakdown';
+import { ActivityFeed } from './activity-feed';
 
 export function OrgDashboard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('dashboard.org');
@@ -73,6 +74,8 @@ export function OrgDashboard({ orgSlug }: { orgSlug: string }) {
           )}
         </CardContent>
       </Card>
+
+      <ActivityFeed orgSlug={orgSlug} />
     </div>
   );
 }

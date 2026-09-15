@@ -17,6 +17,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'BoardColumn',
   'Comment',
   'RiskIssue',
+  'ActivityLog',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([
