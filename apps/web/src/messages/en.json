@@ -70,8 +70,14 @@
       "ARCHIVED": "Archived"
     },
     "tabs": {
-      "tasks": "Tasks"
+      "tasks": "Tasks",
+      "board": "Board"
     }
+  },
+  "board": {
+    "unassigned": "Unassigned",
+    "addColumn": "Add column",
+    "newColumnName": "New column name"
   },
   "tasks": {
     "list": {

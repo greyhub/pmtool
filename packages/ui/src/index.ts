@@ -17,3 +17,7 @@ export * from './components/Nav/LocaleSwitcher';
 export * from './components/Nav/OrgSwitcher';
 export * from './components/Nav/Sidebar';
 export * from './components/Nav/TopBar';
+
+export * from './components/Kanban/KanbanBoard';
+export * from './components/Kanban/KanbanColumn';
+export * from './components/Kanban/KanbanCard';

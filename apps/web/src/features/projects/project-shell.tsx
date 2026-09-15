@@ -27,7 +27,10 @@ export function ProjectShell({
   const tTabs = useTranslations('projects.tabs');
   const pathname = usePathname();
 
-  const tabs = [{ href: `/${orgSlug}/projects/${projectKey}/tasks`, label: tTabs('tasks') }];
+  const tabs = [
+    { href: `/${orgSlug}/projects/${projectKey}/tasks`, label: tTabs('tasks') },
+    { href: `/${orgSlug}/projects/${projectKey}/board`, label: tTabs('board') },
+  ];
 
   return (
     <div>

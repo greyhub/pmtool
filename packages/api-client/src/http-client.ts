@@ -56,6 +56,26 @@ async function rawRequest<T>(path: string, options: RequestOptions): Promise<T> 
   return (json as ApiSuccess<T>).data;
 }
 
+// The refresh endpoint rotates the httpOnly refresh cookie on every call: the
+// old token is marked revoked and reusing it is treated as a compromise
+// signal that revokes every session. On reload, several queries mount at
+// once, all missing an access token, all hitting this same 401-retry path —
+// without deduplication each would fire its own /auth/refresh, and every
+// call after the first would reuse an already-rotated cookie and lock the
+// user out. Single-flighting via one shared in-progress promise ensures a
+// concurrent burst performs exactly one refresh.
+let refreshInFlight: Promise<AuthTokens> | null = null;
+
+/** Exchanges the httpOnly refresh cookie for a new access token. Exported so every caller (bootstrap, the 401-retry path) shares one in-flight request. */
+export function refreshSession(): Promise<AuthTokens> {
+  if (!refreshInFlight) {
+    refreshInFlight = rawRequest<AuthTokens>('/api/v1/auth/refresh', { method: 'POST' }).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   try {
     return await rawRequest<T>(path, options);
@@ -63,7 +83,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     const isRefreshEndpoint = path === '/api/v1/auth/refresh';
     if (err instanceof ApiError && err.status === 401 && !options.skipAuthRetry && !isRefreshEndpoint) {
       try {
-        const refreshed = await rawRequest<AuthTokens>('/api/v1/auth/refresh', { method: 'POST' });
+        const refreshed = await refreshSession();
         setAccessToken(refreshed.accessToken);
         return await rawRequest<T>(path, { ...options, skipAuthRetry: true });
       } catch {

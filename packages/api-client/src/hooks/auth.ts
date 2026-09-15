@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import type { AuthTokens, LoginInput, RegisterInput, UpdateUserPreferencesInput, UserDto } from '@pmtool/shared-types';
-import { apiRequest } from '../http-client';
+import { apiRequest, refreshSession } from '../http-client';
 import { setAccessToken } from '../access-token-store';
 
 export const authKeys = {
@@ -49,7 +49,7 @@ export function useLogout() {
 export function useBootstrapSession() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => apiRequest<AuthTokens>('/api/v1/auth/refresh', { method: 'POST' }),
+    mutationFn: () => refreshSession(),
     onSuccess: async (tokens) => {
       await afterAuth(tokens);
       queryClient.setQueryData(authKeys.me, tokens.user);

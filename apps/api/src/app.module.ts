@@ -10,6 +10,7 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { MembershipsModule } from './modules/memberships/memberships.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { BoardsModule } from './modules/boards/boards.module';
 import { HealthModule } from './modules/health/health.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -26,6 +27,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     MembershipsModule,
     ProjectsModule,
     TasksModule,
+    BoardsModule,
     HealthModule,
   ],
   providers: [

@@ -4,3 +4,4 @@ export * from './auth/schemas';
 export * from './organizations/schemas';
 export * from './projects/schemas';
 export * from './tasks/schemas';
+export * from './boards/schemas';

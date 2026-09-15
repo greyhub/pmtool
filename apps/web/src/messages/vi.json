@@ -70,8 +70,14 @@
       "ARCHIVED": "Lưu trữ"
     },
     "tabs": {
-      "tasks": "Công việc"
+      "tasks": "Công việc",
+      "board": "Bảng"
     }
+  },
+  "board": {
+    "unassigned": "Chưa phân loại",
+    "addColumn": "Thêm cột",
+    "newColumnName": "Tên cột mới"
   },
   "tasks": {
     "list": {

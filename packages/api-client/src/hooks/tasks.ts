@@ -67,12 +67,38 @@ export function useUpdateTask(orgSlug: string | undefined, projectKey: string | 
   });
 }
 
+/** Optimistically applies the move to the cached task list so a Kanban drag feels instant, rolling back on failure. */
 export function useMoveTask(orgSlug: string | undefined, projectKey: string | undefined) {
   const queryClient = useQueryClient();
+  const listKey = taskKeys.list(orgSlug ?? '', projectKey ?? '');
+
   return useMutation({
     mutationFn: ({ taskId, input }: { taskId: string; input: MoveTaskInput }) =>
       apiRequest<TaskDto>(`${base(orgSlug!, projectKey!)}/tasks/${taskId}/move`, { method: 'PATCH', body: input }),
-    onSuccess: () => invalidateProjectTasks(queryClient, orgSlug ?? '', projectKey ?? ''),
+    onMutate: async ({ taskId, input }) => {
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const previous = queryClient.getQueryData<TaskDto[]>(listKey);
+      if (previous) {
+        queryClient.setQueryData<TaskDto[]>(
+          listKey,
+          previous.map((t) =>
+            t.id === taskId
+              ? {
+                  ...t,
+                  boardColumnId: input.boardColumnId !== undefined ? input.boardColumnId : t.boardColumnId,
+                  parentTaskId: input.parentTaskId !== undefined ? input.parentTaskId : t.parentTaskId,
+                  orderIndex: input.orderIndex,
+                }
+              : t,
+          ),
+        );
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(listKey, context.previous);
+    },
+    onSettled: () => invalidateProjectTasks(queryClient, orgSlug ?? '', projectKey ?? ''),
   });
 }
 
