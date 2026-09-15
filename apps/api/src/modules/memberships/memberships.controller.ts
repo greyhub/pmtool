@@ -7,12 +7,13 @@ import {
   Patch,
   Post,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  CreateInviteInput,
   createInviteSchema,
   MembershipDto,
+  UpdateMembershipRoleInput,
   updateMembershipRoleSchema,
 } from '@pmtool/shared-types';
 import { MembershipsService } from './memberships.service';
@@ -47,11 +48,10 @@ export class MembershipsController {
   @Post('invites')
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'ADMIN')
-  @UsePipes(new ZodValidationPipe(createInviteSchema))
   async createInvite(
     @CurrentOrg() ctx: CurrentOrgContext,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { email: string; role: 'ADMIN' | 'PM' | 'MEMBER' | 'VIEWER' },
+    @Body(new ZodValidationPipe(createInviteSchema)) body: CreateInviteInput,
   ) {
     return {
       data: await this.membershipsService.createInvite(
@@ -76,11 +76,11 @@ export class MembershipsController {
   @Patch('members/:membershipId')
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'ADMIN')
-  @UsePipes(new ZodValidationPipe(updateMembershipRoleSchema))
   async updateRole(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('membershipId') membershipId: string,
-    @Body() body: { role: 'ADMIN' | 'PM' | 'MEMBER' | 'VIEWER' },
+    @Body(new ZodValidationPipe(updateMembershipRoleSchema))
+    body: UpdateMembershipRoleInput,
   ): Promise<{ data: MembershipDto }> {
     const updated = await this.membershipsService.updateRole(
       ctx.organization.id,

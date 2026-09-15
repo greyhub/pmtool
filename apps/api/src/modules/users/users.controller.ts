@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, UsePipes } from '@nestjs/common';
+import { Body, Controller, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   UpdateUserPreferencesInput,
@@ -17,10 +17,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Patch('me/preferences')
-  @UsePipes(new ZodValidationPipe(updateUserPreferencesSchema))
   async updatePreferences(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: UpdateUserPreferencesInput,
+    @Body(new ZodValidationPipe(updateUserPreferencesSchema))
+    body: UpdateUserPreferencesInput,
   ): Promise<{ data: UserDto }> {
     const updated = await this.usersService.updatePreferences(user.id, body);
     return { data: toUserDto(updated) };

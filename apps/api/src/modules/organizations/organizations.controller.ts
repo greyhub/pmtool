@@ -6,12 +6,14 @@ import {
   Patch,
   Post,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   createOrganizationSchema,
+  CreateOrganizationInput,
   OrganizationDto,
+  updateOrganizationSchema,
+  UpdateOrganizationInput,
 } from '@pmtool/shared-types';
 import { OrganizationsService } from './organizations.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -32,10 +34,10 @@ export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createOrganizationSchema))
   async create(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { name: string; slug: string },
+    @Body(new ZodValidationPipe(createOrganizationSchema))
+    body: CreateOrganizationInput,
   ): Promise<{ data: OrganizationDto }> {
     const org = await this.organizationsService.create(user.id, body);
     return { data: toOrganizationDto(org) };
@@ -63,7 +65,8 @@ export class OrganizationsController {
   async updateName(
     @Param('orgSlug') _orgSlug: string,
     @CurrentOrg() ctx: CurrentOrgContext,
-    @Body() body: { name: string },
+    @Body(new ZodValidationPipe(updateOrganizationSchema))
+    body: UpdateOrganizationInput,
   ): Promise<{ data: OrganizationDto }> {
     const org = await this.organizationsService.updateName(
       ctx.organization.id,

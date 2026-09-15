@@ -8,14 +8,15 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  UsePipes,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import {
   AuthTokens,
+  LoginInput,
   loginSchema,
+  RegisterInput,
   registerSchema,
   UserDto,
 } from '@pmtool/shared-types';
@@ -42,14 +43,13 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  @UsePipes(new ZodValidationPipe(registerSchema))
   async register(
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(registerSchema)) body: RegisterInput,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ data: AuthTokens }> {
     const { tokens, refreshToken } = await this.authService.register(
-      body as never,
+      body,
       req.headers['user-agent'],
     );
     this.setRefreshCookie(res, refreshToken);
@@ -59,14 +59,13 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @UsePipes(new ZodValidationPipe(loginSchema))
   async login(
-    @Body() body: unknown,
+    @Body(new ZodValidationPipe(loginSchema)) body: LoginInput,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ data: AuthTokens }> {
     const { tokens, refreshToken } = await this.authService.login(
-      body as never,
+      body,
       req.headers['user-agent'],
     );
     this.setRefreshCookie(res, refreshToken);

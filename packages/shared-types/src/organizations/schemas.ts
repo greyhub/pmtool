@@ -13,6 +13,11 @@ export const createOrganizationSchema = z.object({
 });
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 
+export const updateOrganizationSchema = z.object({
+  name: z.string().min(1).max(120),
+});
+export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
+
 export const organizationSchema = z.object({
   id: z.string(),
   name: z.string(),

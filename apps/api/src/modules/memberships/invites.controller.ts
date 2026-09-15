@@ -1,13 +1,10 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  UsePipes,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { acceptInviteSchema, MembershipDto } from '@pmtool/shared-types';
+import {
+  AcceptInviteInput,
+  acceptInviteSchema,
+  MembershipDto,
+} from '@pmtool/shared-types';
 import { MembershipsService } from './memberships.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
@@ -21,10 +18,9 @@ export class InvitesController {
 
   @Post('accept')
   @HttpCode(HttpStatus.OK)
-  @UsePipes(new ZodValidationPipe(acceptInviteSchema))
   async accept(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { token: string },
+    @Body(new ZodValidationPipe(acceptInviteSchema)) body: AcceptInviteInput,
   ): Promise<{ data: MembershipDto }> {
     const membership = await this.membershipsService.acceptInvite(
       body.token,
