@@ -16,6 +16,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'TaskDependency',
   'BoardColumn',
   'Comment',
+  'RiskIssue',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([

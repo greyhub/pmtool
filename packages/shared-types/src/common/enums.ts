@@ -23,3 +23,9 @@ export const DEPENDENCY_TYPES = [
   'START_TO_FINISH',
 ] as const;
 export type DependencyType = (typeof DEPENDENCY_TYPES)[number];
+
+export const RISK_ISSUE_TYPES = ['RISK', 'ISSUE'] as const;
+export type RiskIssueType = (typeof RISK_ISSUE_TYPES)[number];
+
+export const RISK_STATUSES = ['IDENTIFIED', 'ANALYZING', 'MITIGATING', 'RESOLVED', 'CLOSED'] as const;
+export type RiskStatus = (typeof RISK_STATUSES)[number];

@@ -72,7 +72,9 @@
     "tabs": {
       "tasks": "Công việc",
       "board": "Bảng",
-      "gantt": "Tiến độ"
+      "gantt": "Tiến độ",
+      "risks": "Rủi ro/Vấn đề",
+      "dashboard": "Tổng quan"
     }
   },
   "board": {
@@ -125,6 +127,66 @@
       "delete": "Xoá công việc",
       "deleteConfirmTitle": "Xoá công việc này?",
       "deleteConfirmDescription": "Mọi công việc con bên trong cũng sẽ bị xoá. Hành động này không thể hoàn tác."
+    }
+  },
+  "risks": {
+    "list": {
+      "title": "Rủi ro & Vấn đề",
+      "subtitle": "Theo dõi rủi ro và vấn đề của dự án",
+      "create": "Thêm rủi ro/vấn đề",
+      "empty": "Chưa có rủi ro hoặc vấn đề nào.",
+      "columnType": "Loại",
+      "columnTitle": "Tiêu đề",
+      "columnSeverity": "Mức độ",
+      "columnStatus": "Trạng thái",
+      "columnOwner": "Người phụ trách",
+      "columnDueDate": "Hạn xử lý",
+      "unowned": "Chưa phân công"
+    },
+    "create": {
+      "title": "Thêm rủi ro/vấn đề mới",
+      "type": "Loại",
+      "titleLabel": "Tiêu đề",
+      "description": "Mô tả",
+      "probability": "Khả năng xảy ra (1-5)",
+      "impact": "Mức độ ảnh hưởng (1-5)",
+      "owner": "Người phụ trách",
+      "ownerNone": "Chưa phân công",
+      "dueDate": "Hạn xử lý",
+      "submit": "Tạo"
+    },
+    "type": {
+      "RISK": "Rủi ro",
+      "ISSUE": "Vấn đề"
+    },
+    "status": {
+      "IDENTIFIED": "Đã xác định",
+      "ANALYZING": "Đang phân tích",
+      "MITIGATING": "Đang xử lý",
+      "RESOLVED": "Đã giải quyết",
+      "CLOSED": "Đã đóng"
+    }
+  },
+  "dashboard": {
+    "org": {
+      "title": "Tổng quan tổ chức",
+      "subtitle": "Toàn cảnh dự án, công việc và rủi ro trong tổ chức",
+      "totalProjects": "Tổng số dự án",
+      "openRisks": "Rủi ro/vấn đề đang mở",
+      "overdueTasks": "Công việc quá hạn",
+      "taskBreakdown": "Công việc theo trạng thái",
+      "projectBreakdown": "Dự án theo trạng thái",
+      "noOverdueTasks": "Không có công việc quá hạn."
+    },
+    "project": {
+      "title": "Tổng quan dự án",
+      "completion": "Hoàn thành",
+      "totalTasks": "Tổng số công việc",
+      "openRisks": "Rủi ro đang mở",
+      "openIssues": "Vấn đề đang mở",
+      "taskBreakdown": "Công việc theo trạng thái",
+      "overdueTasks": "Công việc quá hạn",
+      "noOverdueTasks": "Không có công việc quá hạn."
     }
   }
 }

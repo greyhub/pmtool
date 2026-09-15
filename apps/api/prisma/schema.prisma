@@ -26,11 +26,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  memberships     Membership[]
-  refreshTokens   RefreshToken[]
-  projectMembers  ProjectMember[]
-  taskAssignments TaskAssignee[]
-  comments        Comment[]
+  memberships       Membership[]
+  refreshTokens     RefreshToken[]
+  projectMembers    ProjectMember[]
+  taskAssignments   TaskAssignee[]
+  comments          Comment[]
+  ownedRiskIssues   RiskIssue[]
 
   @@map("users")
 }
@@ -51,6 +52,7 @@ model Organization {
   taskDependencies TaskDependency[]
   boardColumns     BoardColumn[]
   comments         Comment[]
+  riskIssues       RiskIssue[]
 
   @@map("organizations")
 }
@@ -130,6 +132,7 @@ model Project {
   members      ProjectMember[]
   tasks        Task[]
   boardColumns BoardColumn[]
+  risks        RiskIssue[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
@@ -279,4 +282,43 @@ model Comment {
   @@index([organizationId])
   @@index([taskId])
   @@map("comments")
+}
+
+enum RiskIssueType {
+  RISK
+  ISSUE
+}
+
+enum RiskStatus {
+  IDENTIFIED
+  ANALYZING
+  MITIGATING
+  RESOLVED
+  CLOSED
+}
+
+model RiskIssue {
+  id             String        @id @default(cuid())
+  organizationId String
+  projectId      String
+  type           RiskIssueType
+  title          String
+  description    String?
+  probability    Int? // 1-5, RISK only
+  impact         Int? // 1-5, RISK only
+  severityScore  Int? // probability * impact, denormalized for fast sort/filter
+  status         RiskStatus    @default(IDENTIFIED)
+  ownerId        String?
+  dueDate        DateTime?
+  createdById    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  owner        User?        @relation(fields: [ownerId], references: [id])
+
+  @@index([organizationId])
+  @@index([projectId, status])
+  @@map("risk_issues")
 }

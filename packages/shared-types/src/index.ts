@@ -5,3 +5,5 @@ export * from './organizations/schemas';
 export * from './projects/schemas';
 export * from './tasks/schemas';
 export * from './boards/schemas';
+export * from './risks/schemas';
+export * from './dashboard/schemas';

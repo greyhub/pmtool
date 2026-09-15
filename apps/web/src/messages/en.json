@@ -72,7 +72,9 @@
     "tabs": {
       "tasks": "Tasks",
       "board": "Board",
-      "gantt": "Timeline"
+      "gantt": "Timeline",
+      "risks": "Risks/Issues",
+      "dashboard": "Dashboard"
     }
   },
   "board": {
@@ -125,6 +127,66 @@
       "delete": "Delete task",
       "deleteConfirmTitle": "Delete this task?",
       "deleteConfirmDescription": "Its subtasks will be deleted too. This action cannot be undone."
+    }
+  },
+  "risks": {
+    "list": {
+      "title": "Risks & Issues",
+      "subtitle": "Track project risks and issues",
+      "create": "Add risk/issue",
+      "empty": "No risks or issues yet.",
+      "columnType": "Type",
+      "columnTitle": "Title",
+      "columnSeverity": "Severity",
+      "columnStatus": "Status",
+      "columnOwner": "Owner",
+      "columnDueDate": "Due date",
+      "unowned": "Unassigned"
+    },
+    "create": {
+      "title": "Add a new risk/issue",
+      "type": "Type",
+      "titleLabel": "Title",
+      "description": "Description",
+      "probability": "Probability (1-5)",
+      "impact": "Impact (1-5)",
+      "owner": "Owner",
+      "ownerNone": "Unassigned",
+      "dueDate": "Due date",
+      "submit": "Create"
+    },
+    "type": {
+      "RISK": "Risk",
+      "ISSUE": "Issue"
+    },
+    "status": {
+      "IDENTIFIED": "Identified",
+      "ANALYZING": "Analyzing",
+      "MITIGATING": "Mitigating",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
+    }
+  },
+  "dashboard": {
+    "org": {
+      "title": "Organization dashboard",
+      "subtitle": "Overview of projects, tasks and risks across the organization",
+      "totalProjects": "Total projects",
+      "openRisks": "Open risks/issues",
+      "overdueTasks": "Overdue tasks",
+      "taskBreakdown": "Tasks by status",
+      "projectBreakdown": "Projects by status",
+      "noOverdueTasks": "No overdue tasks."
+    },
+    "project": {
+      "title": "Project dashboard",
+      "completion": "Completion",
+      "totalTasks": "Total tasks",
+      "openRisks": "Open risks",
+      "openIssues": "Open issues",
+      "taskBreakdown": "Tasks by status",
+      "overdueTasks": "Overdue tasks",
+      "noOverdueTasks": "No overdue tasks."
     }
   }
 }

@@ -5,3 +5,5 @@ export * from './hooks/organizations';
 export * from './hooks/projects';
 export * from './hooks/tasks';
 export * from './hooks/boards';
+export * from './hooks/risks';
+export * from './hooks/dashboard';
