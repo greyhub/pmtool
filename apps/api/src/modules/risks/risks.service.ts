@@ -5,6 +5,7 @@ import {
   UpdateRiskIssueInput,
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { GamificationService } from '../gamification/gamification.service';
 
 const OWNER_SELECT = { id: true, fullName: true, avatarUrl: true } as const;
 
@@ -19,7 +20,10 @@ function computeSeverity(
 
 @Injectable()
 export class RisksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gamificationService: GamificationService,
+  ) {}
 
   async list(
     organizationId: string,
@@ -70,6 +74,7 @@ export class RisksService {
     organizationId: string,
     riskId: string,
     input: UpdateRiskIssueInput,
+    actingUserId: string,
   ) {
     const existing = await this.findByIdOrThrow(organizationId, riskId);
     const probability =
@@ -77,7 +82,7 @@ export class RisksService {
         ? input.probability
         : existing.probability;
     const impact = input.impact !== undefined ? input.impact : existing.impact;
-    return this.prisma.db.riskIssue.update({
+    const updated = await this.prisma.db.riskIssue.update({
       where: { id: riskId },
       data: {
         title: input.title,
@@ -96,6 +101,21 @@ export class RisksService {
       },
       include: { owner: { select: OWNER_SELECT } },
     });
+
+    const wasTerminal =
+      existing.status === 'RESOLVED' || existing.status === 'CLOSED';
+    const isTerminal =
+      updated.status === 'RESOLVED' || updated.status === 'CLOSED';
+    if (!wasTerminal && isTerminal) {
+      await this.gamificationService.awardPoints(
+        organizationId,
+        actingUserId,
+        15,
+        'risk_resolved',
+      );
+    }
+
+    return updated;
   }
 
   async remove(organizationId: string, riskId: string): Promise<void> {

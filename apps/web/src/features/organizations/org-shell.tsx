@@ -51,6 +51,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
   const sidebarItems = [
     { href: `/${orgSlug}/dashboard`, label: 'Dashboard' },
     { href: `/${orgSlug}/projects`, label: tNav('projects') },
+    { href: `/${orgSlug}/leaderboard`, label: tNav('leaderboard') },
   ];
 
   return (

@@ -109,12 +109,14 @@ export class TasksController {
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(updateTaskSchema)) body: UpdateTaskInput,
   ): Promise<{ data: TaskDto }> {
     const task = await this.tasksService.update(
       ctx.organization.id,
       taskId,
       body,
+      user.id,
     );
     return { data: toTaskDto(task) };
   }

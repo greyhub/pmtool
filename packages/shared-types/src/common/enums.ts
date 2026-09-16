@@ -29,3 +29,13 @@ export type RiskIssueType = (typeof RISK_ISSUE_TYPES)[number];
 
 export const RISK_STATUSES = ['IDENTIFIED', 'ANALYZING', 'MITIGATING', 'RESOLVED', 'CLOSED'] as const;
 export type RiskStatus = (typeof RISK_STATUSES)[number];
+
+export const BADGE_KEYS = [
+  'FIRST_TASK',
+  'STREAK_7',
+  'STREAK_30',
+  'RISK_RESOLVER',
+  'TASK_MACHINE',
+  'TEAM_PLAYER',
+] as const;
+export type BadgeKey = (typeof BADGE_KEYS)[number];

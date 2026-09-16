@@ -11,6 +11,7 @@ import {
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { toRichText } from './rich-text.util';
+import { GamificationService } from '../gamification/gamification.service';
 
 const TASK_INCLUDE = {
   assignees: {
@@ -23,7 +24,10 @@ const TASK_INCLUDE = {
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gamificationService: GamificationService,
+  ) {}
 
   async create(
     organizationId: string,
@@ -39,7 +43,7 @@ export class TasksService {
       );
     }
 
-    return this.prisma.db.$transaction(async (tx) => {
+    const task = await this.prisma.db.$transaction(async (tx) => {
       const project = await tx.project.update({
         where: { id: projectId },
         data: { taskSequence: { increment: 1 } },
@@ -51,7 +55,7 @@ export class TasksService {
         orderBy: { orderIndex: 'asc' },
       });
 
-      const task = await tx.task.create({
+      return tx.task.create({
         data: {
           organizationId,
           projectId,
@@ -81,8 +85,15 @@ export class TasksService {
         },
         include: TASK_INCLUDE,
       });
-      return task;
     });
+
+    await this.gamificationService.awardPoints(
+      organizationId,
+      createdById,
+      5,
+      'task_created',
+    );
+    return task;
   }
 
   async list(
@@ -112,10 +123,15 @@ export class TasksService {
     return task;
   }
 
-  async update(organizationId: string, taskId: string, input: UpdateTaskInput) {
+  async update(
+    organizationId: string,
+    taskId: string,
+    input: UpdateTaskInput,
+    actingUserId: string,
+  ) {
     const existing = await this.findByIdOrThrow(organizationId, taskId);
 
-    return this.prisma.db.$transaction(async (tx) => {
+    const updated = await this.prisma.db.$transaction(async (tx) => {
       if (input.assigneeIds) {
         await tx.taskAssignee.deleteMany({ where: { taskId } });
         if (input.assigneeIds.length > 0) {
@@ -158,6 +174,17 @@ export class TasksService {
         include: TASK_INCLUDE,
       });
     });
+
+    if (existing.status !== 'DONE' && updated.status === 'DONE') {
+      await this.gamificationService.awardPoints(
+        organizationId,
+        actingUserId,
+        10,
+        'task_completed',
+      );
+    }
+
+    return updated;
   }
 
   async remove(organizationId: string, taskId: string): Promise<void> {

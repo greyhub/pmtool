@@ -80,6 +80,7 @@ export class RisksController {
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('riskId') riskId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(updateRiskIssueSchema))
     body: UpdateRiskIssueInput,
   ): Promise<{ data: RiskIssueDto }> {
@@ -87,6 +88,7 @@ export class RisksController {
       ctx.organization.id,
       riskId,
       body,
+      user.id,
     );
     return { data: toRiskIssueDto(risk) };
   }

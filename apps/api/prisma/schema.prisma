@@ -33,6 +33,8 @@ model User {
   comments          Comment[]
   ownedRiskIssues   RiskIssue[]
   activityLogs      ActivityLog[]
+  userScores        UserScore[]
+  userBadges        UserBadge[]
 
   @@map("users")
 }
@@ -55,6 +57,8 @@ model Organization {
   comments         Comment[]
   riskIssues       RiskIssue[]
   activityLogs     ActivityLog[]
+  userScores       UserScore[]
+  userBadges       UserBadge[]
 
   @@map("organizations")
 }
@@ -343,4 +347,48 @@ model ActivityLog {
 
   @@index([organizationId, createdAt])
   @@map("activity_logs")
+}
+
+/// Running per-user point total + streak, updated explicitly by
+/// GamificationService.awardPoints at specific meaningful transitions
+/// (task completed, risk resolved, ...) — not derived from ActivityLog,
+/// whose action strings are too generic to express "status became DONE".
+model UserScore {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  userId              String
+  totalPoints         Int       @default(0)
+  currentStreakDays   Int       @default(0)
+  longestStreakDays   Int       @default(0)
+  lastActivityDate    DateTime?
+  // Per-category counters, incremented alongside totalPoints by whichever
+  // awardPoints() reason fired — badge checks read these directly instead of
+  // deriving "who completed/resolved/commented" from Task/RiskIssue/Comment,
+  // which don't track that (Task has no "completedById", etc.).
+  tasksCreatedCount   Int       @default(0)
+  tasksCompletedCount Int       @default(0)
+  risksResolvedCount  Int       @default(0)
+  commentsCount       Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("user_scores")
+}
+
+model UserBadge {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  badgeKey       String
+  earnedAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, badgeKey])
+  @@map("user_badges")
 }

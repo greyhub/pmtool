@@ -52,6 +52,19 @@ async function createOrg(
   return res.body.data;
 }
 
+async function createProject(
+  accessToken: string,
+  orgSlug: string,
+  key: string,
+): Promise<{ id: string; key: string }> {
+  const res = await request(app.getHttpServer())
+    .post(`${API_PREFIX}/organizations/${orgSlug}/projects`)
+    .set('Authorization', `Bearer ${accessToken}`)
+    .send({ key, name: `${key} Project` })
+    .expect(201);
+  return res.body.data;
+}
+
 beforeAll(async () => {
   container = await new PostgreSqlContainer('postgres:16-alpine').start();
 
@@ -167,5 +180,43 @@ describe('RBAC enforcement', () => {
       .set('Authorization', `Bearer ${owner.accessToken}`)
       .send({ key: 'BETA', name: 'Beta Project' })
       .expect(201);
+  });
+});
+
+describe('Gamification', () => {
+  it('completing a task awards points that show up on the leaderboard', async () => {
+    const owner = await registerUser('Gamification Owner');
+    const org = await createOrg(owner.accessToken, 'Gamification Org');
+    const project = await createProject(owner.accessToken, org.slug, 'GAM');
+
+    const createTaskRes = await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ title: 'Integration test task' })
+      .expect(201);
+    const taskId = createTaskRes.body.data.id;
+
+    await request(app.getHttpServer())
+      .patch(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks/${taskId}`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ status: 'DONE' })
+      .expect(200);
+
+    const leaderboard = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/leaderboard`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    expect(leaderboard.body.data).toHaveLength(1);
+    // 5 (task_created) + 10 (task_completed)
+    expect(leaderboard.body.data[0]).toMatchObject({
+      totalPoints: 15,
+      currentStreakDays: 1,
+      rank: 1,
+    });
   });
 });

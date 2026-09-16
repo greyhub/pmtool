@@ -45,7 +45,8 @@
     }
   },
   "nav": {
-    "projects": "Projects"
+    "projects": "Projects",
+    "leaderboard": "Leaderboard"
   },
   "projects": {
     "list": {
@@ -183,6 +184,33 @@
       "updated": "updated",
       "moved": "moved",
       "deleted": "deleted"
+    }
+  },
+  "gamification": {
+    "leaderboard": {
+      "title": "Leaderboard",
+      "subtitle": "Members ranked by activity points across the organization",
+      "empty": "No one has scored yet.",
+      "columnRank": "Rank",
+      "columnMember": "Member",
+      "columnPoints": "Points",
+      "columnStreak": "Streak",
+      "streakDays": "{count} days"
+    },
+    "myStats": {
+      "title": "Your stats",
+      "viewLeaderboard": "View leaderboard",
+      "points": "Points",
+      "streak": "Streak",
+      "badges": "Badges"
+    },
+    "badges": {
+      "FIRST_TASK": { "name": "Getting started", "description": "Created your first task" },
+      "STREAK_7": { "name": "7-day streak", "description": "Active 7 days in a row" },
+      "STREAK_30": { "name": "30-day streak", "description": "Active 30 days in a row" },
+      "RISK_RESOLVER": { "name": "Risk resolver", "description": "Resolved 5 risks/issues" },
+      "TASK_MACHINE": { "name": "Task machine", "description": "Completed 50 tasks" },
+      "TEAM_PLAYER": { "name": "Team player", "description": "Posted 20 comments" }
     }
   },
   "dashboard": {

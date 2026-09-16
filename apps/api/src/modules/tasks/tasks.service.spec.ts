@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { GamificationService } from '../gamification/gamification.service';
 
 function makeTask(overrides: Partial<Record<string, unknown>> = {}) {
   return {
@@ -37,7 +38,12 @@ describe('TasksService.move', () => {
         boardColumn: { findUnique: vi.fn() },
       },
     };
-    service = new TasksService(prisma as unknown as PrismaService);
+    service = new TasksService(
+      prisma as unknown as PrismaService,
+      {
+        awardPoints: vi.fn().mockResolvedValue(undefined),
+      } as unknown as GamificationService,
+    );
   });
 
   it('rejects a task becoming its own parent', async () => {

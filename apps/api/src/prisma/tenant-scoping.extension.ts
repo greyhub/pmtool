@@ -18,6 +18,8 @@ const TENANT_SCOPED_MODELS = new Set([
   'Comment',
   'RiskIssue',
   'ActivityLog',
+  'UserScore',
+  'UserBadge',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([

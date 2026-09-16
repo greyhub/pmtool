@@ -45,7 +45,8 @@
     }
   },
   "nav": {
-    "projects": "Dự án"
+    "projects": "Dự án",
+    "leaderboard": "Bảng xếp hạng"
   },
   "projects": {
     "list": {
@@ -183,6 +184,33 @@
       "updated": "đã cập nhật",
       "moved": "đã di chuyển",
       "deleted": "đã xóa"
+    }
+  },
+  "gamification": {
+    "leaderboard": {
+      "title": "Bảng xếp hạng",
+      "subtitle": "Xếp hạng thành viên theo điểm hoạt động trong tổ chức",
+      "empty": "Chưa có ai ghi điểm.",
+      "columnRank": "Hạng",
+      "columnMember": "Thành viên",
+      "columnPoints": "Điểm",
+      "columnStreak": "Chuỗi ngày",
+      "streakDays": "{count} ngày"
+    },
+    "myStats": {
+      "title": "Thành tích của bạn",
+      "viewLeaderboard": "Xem bảng xếp hạng",
+      "points": "Điểm",
+      "streak": "Chuỗi ngày",
+      "badges": "Huy hiệu"
+    },
+    "badges": {
+      "FIRST_TASK": { "name": "Khởi đầu", "description": "Tạo công việc đầu tiên" },
+      "STREAK_7": { "name": "Kiên trì 7 ngày", "description": "Hoạt động liên tục 7 ngày" },
+      "STREAK_30": { "name": "Bền bỉ 30 ngày", "description": "Hoạt động liên tục 30 ngày" },
+      "RISK_RESOLVER": { "name": "Người giải quyết rủi ro", "description": "Giải quyết 5 rủi ro/vấn đề" },
+      "TASK_MACHINE": { "name": "Cỗ máy công việc", "description": "Hoàn thành 50 công việc" },
+      "TEAM_PLAYER": { "name": "Đồng đội tích cực", "description": "Viết 20 bình luận" }
     }
   },
   "dashboard": {

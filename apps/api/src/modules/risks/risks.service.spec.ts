@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { RisksService } from './risks.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { GamificationService } from '../gamification/gamification.service';
 
 function makeRisk(overrides: Partial<Record<string, unknown>> = {}) {
   return {
@@ -26,6 +27,7 @@ describe('RisksService severity scoring', () => {
     };
   };
   let service: RisksService;
+  let gamificationService: { awardPoints: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     prisma = {
@@ -38,7 +40,11 @@ describe('RisksService severity scoring', () => {
         },
       },
     };
-    service = new RisksService(prisma as unknown as PrismaService);
+    gamificationService = { awardPoints: vi.fn().mockResolvedValue(undefined) };
+    service = new RisksService(
+      prisma as unknown as PrismaService,
+      gamificationService as unknown as GamificationService,
+    );
   });
 
   it('computes severityScore as probability x impact on create', async () => {
@@ -84,7 +90,7 @@ describe('RisksService severity scoring', () => {
       makeRisk({ probability: 5, impact: 4, severityScore: 20 }),
     );
 
-    await service.update('org_1', 'r1', { probability: 5 });
+    await service.update('org_1', 'r1', { probability: 5 }, 'user_1');
 
     expect(prisma.db.riskIssue.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -100,8 +106,39 @@ describe('RisksService severity scoring', () => {
     );
 
     await expect(
-      service.update('org_1', 'r1', { probability: 2 }),
+      service.update('org_1', 'r1', { probability: 2 }, 'user_1'),
     ).rejects.toThrow(NotFoundException);
     expect(prisma.db.riskIssue.update).not.toHaveBeenCalled();
+  });
+
+  it('awards points once when a risk transitions into a terminal status', async () => {
+    prisma.db.riskIssue.findUnique.mockResolvedValue(
+      makeRisk({ status: 'MITIGATING' }),
+    );
+    prisma.db.riskIssue.update.mockResolvedValue(
+      makeRisk({ status: 'RESOLVED' }),
+    );
+
+    await service.update('org_1', 'r1', { status: 'RESOLVED' }, 'user_1');
+
+    expect(gamificationService.awardPoints).toHaveBeenCalledWith(
+      'org_1',
+      'user_1',
+      15,
+      'risk_resolved',
+    );
+  });
+
+  it('does not re-award points moving between two terminal statuses', async () => {
+    prisma.db.riskIssue.findUnique.mockResolvedValue(
+      makeRisk({ status: 'RESOLVED' }),
+    );
+    prisma.db.riskIssue.update.mockResolvedValue(
+      makeRisk({ status: 'CLOSED' }),
+    );
+
+    await service.update('org_1', 'r1', { status: 'CLOSED' }, 'user_1');
+
+    expect(gamificationService.awardPoints).not.toHaveBeenCalled();
   });
 });
