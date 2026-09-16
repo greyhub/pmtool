@@ -82,7 +82,10 @@ jobs:
         run: pnpm exec prisma migrate deploy
 
       - name: Build API and web
-        run: pnpm exec turbo run build --filter=api --filter=web
+        # turbo's --filter matches the exact package.json "name" (unlike
+        # pnpm's --filter, which accepts the "api"/"web" shorthand) — so
+        # this needs the full @pmtool/ scope.
+        run: pnpm exec turbo run build --filter=@pmtool/api --filter=@pmtool/web
 
       - name: Start API (background)
         working-directory: apps/api
