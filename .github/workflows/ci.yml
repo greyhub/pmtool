@@ -48,6 +48,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Generate Prisma client
         run: pnpm --filter api run prisma:generate
+      - name: Build workspace dependencies
+        # Each job starts from a fresh checkout with no build state from the
+        # `checks` job, so apps/api's workspace:* dependency on
+        # @pmtool/shared-types resolves to an unbuilt dist/ without this —
+        # Vite fails with "Failed to resolve entry for package" instantly.
+        run: pnpm --filter @pmtool/shared-types run build
       - name: Run integration tests
         # Spins its own ephemeral Postgres via Testcontainers, using the
         # Docker daemon already available on the ubuntu-latest runner.
