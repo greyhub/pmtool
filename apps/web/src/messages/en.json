@@ -213,6 +213,31 @@
       "TEAM_PLAYER": { "name": "Team player", "description": "Posted 20 comments" }
     }
   },
+  "ai": {
+    "task": {
+      "summarize": "Summarize with AI",
+      "summaryLabel": "Summary (AI)",
+      "suggestSubtasks": "Suggest subtasks (AI)",
+      "suggestSubtasksTitle": "Suggested subtasks"
+    },
+    "suggestions": {
+      "empty": "No suggestions.",
+      "statusPending": "Adding...",
+      "statusSuccess": "Added",
+      "statusError": "Error",
+      "close": "Close",
+      "addSelected": "Add selected"
+    },
+    "nlCreate": {
+      "trigger": "Create tasks with AI",
+      "title": "Create tasks with AI",
+      "description": "Describe the work in plain language and AI will suggest a list of specific tasks.",
+      "placeholder": "E.g. Create 3 tasks to prepare for next week's demo...",
+      "cancel": "Cancel",
+      "submit": "Analyze",
+      "suggestionsTitle": "Suggested tasks"
+    }
+  },
   "dashboard": {
     "org": {
       "title": "Organization dashboard",

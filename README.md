@@ -2,7 +2,7 @@
 
 Ứng dụng quản lý dự án chuẩn PMP — multi-tenant SaaS, thiết kế tối giản/hiện đại (chủ đạo vàng, phụ xám), sáng/tối, song ngữ Việt/Anh.
 
-Đây là **Phase 1**: nền tảng kỹ thuật + các chức năng quản lý dự án cốt lõi, được kiểm thử đầy đủ. Gamification, AI, tích hợp (Telegram/Calendar/Drive) và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
+Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi) và **Phase 2** (gamification + AI). Tích hợp (Telegram/Calendar/Drive) và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
 
 ## Kiến trúc
 
@@ -32,15 +32,20 @@ infra/            docker-compose cho Postgres + Redis (dev)
 
 Đa tenant được cách ly ở tầng ứng dụng: mọi bảng tenant-owned có `organizationId`; một Prisma Client Extension (`tenant-scoping.extension.ts`) tự động thêm điều kiện đó vào mọi truy vấn dựa trên `AsyncLocalStorage` request context, nên service không thể vô tình quên scope.
 
-## Chức năng đã có (Phase 1)
+## Chức năng đã có
 
+**Phase 1 — nền tảng + quản lý dự án:**
 - Đăng ký/đăng nhập/refresh/logout, mời thành viên vào tổ chức, RBAC 5 vai trò (Owner/Admin/PM/Member/Viewer)
 - Dự án, WBS (task phân cấp cha/con), phụ thuộc công việc (FS/SS/FF/SF), bình luận
 - Bảng Kanban kéo-thả, biểu đồ Gantt
 - Nhật ký Rủi ro & Vấn đề (chấm điểm mức độ nghiêm trọng = khả năng × ảnh hưởng)
 - Dashboard tổ chức + dự án (thống kê trạng thái, công việc quá hạn, rủi ro đang mở)
-- Nhật ký hoạt động (ActivityLog) — nền tảng cho gamification/AI ở Phase 2
+- Nhật ký hoạt động (ActivityLog) — nguồn dữ liệu cho gamification
 - Giao diện responsive (sidebar → drawer trên di động), sáng/tối, Việt/Anh
+
+**Phase 2 — gamification + AI:**
+- Điểm hoạt động, chuỗi ngày (streak, theo múi giờ UTC+7), 6 huy hiệu, bảng xếp hạng theo tổ chức
+- Tóm tắt công việc bằng AI, gợi ý công việc con bằng AI, tạo công việc từ mô tả ngôn ngữ tự nhiên — qua Anthropic Claude API (cần `ANTHROPIC_API_KEY`, xem bên dưới); AI chỉ đề xuất, người dùng luôn xác nhận trước khi tạo công việc thật
 
 ## Yêu cầu môi trường
 
@@ -57,6 +62,8 @@ pnpm install
 # 2. Cấu hình biến môi trường cho API (web dùng giá trị mặc định hợp lý, không bắt buộc)
 cp apps/api/.env.example apps/api/.env
 # -> sửa JWT_ACCESS_SECRET / JWT_REFRESH_SECRET thành chuỗi ngẫu nhiên >= 32 ký tự
+# -> ANTHROPIC_API_KEY là tuỳ chọn: thiếu thì cả app vẫn chạy bình thường,
+#    chỉ riêng 3 tính năng AI trả lỗi rõ ràng thay vì hoạt động
 
 # 3. Khởi động Postgres + Redis
 docker compose -f infra/docker-compose.yml up -d
@@ -95,7 +102,7 @@ pnpm exec turbo run build lint typecheck test
 
 - **Unit** (`apps/*/src/**/*.spec.ts`): business logic với Prisma mock — phát hiện cycle trong WBS/dependency graph, tính điểm rủi ro, AuditLogInterceptor, v.v.
 - **Integration** (`apps/api/test/integration`): chạy qua HTTP thật (Supertest) trên một Postgres ephemeral (Testcontainers), xác nhận cách ly đa tenant và RBAC hoạt động đúng qua toàn bộ pipeline guard thật, không phải mock.
-- **E2E** (`apps/web/e2e`): Playwright, 7 kịch bản — đăng ký/đăng nhập, tạo tổ chức, tạo dự án, tạo task+subtask+dependency, kéo-thả Kanban (giữ nguyên sau khi reload), chuyển theme (giữ nguyên sau khi reload), chuyển ngôn ngữ (giữ nguyên qua cookie `NEXT_LOCALE`).
+- **E2E** (`apps/web/e2e`): Playwright — đăng ký/đăng nhập, tạo tổ chức, tạo dự án, tạo task+subtask+dependency, kéo-thả Kanban (giữ nguyên sau khi reload), chuyển theme (giữ nguyên sau khi reload), chuyển ngôn ngữ (giữ nguyên qua cookie `NEXT_LOCALE`), hoàn thành công việc → điểm hiện trên bảng xếp hạng. Không có E2E cho AI (gọi API Anthropic thật sẽ tốn phí và không ổn định trong CI) — AI chỉ kiểm thử ở mức unit (mock Anthropic client).
 
 ## CI
 
@@ -103,8 +110,7 @@ pnpm exec turbo run build lint typecheck test
 
 ## Lộ trình
 
-Không thiết kế/xây dựng trong Phase 1, nằm ở các phase sau:
+Chưa thiết kế/xây dựng, dự kiến ở các phase sau:
 
-- **Phase 2** — Gamification (điểm/streak/badge/leaderboard, đọc từ `ActivityLog`) và AI (tóm tắt công việc, gợi ý subtask, tạo task bằng ngôn ngữ tự nhiên) qua một module LLM provider + BullMQ trên Redis đã có sẵn.
 - **Phase 3** — Tích hợp Telegram, Google Calendar, Google Drive — mỗi cái là một module `integrations/` riêng với OAuth credential lưu theo từng tổ chức.
 - **Phase 4** — Billing/subscription (Stripe), giới hạn theo gói, SSO (SAML/OIDC), Postgres RLS (defense-in-depth), rate limiting, observability, EVM/cost tracking, resource capacity planning, stakeholder matrices, procurement.

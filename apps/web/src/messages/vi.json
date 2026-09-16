@@ -213,6 +213,31 @@
       "TEAM_PLAYER": { "name": "Đồng đội tích cực", "description": "Viết 20 bình luận" }
     }
   },
+  "ai": {
+    "task": {
+      "summarize": "Tóm tắt bằng AI",
+      "summaryLabel": "Tóm tắt (AI)",
+      "suggestSubtasks": "Gợi ý công việc con (AI)",
+      "suggestSubtasksTitle": "Gợi ý công việc con"
+    },
+    "suggestions": {
+      "empty": "Không có gợi ý nào.",
+      "statusPending": "Đang thêm...",
+      "statusSuccess": "Đã thêm",
+      "statusError": "Lỗi",
+      "close": "Đóng",
+      "addSelected": "Thêm đã chọn"
+    },
+    "nlCreate": {
+      "trigger": "Tạo công việc bằng AI",
+      "title": "Tạo công việc bằng AI",
+      "description": "Mô tả công việc cần làm bằng ngôn ngữ tự nhiên, AI sẽ đề xuất danh sách công việc cụ thể.",
+      "placeholder": "Ví dụ: Tạo 3 công việc để chuẩn bị demo tuần sau...",
+      "cancel": "Hủy",
+      "submit": "Phân tích",
+      "suggestionsTitle": "Công việc được đề xuất"
+    }
+  },
   "dashboard": {
     "org": {
       "title": "Tổng quan tổ chức",

@@ -16,6 +16,9 @@ export const envSchema = z.object({
     .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),
   CORS_ORIGIN: z.string().min(1, 'CORS_ORIGIN is required'),
+  // Optional: AI features (modules/ai) fail with a clear error at request
+  // time when this is absent, rather than blocking app startup.
+  ANTHROPIC_API_KEY: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

@@ -9,3 +9,4 @@ export * from './risks/schemas';
 export * from './dashboard/schemas';
 export * from './activity/schemas';
 export * from './gamification/schemas';
+export * from './ai/schemas';

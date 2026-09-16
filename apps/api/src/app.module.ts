@@ -15,6 +15,7 @@ import { RisksModule } from './modules/risks/risks.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ActivityModule } from './modules/activity/activity.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { AiModule } from './modules/ai/ai.module';
 import { HealthModule } from './modules/health/health.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -37,6 +38,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     DashboardModule,
     ActivityModule,
     GamificationModule,
+    AiModule,
     HealthModule,
   ],
   providers: [

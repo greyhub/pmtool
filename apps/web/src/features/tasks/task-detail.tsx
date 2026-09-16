@@ -3,11 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
+  ApiError,
   useDeleteTask,
+  useSuggestSubtasks,
+  useSummarizeTask,
   useTask,
   useTasks,
   useUpdateTask,
 } from '@pmtool/api-client';
+import type { TaskSuggestionDto } from '@pmtool/shared-types';
 import { TASK_PRIORITIES, TASK_STATUSES } from '@pmtool/shared-types';
 import { Button, Card, Modal, Select } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
@@ -16,22 +20,27 @@ import { AssigneesEditor } from './assignees-editor';
 import { CommentsSection } from './comments-section';
 import { DependenciesEditor } from './dependencies-editor';
 import { CreateTaskModal } from './create-task-modal';
+import { SuggestionsModal } from '../ai/suggestions-modal';
 
 export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; projectKey: string; taskId: string }) {
   const t = useTranslations('tasks.detail');
   const tStatus = useTranslations('tasks.status');
   const tPriority = useTranslations('tasks.priority');
   const tListLabels = useTranslations('tasks.list');
+  const tAi = useTranslations('ai.task');
   const router = useRouter();
 
   const { data: task } = useTask(orgSlug, projectKey, taskId);
   const { data: allTasks } = useTasks(orgSlug, projectKey);
   const updateTask = useUpdateTask(orgSlug, projectKey, taskId);
   const deleteTask = useDeleteTask(orgSlug, projectKey);
+  const summarizeTask = useSummarizeTask(orgSlug, projectKey);
+  const suggestSubtasks = useSuggestSubtasks(orgSlug, projectKey);
 
   const [description, setDescription] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [subtaskSuggestions, setSubtaskSuggestions] = useState<TaskSuggestionDto[] | null>(null);
 
   useEffect(() => {
     setDescription(task?.description ?? '');
@@ -64,7 +73,18 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Card className="p-6">
-            <h3 className="text-sm font-semibold text-ink-secondary">{t('description')}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-ink-secondary">{t('description')}</h3>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={summarizeTask.isPending}
+                onClick={() => summarizeTask.mutate(task.id)}
+              >
+                {tAi('summarize')}
+              </Button>
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -77,15 +97,46 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
               rows={5}
               className="mt-2 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
             />
+            {summarizeTask.isError && (
+              <p role="alert" className="mt-2 text-sm text-danger">
+                {summarizeTask.error instanceof ApiError ? summarizeTask.error.message : 'Có lỗi xảy ra'}
+              </p>
+            )}
+            {summarizeTask.data && (
+              <div className="mt-2 rounded-md bg-surface-subtle p-3 text-sm text-ink-secondary">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-muted">{tAi('summaryLabel')}</p>
+                {summarizeTask.data.summary}
+              </div>
+            )}
           </Card>
 
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-ink-secondary">{t('subtasks')}</h3>
-              <Button type="button" size="sm" variant="outline" onClick={() => setAddingSubtask(true)}>
-                {tListLabels('addSubtask')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={suggestSubtasks.isPending}
+                  onClick={() =>
+                    suggestSubtasks.mutate(task.id, {
+                      onSuccess: (data) => setSubtaskSuggestions(data.suggestions),
+                    })
+                  }
+                >
+                  {tAi('suggestSubtasks')}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setAddingSubtask(true)}>
+                  {tListLabels('addSubtask')}
+                </Button>
+              </div>
             </div>
+            {suggestSubtasks.isError && (
+              <p role="alert" className="mt-2 text-sm text-danger">
+                {suggestSubtasks.error instanceof ApiError ? suggestSubtasks.error.message : 'Có lỗi xảy ra'}
+              </p>
+            )}
             <div className="mt-2 flex flex-col">
               {subtasks.length === 0 && <p className="py-2 text-sm text-ink-muted">{tListLabels('empty')}</p>}
               {subtasks.map((sub) => (
@@ -165,6 +216,18 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
         open={addingSubtask}
         onClose={() => setAddingSubtask(false)}
       />
+
+      {subtaskSuggestions && (
+        <SuggestionsModal
+          orgSlug={orgSlug}
+          projectKey={projectKey}
+          title={tAi('suggestSubtasksTitle')}
+          suggestions={subtaskSuggestions}
+          parentTaskId={task.id}
+          open={subtaskSuggestions !== null}
+          onClose={() => setSubtaskSuggestions(null)}
+        />
+      )}
 
       <Modal
         open={confirmDelete}
