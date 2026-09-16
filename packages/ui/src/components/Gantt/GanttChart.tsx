@@ -75,10 +75,12 @@ export function GanttChart({ tasks, links, onTaskUpdate }: GanttChartProps) {
   const Skin = resolvedTheme === 'dark' ? WillowDark : Willow;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-line">
-      <Skin>
-        <Gantt tasks={tasks} links={links} scales={scales} init={handleInit} />
-      </Skin>
+    <div className="w-full overflow-x-auto overflow-y-hidden rounded-lg border border-line">
+      <div className="min-w-[640px]">
+        <Skin>
+          <Gantt tasks={tasks} links={links} scales={scales} init={handleInit} />
+        </Skin>
+      </div>
     </div>
   );
 }

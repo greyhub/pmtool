@@ -15,8 +15,8 @@ export function TopBar({ left, right, className }: TopBarProps) {
         className,
       )}
     >
-      <div className="flex items-center gap-3">{left}</div>
-      <div className="flex items-center gap-2">{right}</div>
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">{left}</div>
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">{right}</div>
     </header>
   );
 }

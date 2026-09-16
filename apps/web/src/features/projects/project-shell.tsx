@@ -44,7 +44,7 @@ export function ProjectShell({
           <Badge variant={STATUS_VARIANT[project.status]}>{tStatus(project.status)}</Badge>
         </div>
       )}
-      <div className="mb-6 flex gap-1 border-b border-line">
+      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-line">
         {tabs.map((tab) => {
           const active = pathname.startsWith(tab.href);
           return (
@@ -53,8 +53,8 @@ export function ProjectShell({
               href={tab.href}
               className={
                 active
-                  ? 'border-b-2 border-action-primary px-3 py-2 text-sm font-medium text-ink-primary'
-                  : 'border-b-2 border-transparent px-3 py-2 text-sm font-medium text-ink-secondary hover:text-ink-primary'
+                  ? 'shrink-0 whitespace-nowrap border-b-2 border-action-primary px-3 py-2 text-sm font-medium text-ink-primary'
+                  : 'shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-medium text-ink-secondary hover:text-ink-primary'
               }
             >
               {tab.label}

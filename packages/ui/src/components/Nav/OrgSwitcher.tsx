@@ -38,10 +38,19 @@ export function OrgSwitcher({ current, options, onSelect, onCreateNew, createNew
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium text-ink-primary hover:bg-surface-subtle"
+        className="flex h-9 min-w-0 items-center gap-2 rounded-md px-2 text-sm font-medium text-ink-primary hover:bg-surface-subtle"
       >
-        <span>{current.name}</span>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <span className="max-w-[9rem] truncate sm:max-w-xs">{current.name}</span>
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+          className="shrink-0"
+        >
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
