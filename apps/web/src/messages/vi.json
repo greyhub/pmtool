@@ -9,9 +9,36 @@
     "or": "hoặc"
   },
   "landing": {
+    "badge": "Đa tổ chức · Việt/Anh · sáng/tối",
+    "heroTitle": "Quản lý dự án chuẩn PMP,\nkhông chỉ là danh sách việc",
     "tagline": "Ứng dụng quản lý dự án chuẩn PMP — kết hợp gamification và AI.",
+    "heroDescription": "Từ điều lệ dự án, WBS, Kanban, Gantt, rủi ro, đến gamification và trợ lý AI — mỗi tổ chức là một không gian làm việc tách biệt hoàn toàn.",
     "login": "Đăng nhập",
-    "register": "Đăng ký"
+    "register": "Đăng ký",
+    "model": {
+      "kicker": "Mô hình tổng quan",
+      "title": "Cấu trúc dữ liệu",
+      "description": "Toàn bộ ứng dụng đặt trên một mô hình phân cấp 3 lớp — mọi tính năng khác đều là lớp bổ sung quanh nó.",
+      "org": { "label": "Lớp 1", "title": "Tổ chức", "description": "Không gian làm việc biệt lập hoàn toàn (đa tenant) — RBAC 5 vai trò" },
+      "project": { "label": "Lớp 2", "title": "Dự án", "description": "Có mã riêng, điều lệ, các bên liên quan, danh mục tài liệu" },
+      "task": { "label": "Lớp 3", "title": "Công việc", "description": "Phân cấp WBS cha/con, phụ thuộc, Kanban, Gantt, rủi ro gắn theo" }
+    },
+    "features": {
+      "kicker": "Tính năng chính",
+      "title": "Mọi thứ một PM cần, trong một chỗ",
+      "wbs": { "tag": "WBS", "title": "Công việc phân cấp & phụ thuộc", "description": "Cha/con không giới hạn độ sâu, phụ thuộc FS/SS/FF/SF với chống vòng lặp tự động." },
+      "kanban": { "tag": "Kanban", "title": "Bảng kéo-thả tuỳ biến", "description": "Cột mặc định hoặc tự tạo, vị trí lưu ngay lập tức, còn nguyên sau khi tải lại." },
+      "gantt": { "tag": "Gantt", "title": "Tiến độ trực quan", "description": "Toàn bộ công việc trên một trục thời gian dùng chung, theo ngày bắt đầu/kết thúc thật." },
+      "risks": { "tag": "Rủi ro", "title": "Rủi ro & Vấn đề", "description": "Chấm điểm tự động = khả năng × ảnh hưởng, sắp theo mức độ ưu tiên xử lý." },
+      "ai": { "tag": "AI", "title": "Trợ lý AI", "description": "Tóm tắt công việc, gợi ý công việc con, tạo việc từ ngôn ngữ tự nhiên — luôn chỉ đề xuất, bạn xác nhận." },
+      "charter": { "tag": "PMBOK", "title": "Điều lệ dự án", "description": "Mục đích, mục tiêu, phạm vi, ngân sách — phê duyệt riêng, sửa lại tự quay về bản nháp." },
+      "stakeholders": { "tag": "PMBOK", "title": "Các bên liên quan", "description": "Ma trận Quyền lực/Quan tâm trực quan, hỗ trợ cả người ngoài tổ chức." },
+      "documents": { "tag": "PMBOK", "title": "Danh mục tài liệu", "description": "Sổ theo dõi tài liệu — loại, phiên bản, trạng thái, liên kết tới nơi lưu thật." },
+      "gamification": { "tag": "Gamification", "title": "Điểm & bảng xếp hạng", "description": "Điểm hoạt động, chuỗi ngày, 6 huy hiệu — khuyến khích cập nhật tiến độ đều đặn." },
+      "telegram": { "tag": "Tích hợp", "title": "Thông báo Telegram", "description": "Báo khi được giao việc, nhắc hạn 8:00 sáng mỗi ngày — qua bot Telegram dùng chung." }
+    },
+    "ctaTitle": "Bắt đầu quản lý dự án ngay",
+    "ctaDescription": "Tạo tài khoản miễn phí và tổ chức đầu tiên của bạn trong chưa đầy một phút."
   },
   "auth": {
     "login": {

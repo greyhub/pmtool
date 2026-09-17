@@ -9,9 +9,36 @@
     "or": "or"
   },
   "landing": {
+    "badge": "Multi-organization · Vietnamese/English · light/dark",
+    "heroTitle": "PMP-standard project management,\nnot just a task list",
     "tagline": "PMP-standard project management — with gamification and AI built in.",
+    "heroDescription": "From project charters, WBS, Kanban, Gantt, and risk tracking to gamification and an AI assistant — each organization is a fully isolated workspace.",
     "login": "Sign in",
-    "register": "Sign up"
+    "register": "Sign up",
+    "model": {
+      "kicker": "Overview",
+      "title": "Data structure",
+      "description": "The whole app sits on a 3-layer hierarchy — every other feature is built around it.",
+      "org": { "label": "Layer 1", "title": "Organization", "description": "A fully isolated workspace (multi-tenant) — 5-role RBAC" },
+      "project": { "label": "Layer 2", "title": "Project", "description": "Its own key, charter, stakeholders, and document registry" },
+      "task": { "label": "Layer 3", "title": "Task", "description": "Parent/child WBS hierarchy, dependencies, Kanban, Gantt, linked risks" }
+    },
+    "features": {
+      "kicker": "Key features",
+      "title": "Everything a PM needs, in one place",
+      "wbs": { "tag": "WBS", "title": "Hierarchical tasks & dependencies", "description": "Unlimited-depth parent/child tasks, FS/SS/FF/SF dependencies with automatic cycle prevention." },
+      "kanban": { "tag": "Kanban", "title": "Customizable drag-and-drop board", "description": "Default or custom columns, position saved instantly and preserved on reload." },
+      "gantt": { "tag": "Gantt", "title": "Visual timeline", "description": "Every task on one shared timeline, based on real start/end dates." },
+      "risks": { "tag": "Risks", "title": "Risks & Issues", "description": "Automatic severity score = probability × impact, sorted by priority." },
+      "ai": { "tag": "AI", "title": "AI assistant", "description": "Task summaries, subtask suggestions, natural-language task creation — always a suggestion you confirm." },
+      "charter": { "tag": "PMBOK", "title": "Project charter", "description": "Purpose, objectives, scope, budget — approved separately; editing reverts it to draft." },
+      "stakeholders": { "tag": "PMBOK", "title": "Stakeholder register", "description": "A visual Power/Interest grid, supporting people outside the organization too." },
+      "documents": { "tag": "PMBOK", "title": "Document registry", "description": "A catalog of project documents — category, version, status, link to where it lives." },
+      "gamification": { "tag": "Gamification", "title": "Points & leaderboard", "description": "Activity points, streaks, 6 badges — encourages regular progress updates." },
+      "telegram": { "tag": "Integration", "title": "Telegram notifications", "description": "Assignment alerts and an 8am daily due-date reminder, via a shared Telegram bot." }
+    },
+    "ctaTitle": "Start managing projects now",
+    "ctaDescription": "Create a free account and your first organization in under a minute."
   },
   "auth": {
     "login": {
