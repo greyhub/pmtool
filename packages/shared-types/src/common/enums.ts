@@ -39,3 +39,36 @@ export const BADGE_KEYS = [
   'TEAM_PLAYER',
 ] as const;
 export type BadgeKey = (typeof BADGE_KEYS)[number];
+
+export const CHARTER_STATUSES = ['DRAFT', 'APPROVED'] as const;
+export type CharterStatus = (typeof CHARTER_STATUSES)[number];
+
+export const STAKEHOLDER_CATEGORIES = ['INTERNAL', 'EXTERNAL'] as const;
+export type StakeholderCategory = (typeof STAKEHOLDER_CATEGORIES)[number];
+
+export const STAKEHOLDER_LEVELS = ['LOW', 'MEDIUM', 'HIGH'] as const;
+export type StakeholderLevel = (typeof STAKEHOLDER_LEVELS)[number];
+
+export const STAKEHOLDER_ENGAGEMENT_LEVELS = [
+  'UNAWARE',
+  'RESISTANT',
+  'NEUTRAL',
+  'SUPPORTIVE',
+  'LEADING',
+] as const;
+export type StakeholderEngagementLevel = (typeof STAKEHOLDER_ENGAGEMENT_LEVELS)[number];
+
+export const DOCUMENT_CATEGORIES = [
+  'CHARTER',
+  'PLAN',
+  'REPORT',
+  'CONTRACT',
+  'MEETING_NOTES',
+  'DESIGN',
+  'REQUIREMENT',
+  'OTHER',
+] as const;
+export type DocumentCategory = (typeof DOCUMENT_CATEGORIES)[number];
+
+export const DOCUMENT_STATUSES = ['DRAFT', 'IN_REVIEW', 'APPROVED', 'OBSOLETE'] as const;
+export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];

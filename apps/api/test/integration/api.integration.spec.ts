@@ -67,6 +67,27 @@ async function createProject(
   return res.body.data;
 }
 
+/** Invites a fresh user into `orgSlug` with `role` and has them accept — used to get a real, non-OWNER role for RBAC tests. */
+async function inviteAndAccept(
+  inviterAccessToken: string,
+  orgSlug: string,
+  role: 'ADMIN' | 'PM' | 'MEMBER' | 'VIEWER',
+  fullName: string,
+): Promise<{ accessToken: string; email: string }> {
+  const invitee = await registerUser(fullName);
+  const invite = await request(app.getHttpServer())
+    .post(`${API_PREFIX}/organizations/${orgSlug}/invites`)
+    .set('Authorization', `Bearer ${inviterAccessToken}`)
+    .send({ email: invitee.email, role })
+    .expect(201);
+  await request(app.getHttpServer())
+    .post(`${API_PREFIX}/invites/accept`)
+    .set('Authorization', `Bearer ${invitee.accessToken}`)
+    .send({ token: invite.body.data.rawToken })
+    .expect(200);
+  return invitee;
+}
+
 beforeAll(async () => {
   container = await new PostgreSqlContainer('postgres:16-alpine').start();
 
@@ -280,5 +301,154 @@ describe('Telegram integration', () => {
         message: { message_id: 2, chat: { id: 1 }, text: '/start bogus' },
       })
       .expect(401);
+  });
+});
+
+describe('Project Charter', () => {
+  it('PM can save and approve a charter; a MEMBER can read but not edit it, and re-editing an approved charter reverts it to DRAFT', async () => {
+    const owner = await registerUser('Charter Owner');
+    const org = await createOrg(owner.accessToken, 'Charter Org');
+    const project = await createProject(owner.accessToken, org.slug, 'CHR');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Charter Member',
+    );
+
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/charter`;
+
+    // Nothing saved yet.
+    const empty = await request(app.getHttpServer())
+      .get(base)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(empty.body.data).toBeNull();
+
+    // MEMBER cannot edit the charter (governance artifact, PM+ only).
+    await request(app.getHttpServer())
+      .put(base)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .send({ purpose: 'Should be forbidden' })
+      .expect(403);
+
+    // Owner (counts as PM+) saves it.
+    const saved = await request(app.getHttpServer())
+      .put(base)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ purpose: 'Ra mắt sản phẩm mới', sponsorName: 'CEO' })
+      .expect(200);
+    expect(saved.body.data.purpose).toBe('Ra mắt sản phẩm mới');
+    expect(saved.body.data.status).toBe('DRAFT');
+
+    // MEMBER can still read it.
+    const memberRead = await request(app.getHttpServer())
+      .get(base)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .expect(200);
+    expect(memberRead.body.data.sponsorName).toBe('CEO');
+
+    // Approve it.
+    const approved = await request(app.getHttpServer())
+      .post(`${base}/approve`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(201);
+    expect(approved.body.data.status).toBe('APPROVED');
+    expect(approved.body.data.approvedBy.fullName).toBe('Charter Owner');
+
+    // Editing it again reverts status to DRAFT.
+    const editedAfterApproval = await request(app.getHttpServer())
+      .put(base)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ purpose: 'Phạm vi đã thay đổi' })
+      .expect(200);
+    expect(editedAfterApproval.body.data.status).toBe('DRAFT');
+    expect(editedAfterApproval.body.data.approvedById).toBeNull();
+  });
+});
+
+describe('Stakeholder Register', () => {
+  it('PM can add stakeholders, a MEMBER cannot, and everyone can read the list', async () => {
+    const owner = await registerUser('Stakeholder Owner');
+    const org = await createOrg(owner.accessToken, 'Stakeholder Org');
+    const project = await createProject(owner.accessToken, org.slug, 'STK');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Stakeholder Member',
+    );
+
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/stakeholders`;
+
+    await request(app.getHttpServer())
+      .post(base)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .send({ fullName: 'Khách hàng ngoài' })
+      .expect(403);
+
+    const created = await request(app.getHttpServer())
+      .post(base)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({
+        fullName: 'Khách hàng chiến lược',
+        organizationName: 'Công ty ABC',
+        influence: 'HIGH',
+        interest: 'HIGH',
+      })
+      .expect(201);
+    expect(created.body.data.influence).toBe('HIGH');
+
+    const list = await request(app.getHttpServer())
+      .get(base)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .expect(200);
+    expect(list.body.data).toHaveLength(1);
+    expect(list.body.data[0].fullName).toBe('Khách hàng chiến lược');
+  });
+});
+
+describe('Document Registry', () => {
+  it('a MEMBER can log a document, a VIEWER cannot', async () => {
+    const owner = await registerUser('Document Owner');
+    const org = await createOrg(owner.accessToken, 'Document Org');
+    const project = await createProject(owner.accessToken, org.slug, 'DOC');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Document Member',
+    );
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Document Viewer',
+    );
+
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/documents`;
+
+    await request(app.getHttpServer())
+      .post(base)
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .send({ title: 'Should be forbidden', url: 'https://example.com/x.pdf' })
+      .expect(403);
+
+    const created = await request(app.getHttpServer())
+      .post(base)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .send({
+        title: 'Biên bản họp kickoff',
+        url: 'https://example.com/kickoff.pdf',
+        category: 'MEETING_NOTES',
+      })
+      .expect(201);
+    expect(created.body.data.category).toBe('MEETING_NOTES');
+
+    const list = await request(app.getHttpServer())
+      .get(base)
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .expect(200);
+    expect(list.body.data).toHaveLength(1);
   });
 });

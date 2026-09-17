@@ -2,7 +2,7 @@
 
 Tài liệu này mô tả kiến trúc tổng quan của PMTool ở 4 lớp: kiến trúc nghiệp vụ, kiến trúc hệ thống, tech stack, và các mối liên kết/luồng dữ liệu giữa các thành phần. Đối tượng đọc: kỹ sư tham gia dự án, hoặc người cần đánh giá kiến trúc kỹ thuật. Về cách dùng sản phẩm, xem [huong-dan-su-dung.md](huong-dan-su-dung.md); về cách chạy dự án, xem [README.md](../README.md).
 
-Trạng thái tại thời điểm viết (2026-09-17): Phase 1–3 đã triển khai và CI xanh trên nhánh `main`. Tài liệu phản ánh đúng những gì đã build, không phải kế hoạch.
+Trạng thái tại thời điểm viết (2026-09-17): Phase 1–3 và Phase 4a (Điều lệ dự án, Các bên liên quan, Danh mục tài liệu) đã triển khai và CI xanh trên nhánh `main`. Tài liệu phản ánh đúng những gì đã build, không phải kế hoạch.
 
 ## Mục lục
 
@@ -36,6 +36,12 @@ flowchart TD
         direction TB
         N1["Telegram<br/>(liên kết tài khoản · thông báo giao việc · nhắc hạn)"]
     end
+    subgraph GOVERN["Quản trị theo PMBOK (Phase 4a)"]
+        direction TB
+        G1["Điều lệ dự án<br/>(purpose · objectives · scope · approve)"]
+        G2["Các bên liên quan<br/>(Power/Interest grid · engagement)"]
+        G3["Danh mục tài liệu<br/>(catalog, không lưu file)"]
+    end
 
     C1 --> C2
     C2 --> C3
@@ -44,9 +50,12 @@ flowchart TD
     C2 -- "tạo/hoàn thành việc" --> E1
     C2 -- "mô tả việc" --> E2
     C2 -- "giao việc / đến hạn" --> N1
+    C2 --> G1
+    C2 --> G2
+    C2 --> G3
 ```
 
-Ba nhóm năng lực được xây theo 3 phase, nhưng đều đặt trên cùng một lõi nghiệp vụ: **Tổ chức → Dự án → Công việc**. Gamification, AI và Telegram không phải module độc lập — chúng phản ứng lại các sự kiện xảy ra ở lõi (tạo việc, hoàn thành việc, giao việc), không có nghiệp vụ riêng.
+Ba nhóm năng lực được xây theo 3 phase, nhưng đều đặt trên cùng một lõi nghiệp vụ: **Tổ chức → Dự án → Công việc**. Gamification, AI và Telegram không phải module độc lập — chúng phản ứng lại các sự kiện xảy ra ở lõi (tạo việc, hoàn thành việc, giao việc), không có nghiệp vụ riêng. Nhóm quản trị PMBOK (Phase 4a) thì ngược lại — là dữ liệu độc lập gắn trực tiếp vào dự án (không phát sinh từ sự kiện công việc), nên chỉ nhận cạnh từ C2 chứ không có cạnh phản hồi ngược lại như E1/E2/N1.
 
 ### 1.2 Mô hình miền dữ liệu (domain model)
 
@@ -65,6 +74,11 @@ erDiagram
     ORGANIZATION ||--o{ USER_SCORE : "điểm theo tổ chức"
     USER ||--o{ USER_SCORE : "có điểm"
     USER ||--o{ TELEGRAM_LINK_CODE : "mã liên kết (không có organizationId)"
+    PROJECT ||--o| PROJECT_CHARTER : "điều lệ (1 dự án - 1 điều lệ)"
+    USER ||--o{ PROJECT_CHARTER : "quản lý / phê duyệt"
+    PROJECT ||--o{ STAKEHOLDER : "các bên liên quan"
+    USER ||--o{ STAKEHOLDER : "liên kết (tuỳ chọn, có thể là bên ngoài)"
+    PROJECT ||--o{ PROJECT_DOCUMENT : "danh mục tài liệu"
 
     ORGANIZATION { string slug }
     USER { string email "telegramChatId?" }
@@ -72,11 +86,16 @@ erDiagram
     TASK { string humanKey "WEB-1" string status string priority date dueDate }
     RISK_ISSUE { int probability "1-5" int impact "1-5" int severity "= probability × impact" }
     USER_SCORE { int totalPoints int currentStreakDays }
+    PROJECT_CHARTER { string status "DRAFT | APPROVED" string sponsorName }
+    STAKEHOLDER { string fullName string influence "LOW|MEDIUM|HIGH" string interest "LOW|MEDIUM|HIGH" string currentEngagement string desiredEngagement }
+    PROJECT_DOCUMENT { string category string version string status "DRAFT|IN_REVIEW|APPROVED|OBSOLETE" string url }
 ```
 
 `Task` tự tham chiếu chính nó theo **hai** quan hệ độc lập, gộp chung một cạnh trong sơ đồ trên cho gọn: `parentTaskId` (cây phân cấp WBS) và `TaskDependency` (predecessor/successor FS/SS/FF/SF, có kiểm tra chống vòng lặp khi tạo).
 
 `TelegramLinkCode` là model **duy nhất không có `organizationId`** — nó gắn với `User`, không gắn với tổ chức, vì liên kết Telegram dùng chung cho mọi tổ chức một người dùng tham gia. Mọi model còn lại đều mang `organizationId` và nằm trong tập `TENANT_SCOPED_MODELS` được tự động lọc — xem [2.3](#23-đa-tenant-cách-ly-ở-tầng-ứng-dụng).
+
+`Stakeholder.userId` là FK **tuỳ chọn** tới `User` — PMBOK stakeholder bao gồm cả người ngoài tổ chức (khách hàng, nhà cung cấp) không bao giờ có tài khoản PMTool, nên `fullName`/`role`/`organizationName`/`email`/`phone` luôn là cột dữ liệu thô, không phụ thuộc quan hệ này.
 
 ### 1.3 Vòng đời nghiệp vụ chính
 
@@ -199,6 +218,9 @@ flowchart LR
         Organizations
         Memberships
         Health
+        Charter
+        Stakeholders
+        Documents
     end
 ```
 

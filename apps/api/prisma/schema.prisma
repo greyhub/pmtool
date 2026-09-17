@@ -27,16 +27,20 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  memberships       Membership[]
-  refreshTokens     RefreshToken[]
-  projectMembers    ProjectMember[]
-  taskAssignments   TaskAssignee[]
-  comments          Comment[]
-  ownedRiskIssues   RiskIssue[]
-  activityLogs      ActivityLog[]
-  userScores        UserScore[]
-  userBadges        UserBadge[]
-  telegramLinkCodes TelegramLinkCode[]
+  memberships           Membership[]
+  refreshTokens         RefreshToken[]
+  projectMembers        ProjectMember[]
+  taskAssignments       TaskAssignee[]
+  comments              Comment[]
+  ownedRiskIssues       RiskIssue[]
+  activityLogs          ActivityLog[]
+  userScores            UserScore[]
+  userBadges            UserBadge[]
+  telegramLinkCodes     TelegramLinkCode[]
+  managedCharters       ProjectCharter[]   @relation("CharterProjectManager")
+  approvedCharters      ProjectCharter[]   @relation("CharterApprover")
+  stakeholderProfiles   Stakeholder[]
+  ownedProjectDocuments ProjectDocument[]
 
   @@map("users")
 }
@@ -61,6 +65,9 @@ model Organization {
   activityLogs     ActivityLog[]
   userScores       UserScore[]
   userBadges       UserBadge[]
+  projectCharters  ProjectCharter[]
+  stakeholders     Stakeholder[]
+  projectDocuments ProjectDocument[]
 
   @@map("organizations")
 }
@@ -136,11 +143,14 @@ model Project {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members      ProjectMember[]
   tasks        Task[]
   boardColumns BoardColumn[]
   risks        RiskIssue[]
+  charter      ProjectCharter?
+  stakeholders Stakeholder[]
+  documents    ProjectDocument[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
@@ -330,6 +340,140 @@ model RiskIssue {
   @@index([organizationId])
   @@index([projectId, status])
   @@map("risk_issues")
+}
+
+enum CharterStatus {
+  DRAFT
+  APPROVED
+}
+
+/// One per project — formally authorizes it (PMBOK Project Charter). Editing
+/// an already-APPROVED charter via upsert reverts status to DRAFT and clears
+/// approvedById/approvedAt, forcing re-approval.
+model ProjectCharter {
+  id                String        @id @default(cuid())
+  organizationId    String
+  projectId         String        @unique
+  purpose           Json? // business case / justification — toRichText(), same shape as Task.description
+  objectives        Json? // objectives & success criteria
+  scopeSummary      Json? // high-level in/out of scope
+  milestonesSummary String? // plain text — no live Milestone entity yet
+  budgetSummary     String? // plain text — no Cost/EVM model yet
+  assumptions       Json?
+  constraints       Json?
+  sponsorName       String?
+  projectManagerId  String?
+  status            CharterStatus @default(DRAFT)
+  approvedById      String?
+  approvedAt        DateTime?
+  createdById       String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectManager User?        @relation("CharterProjectManager", fields: [projectManagerId], references: [id])
+  approvedBy     User?        @relation("CharterApprover", fields: [approvedById], references: [id])
+
+  @@index([organizationId])
+  @@map("project_charters")
+}
+
+enum StakeholderCategory {
+  INTERNAL
+  EXTERNAL
+}
+
+enum StakeholderLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum StakeholderEngagementLevel {
+  UNAWARE
+  RESISTANT
+  NEUTRAL
+  SUPPORTIVE
+  LEADING
+}
+
+/// PMBOK Stakeholder Register. userId is optional — most PMBOK stakeholders
+/// (customers, regulators, vendors) are never PMTool users, so fullName/role/
+/// organizationName/email/phone are always plain columns.
+model Stakeholder {
+  id                String                     @id @default(cuid())
+  organizationId    String
+  projectId         String
+  userId            String?
+  fullName          String
+  role              String?
+  organizationName  String?
+  email             String?
+  phone             String?
+  category          StakeholderCategory        @default(INTERNAL)
+  influence         StakeholderLevel           @default(MEDIUM)
+  interest          StakeholderLevel           @default(MEDIUM)
+  currentEngagement StakeholderEngagementLevel @default(NEUTRAL)
+  desiredEngagement StakeholderEngagementLevel @default(SUPPORTIVE)
+  notes             String?
+  createdById       String
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("stakeholders")
+}
+
+enum DocumentCategory {
+  CHARTER
+  PLAN
+  REPORT
+  CONTRACT
+  MEETING_NOTES
+  DESIGN
+  REQUIREMENT
+  OTHER
+}
+
+enum DocumentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  OBSOLETE
+}
+
+/// PMBOK Document Register — a catalog of project documents (title, category,
+/// version, status, external URL). Not a file store: PMTool has no file
+/// storage/upload infra yet, so `url` points at wherever the document
+/// actually lives (Drive, SharePoint, ...).
+model ProjectDocument {
+  id             String           @id @default(cuid())
+  organizationId String
+  projectId      String
+  title          String
+  category       DocumentCategory @default(OTHER)
+  version        String           @default("1.0")
+  status         DocumentStatus   @default(DRAFT)
+  url            String
+  ownerId        String?
+  description    String?
+  createdById    String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  owner        User?        @relation(fields: [ownerId], references: [id])
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("project_documents")
 }
 
 /// Append-only event stream (actor, entity, action, metadata) written by

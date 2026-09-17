@@ -2,7 +2,7 @@
 
 Ứng dụng quản lý dự án chuẩn PMP — multi-tenant SaaS, thiết kế tối giản/hiện đại (chủ đạo vàng, phụ xám), sáng/tối, song ngữ Việt/Anh.
 
-Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi), **Phase 2** (gamification + AI) và **Phase 3** (tích hợp Telegram). Google Calendar/Drive và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
+Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi), **Phase 2** (gamification + AI), **Phase 3** (tích hợp Telegram) và **Phase 4a** (Điều lệ dự án, Các bên liên quan, Danh mục tài liệu — theo chuẩn PMBOK). Google Calendar/Drive và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
 
 Tài liệu này dành cho phát triển/vận hành. Hướng dẫn sử dụng cho người dùng cuối (mô tả tính năng, cách thao tác) nằm ở [docs/huong-dan-su-dung.md](docs/huong-dan-su-dung.md); kiến trúc nghiệp vụ/hệ thống, tech stack và luồng dữ liệu chi tiết (kèm sơ đồ) nằm ở [docs/kien-truc.md](docs/kien-truc.md).
 
@@ -54,6 +54,11 @@ infra/            docker-compose cho Postgres + Redis (dev)
 - Thông báo tức thì qua Telegram khi được giao công việc
 - Nhắc nhở hằng ngày (8:00 giờ Việt Nam) cho công việc đến hạn trong ngày, qua `@nestjs/schedule`
 - Thiếu `TELEGRAM_BOT_TOKEN` thì tính năng tự tắt êm (không lỗi khi khởi động, chỉ ẩn/báo lỗi rõ ràng ở nơi cần bot thật)
+
+**Phase 4a — artifact PMBOK cốt lõi:**
+- **Điều lệ dự án (Project Charter)**: một văn kiện mỗi dự án — mục đích, mục tiêu, phạm vi, mốc chính, ngân sách, giả định, ràng buộc, nhà tài trợ, quản lý dự án được chỉ định. Lưu nháp (PM trở lên) và phê duyệt riêng (Owner/Admin) — sửa lại sau khi đã phê duyệt sẽ tự chuyển về bản nháp, buộc phê duyệt lại
+- **Các bên liên quan (Stakeholder Register)**: danh sách + ma trận Quyền lực/Mức quan tâm trực quan, hỗ trợ cả bên liên quan ngoài tổ chức (không có tài khoản), theo dõi mức độ gắn kết hiện tại → mong muốn (5 mức theo PMBOK)
+- **Danh mục tài liệu (Document Registry)**: sổ theo dõi tài liệu dự án (loại, phiên bản, trạng thái, người phụ trách, liên kết) — không phải kho lưu file, chỉ trỏ tới nơi tài liệu thật sự được lưu
 
 ## Yêu cầu môi trường
 
@@ -115,7 +120,7 @@ pnpm exec turbo run build lint typecheck test
 
 - **Unit** (`apps/*/src/**/*.spec.ts`): business logic với Prisma mock — phát hiện cycle trong WBS/dependency graph, tính điểm rủi ro, AuditLogInterceptor, v.v.
 - **Integration** (`apps/api/test/integration`): chạy qua HTTP thật (Supertest) trên một Postgres ephemeral (Testcontainers), xác nhận cách ly đa tenant và RBAC hoạt động đúng qua toàn bộ pipeline guard thật, không phải mock.
-- **E2E** (`apps/web/e2e`): Playwright — đăng ký/đăng nhập, tạo tổ chức, tạo dự án, tạo task+subtask+dependency, kéo-thả Kanban (giữ nguyên sau khi reload), chuyển theme (giữ nguyên sau khi reload), chuyển ngôn ngữ (giữ nguyên qua cookie `NEXT_LOCALE`), hoàn thành công việc → điểm hiện trên bảng xếp hạng, trang `/settings` render đúng và báo lỗi êm khi Telegram chưa cấu hình. Không có E2E cho AI hay round-trip Telegram thật (gọi API thật sẽ tốn phí/cần webhook công khai, không ổn định trong CI) — cả hai chỉ kiểm thử đầy đủ ở mức unit + integration (mock/HTTP giả lập).
+- **E2E** (`apps/web/e2e`): Playwright — đăng ký/đăng nhập, tạo tổ chức, tạo dự án, tạo task+subtask+dependency, kéo-thả Kanban (giữ nguyên sau khi reload), chuyển theme (giữ nguyên sau khi reload), chuyển ngôn ngữ (giữ nguyên qua cookie `NEXT_LOCALE`), hoàn thành công việc → điểm hiện trên bảng xếp hạng, trang `/settings` render đúng và báo lỗi êm khi Telegram chưa cấu hình, lưu+phê duyệt điều lệ dự án, thêm bên liên quan, thêm tài liệu (còn nguyên sau khi reload). Không có E2E cho AI hay round-trip Telegram thật (gọi API thật sẽ tốn phí/cần webhook công khai, không ổn định trong CI) — cả hai chỉ kiểm thử đầy đủ ở mức unit + integration (mock/HTTP giả lập).
 
 ## CI
 
@@ -125,4 +130,5 @@ pnpm exec turbo run build lint typecheck test
 
 Chưa thiết kế/xây dựng, dự kiến ở các phase sau:
 
-- **Phase 4** — Tích hợp Google Calendar, Google Drive (OAuth2 per-organization, mã hoá credential khi lưu trữ), billing/subscription (Stripe), giới hạn theo gói, SSO (SAML/OIDC), Postgres RLS (defense-in-depth), rate limiting, observability, EVM/cost tracking, resource capacity planning, stakeholder matrices, procurement.
+- **Phase 4b** — Milestones/RACI thật (tận dụng Task/TaskAssignee thay vì nhập tay), Change Request Log, Lessons Learned Register, EVM/cost tracking, resource capacity planning, procurement.
+- **Phase 5** — Tích hợp Google Calendar, Google Drive (OAuth2 per-organization, mã hoá credential khi lưu trữ), billing/subscription (Stripe), giới hạn theo gói, SSO (SAML/OIDC), Postgres RLS (defense-in-depth), rate limiting, observability.

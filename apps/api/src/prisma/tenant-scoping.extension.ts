@@ -20,6 +20,9 @@ const TENANT_SCOPED_MODELS = new Set([
   'ActivityLog',
   'UserScore',
   'UserBadge',
+  'ProjectCharter',
+  'Stakeholder',
+  'ProjectDocument',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([

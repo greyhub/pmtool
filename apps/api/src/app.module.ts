@@ -18,6 +18,9 @@ import { ActivityModule } from './modules/activity/activity.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { AiModule } from './modules/ai/ai.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
+import { CharterModule } from './modules/charter/charter.module';
+import { StakeholdersModule } from './modules/stakeholders/stakeholders.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 import { HealthModule } from './modules/health/health.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -43,6 +46,9 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     GamificationModule,
     AiModule,
     TelegramModule,
+    CharterModule,
+    StakeholdersModule,
+    DocumentsModule,
     HealthModule,
   ],
   providers: [

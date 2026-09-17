@@ -75,7 +75,10 @@
       "board": "Board",
       "gantt": "Timeline",
       "risks": "Risks/Issues",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "charter": "Charter",
+      "stakeholders": "Stakeholders",
+      "documents": "Documents"
     }
   },
   "board": {
@@ -177,7 +180,10 @@
       "Project": "project",
       "Task": "task",
       "RiskIssue": "risk/issue",
-      "Comment": "comment"
+      "Comment": "comment",
+      "ProjectCharter": "project charter",
+      "Stakeholder": "stakeholder",
+      "ProjectDocument": "document"
     },
     "action": {
       "created": "created",
@@ -273,6 +279,121 @@
       "instructions": "Open the link below, then press Start in Telegram to finish linking.",
       "codeExpires": "This link code is valid for 10 minutes.",
       "generateError": "Could not generate a link code. Please try again."
+    }
+  },
+  "charter": {
+    "title": "Project charter",
+    "subtitle": "The document that formally authorizes the project — purpose, objectives, scope, assumptions and constraints",
+    "draft": "Draft",
+    "approved": "Approved",
+    "approvedBanner": "Approved by {name} on {date}",
+    "purpose": "Purpose & business case",
+    "purposeHint": "Why this project exists and the value it delivers",
+    "objectives": "Objectives & success criteria",
+    "objectivesHint": "What defines this project as successful",
+    "scopeSummary": "High-level scope",
+    "scopeSummaryHint": "What's in and out of scope",
+    "milestonesSummary": "Key milestones (summary)",
+    "budgetSummary": "Budget (summary)",
+    "assumptions": "Assumptions",
+    "constraints": "Constraints",
+    "sponsorName": "Sponsor",
+    "projectManager": "Assigned project manager",
+    "projectManagerNone": "Not assigned",
+    "save": "Save",
+    "approve": "Approve"
+  },
+  "stakeholders": {
+    "list": {
+      "title": "Stakeholders",
+      "subtitle": "This project's stakeholder register and analysis",
+      "create": "Add stakeholder",
+      "empty": "No stakeholders yet.",
+      "columnName": "Name",
+      "columnRole": "Role",
+      "columnInfluence": "Influence",
+      "columnInterest": "Interest",
+      "columnEngagement": "Current → desired engagement",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "createTitle": "Add stakeholder",
+      "editTitle": "Edit stakeholder",
+      "fullName": "Full name",
+      "role": "Role/Title",
+      "organizationName": "Organization/Company",
+      "email": "Email",
+      "phone": "Phone",
+      "linkedUser": "Link to a member",
+      "linkedUserNone": "External (no account)",
+      "influence": "Influence",
+      "interest": "Interest",
+      "currentEngagement": "Current engagement level",
+      "desiredEngagement": "Desired engagement level",
+      "notes": "Notes",
+      "submit": "Save"
+    },
+    "grid": {
+      "title": "Power/Interest grid",
+      "axisHint": "Vertical: interest (low to high, bottom to top) · Horizontal: influence (low to high, left to right)"
+    },
+    "level": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
+    },
+    "engagement": {
+      "UNAWARE": "Unaware",
+      "RESISTANT": "Resistant",
+      "NEUTRAL": "Neutral",
+      "SUPPORTIVE": "Supportive",
+      "LEADING": "Leading"
+    }
+  },
+  "documents": {
+    "list": {
+      "title": "Document registry",
+      "subtitle": "Project document catalog",
+      "create": "Add document",
+      "empty": "No documents yet.",
+      "columnTitle": "Title",
+      "columnCategory": "Category",
+      "columnVersion": "Version",
+      "columnStatus": "Status",
+      "columnOwner": "Owner",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "createTitle": "Add document",
+      "editTitle": "Edit document",
+      "title": "Title",
+      "url": "URL",
+      "urlHint": "Link to where the document actually lives (Google Drive, SharePoint, ...)",
+      "category": "Category",
+      "version": "Version",
+      "status": "Status",
+      "owner": "Owner",
+      "ownerNone": "Unassigned",
+      "description": "Description",
+      "submit": "Save"
+    },
+    "category": {
+      "CHARTER": "Charter",
+      "PLAN": "Plan",
+      "REPORT": "Report",
+      "CONTRACT": "Contract",
+      "MEETING_NOTES": "Meeting notes",
+      "DESIGN": "Design",
+      "REQUIREMENT": "Requirement",
+      "OTHER": "Other"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "IN_REVIEW": "In review",
+      "APPROVED": "Approved",
+      "OBSOLETE": "Obsolete"
     }
   }
 }

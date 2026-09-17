@@ -75,7 +75,10 @@
       "board": "Bảng",
       "gantt": "Tiến độ",
       "risks": "Rủi ro/Vấn đề",
-      "dashboard": "Tổng quan"
+      "dashboard": "Tổng quan",
+      "charter": "Điều lệ",
+      "stakeholders": "Các bên liên quan",
+      "documents": "Tài liệu"
     }
   },
   "board": {
@@ -177,7 +180,10 @@
       "Project": "dự án",
       "Task": "công việc",
       "RiskIssue": "rủi ro/vấn đề",
-      "Comment": "bình luận"
+      "Comment": "bình luận",
+      "ProjectCharter": "điều lệ dự án",
+      "Stakeholder": "bên liên quan",
+      "ProjectDocument": "tài liệu"
     },
     "action": {
       "created": "đã tạo",
@@ -273,6 +279,121 @@
       "instructions": "Nhấn vào liên kết bên dưới, sau đó nhấn Start trong Telegram để hoàn tất liên kết.",
       "codeExpires": "Mã liên kết có hiệu lực trong 10 phút.",
       "generateError": "Không thể tạo mã liên kết. Vui lòng thử lại."
+    }
+  },
+  "charter": {
+    "title": "Điều lệ dự án",
+    "subtitle": "Văn kiện chính thức hoá dự án — mục đích, mục tiêu, phạm vi, giả định và ràng buộc",
+    "draft": "Bản nháp",
+    "approved": "Đã phê duyệt",
+    "approvedBanner": "Đã phê duyệt bởi {name} vào {date}",
+    "purpose": "Mục đích & lý do (Business case)",
+    "purposeHint": "Vì sao dự án này tồn tại, giá trị mang lại là gì",
+    "objectives": "Mục tiêu & tiêu chí thành công",
+    "objectivesHint": "Dự án được xem là thành công khi nào",
+    "scopeSummary": "Phạm vi tổng quát",
+    "scopeSummaryHint": "Những gì nằm trong và ngoài phạm vi dự án",
+    "milestonesSummary": "Các mốc chính (tóm tắt)",
+    "budgetSummary": "Ngân sách (tóm tắt)",
+    "assumptions": "Giả định",
+    "constraints": "Ràng buộc",
+    "sponsorName": "Nhà tài trợ (Sponsor)",
+    "projectManager": "Quản lý dự án được chỉ định",
+    "projectManagerNone": "Chưa chỉ định",
+    "save": "Lưu",
+    "approve": "Phê duyệt"
+  },
+  "stakeholders": {
+    "list": {
+      "title": "Các bên liên quan",
+      "subtitle": "Danh sách và phân tích các bên liên quan của dự án",
+      "create": "Thêm bên liên quan",
+      "empty": "Chưa có bên liên quan nào.",
+      "columnName": "Tên",
+      "columnRole": "Vai trò",
+      "columnInfluence": "Quyền lực",
+      "columnInterest": "Mức quan tâm",
+      "columnEngagement": "Gắn kết hiện tại → mong muốn",
+      "edit": "Sửa",
+      "delete": "Xoá"
+    },
+    "form": {
+      "createTitle": "Thêm bên liên quan",
+      "editTitle": "Sửa bên liên quan",
+      "fullName": "Họ và tên",
+      "role": "Vai trò/Chức danh",
+      "organizationName": "Tổ chức/Công ty",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "linkedUser": "Liên kết với thành viên",
+      "linkedUserNone": "Bên ngoài (không có tài khoản)",
+      "influence": "Quyền lực (Influence)",
+      "interest": "Mức quan tâm (Interest)",
+      "currentEngagement": "Mức độ gắn kết hiện tại",
+      "desiredEngagement": "Mức độ gắn kết mong muốn",
+      "notes": "Ghi chú",
+      "submit": "Lưu"
+    },
+    "grid": {
+      "title": "Ma trận Quyền lực / Mức quan tâm",
+      "axisHint": "Trục dọc: mức quan tâm (thấp → cao, dưới lên trên) · Trục ngang: quyền lực (thấp → cao, trái sang phải)"
+    },
+    "level": {
+      "LOW": "Thấp",
+      "MEDIUM": "Trung bình",
+      "HIGH": "Cao"
+    },
+    "engagement": {
+      "UNAWARE": "Chưa biết",
+      "RESISTANT": "Phản đối",
+      "NEUTRAL": "Trung lập",
+      "SUPPORTIVE": "Ủng hộ",
+      "LEADING": "Dẫn dắt"
+    }
+  },
+  "documents": {
+    "list": {
+      "title": "Danh mục tài liệu",
+      "subtitle": "Danh sách tài liệu của dự án",
+      "create": "Thêm tài liệu",
+      "empty": "Chưa có tài liệu nào.",
+      "columnTitle": "Tiêu đề",
+      "columnCategory": "Loại",
+      "columnVersion": "Phiên bản",
+      "columnStatus": "Trạng thái",
+      "columnOwner": "Người phụ trách",
+      "edit": "Sửa",
+      "delete": "Xoá"
+    },
+    "form": {
+      "createTitle": "Thêm tài liệu",
+      "editTitle": "Sửa tài liệu",
+      "title": "Tiêu đề",
+      "url": "Đường dẫn",
+      "urlHint": "Liên kết tới nơi lưu trữ tài liệu thật (Google Drive, SharePoint, ...)",
+      "category": "Loại",
+      "version": "Phiên bản",
+      "status": "Trạng thái",
+      "owner": "Người phụ trách",
+      "ownerNone": "Chưa phân công",
+      "description": "Mô tả",
+      "submit": "Lưu"
+    },
+    "category": {
+      "CHARTER": "Điều lệ",
+      "PLAN": "Kế hoạch",
+      "REPORT": "Báo cáo",
+      "CONTRACT": "Hợp đồng",
+      "MEETING_NOTES": "Biên bản họp",
+      "DESIGN": "Thiết kế",
+      "REQUIREMENT": "Yêu cầu",
+      "OTHER": "Khác"
+    },
+    "status": {
+      "DRAFT": "Bản nháp",
+      "IN_REVIEW": "Đang xem xét",
+      "APPROVED": "Đã phê duyệt",
+      "OBSOLETE": "Đã lỗi thời"
     }
   }
 }

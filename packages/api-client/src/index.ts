@@ -11,3 +11,6 @@ export * from './hooks/activity';
 export * from './hooks/gamification';
 export * from './hooks/ai';
 export * from './hooks/integrations';
+export * from './hooks/charter';
+export * from './hooks/stakeholders';
+export * from './hooks/documents';

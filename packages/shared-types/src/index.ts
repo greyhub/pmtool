@@ -11,3 +11,6 @@ export * from './activity/schemas';
 export * from './gamification/schemas';
 export * from './ai/schemas';
 export * from './integrations/schemas';
+export * from './charter/schemas';
+export * from './stakeholders/schemas';
+export * from './documents/schemas';

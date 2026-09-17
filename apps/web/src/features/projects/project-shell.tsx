@@ -33,6 +33,9 @@ export function ProjectShell({
     { href: `/${orgSlug}/projects/${projectKey}/board`, label: tTabs('board') },
     { href: `/${orgSlug}/projects/${projectKey}/gantt`, label: tTabs('gantt') },
     { href: `/${orgSlug}/projects/${projectKey}/risks`, label: tTabs('risks') },
+    { href: `/${orgSlug}/projects/${projectKey}/charter`, label: tTabs('charter') },
+    { href: `/${orgSlug}/projects/${projectKey}/stakeholders`, label: tTabs('stakeholders') },
+    { href: `/${orgSlug}/projects/${projectKey}/documents`, label: tTabs('documents') },
   ];
 
   return (
