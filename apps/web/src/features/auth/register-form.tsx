@@ -7,6 +7,7 @@ import { registerSchema, RegisterInput } from '@pmtool/shared-types';
 import { useRegister, ApiError } from '@pmtool/api-client';
 import { Button, FormField, Input } from '@pmtool/ui';
 import { useRouter } from '../../i18n/navigation';
+import { safeRedirectTarget } from '../../lib/post-auth-redirect';
 
 export function RegisterForm() {
   const t = useTranslations('auth.register');
@@ -20,7 +21,16 @@ export function RegisterForm() {
 
   const onSubmit = handleSubmit((data) => {
     registerMutation.mutate(data, {
-      onSuccess: () => router.push('/onboarding/create-organization'),
+      onSuccess: () => {
+        // A brand-new account created to accept an invite should land back
+        // on that invite, not on "create your own organization". Read
+        // directly from window instead of useSearchParams() so this
+        // component doesn't force a Suspense boundary on its page.
+        const redirectTarget = safeRedirectTarget(
+          new URLSearchParams(window.location.search).get('redirect'),
+        );
+        router.push(redirectTarget ?? '/onboarding/create-organization');
+      },
     });
   });
 
