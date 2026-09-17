@@ -11,9 +11,36 @@ const FEATURE_KEYS = [
   'charter',
   'stakeholders',
   'documents',
+  'artifacts',
   'gamification',
   'telegram',
 ] as const;
+
+const DOC_LINKS = [
+  { key: 'sotay', href: 'https://claude.ai/artifact/TTfAxffk1d6Vo8ENR32S9H', icon: '📘' },
+  { key: 'kientruc', href: 'https://claude.ai/artifact/CH4P46mb39FUyWBUd9Az73', icon: '🏛️' },
+  { key: 'tongquan', href: 'https://claude.ai/artifact/RpRMH2o6fLMb1WE8MvLY7m', icon: '🧭' },
+] as const;
+
+function DocCard({ docKey, href, icon }: { docKey: (typeof DOC_LINKS)[number]['key']; href: string; icon: string }) {
+  const t = useTranslations(`landing.docs.${docKey}`);
+  const tOpen = useTranslations('landing.docs');
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="flex flex-col gap-2 rounded-xl border border-line-glass bg-surface-glass-strong p-5 shadow-lg shadow-black/5 backdrop-blur-xl transition-transform hover:-translate-y-0.5"
+    >
+      <span className="text-xl" aria-hidden="true">
+        {icon}
+      </span>
+      <h3 className="text-sm font-semibold text-ink-primary">{t('title')}</h3>
+      <p className="text-xs leading-relaxed text-ink-secondary">{t('description')}</p>
+      <span className="mt-1 text-xs font-semibold text-action-primary">{tOpen('open')} →</span>
+    </a>
+  );
+}
 
 function FeatureCard({ tKey }: { tKey: (typeof FEATURE_KEYS)[number] }) {
   const t = useTranslations(`landing.features.${tKey}`);
@@ -99,6 +126,21 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURE_KEYS.map((key) => (
             <FeatureCard key={key} tKey={key} />
+          ))}
+        </div>
+      </section>
+
+      {/* Tài liệu */}
+      <section className="border-t border-line-glass py-16">
+        <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-wide text-action-primary">
+          {tLanding('docs.kicker')}
+        </p>
+        <h2 className="mb-2 text-2xl font-bold text-ink-primary">{tLanding('docs.title')}</h2>
+        <p className="mb-8 max-w-2xl text-sm text-ink-secondary">{tLanding('docs.description')}</p>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {DOC_LINKS.map((doc) => (
+            <DocCard key={doc.key} docKey={doc.key} href={doc.href} icon={doc.icon} />
           ))}
         </div>
       </section>

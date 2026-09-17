@@ -35,7 +35,17 @@
       "stakeholders": { "tag": "PMBOK", "title": "Các bên liên quan", "description": "Ma trận Quyền lực/Quan tâm trực quan, hỗ trợ cả người ngoài tổ chức." },
       "documents": { "tag": "PMBOK", "title": "Danh mục tài liệu", "description": "Sổ theo dõi tài liệu — loại, phiên bản, trạng thái, liên kết tới nơi lưu thật." },
       "gamification": { "tag": "Gamification", "title": "Điểm & bảng xếp hạng", "description": "Điểm hoạt động, chuỗi ngày, 6 huy hiệu — khuyến khích cập nhật tiến độ đều đặn." },
-      "telegram": { "tag": "Tích hợp", "title": "Thông báo Telegram", "description": "Báo khi được giao việc, nhắc hạn 8:00 sáng mỗi ngày — qua bot Telegram dùng chung." }
+      "telegram": { "tag": "Tích hợp", "title": "Thông báo Telegram", "description": "Báo khi được giao việc, nhắc hạn 8:00 sáng mỗi ngày — qua bot Telegram dùng chung." },
+      "artifacts": { "tag": "Artifact", "title": "Trang HTML/CSS/JS tự viết", "description": "Xem trước trực tiếp trong khung cách ly an toàn — như tính năng Artifact của Claude." }
+    },
+    "docs": {
+      "kicker": "Tài liệu",
+      "title": "Tìm hiểu sâu hơn",
+      "description": "Ba tài liệu do Claude tạo, đi kèm sơ đồ và ảnh chụp thật từ ứng dụng.",
+      "sotay": { "title": "Sổ tay PMTool", "description": "Hướng dẫn sử dụng từng tính năng theo đúng thứ tự người dùng mới sẽ chạm tới." },
+      "kientruc": { "title": "Kiến trúc PMTool", "description": "Kiến trúc nghiệp vụ, hệ thống, tech stack và luồng dữ liệu — kèm sơ đồ." },
+      "tongquan": { "title": "Tổng quan PMTool", "description": "Mô hình tổng quan, bản đồ tính năng theo từng phase, và liên kết tới hai tài liệu kia." },
+      "open": "Mở"
     },
     "ctaTitle": "Bắt đầu quản lý dự án ngay",
     "ctaDescription": "Tạo tài khoản miễn phí và tổ chức đầu tiên của bạn trong chưa đầy một phút."
