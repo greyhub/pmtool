@@ -4,6 +4,8 @@
 
 Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi), **Phase 2** (gamification + AI) và **Phase 3** (tích hợp Telegram). Google Calendar/Drive và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
 
+Tài liệu này dành cho phát triển/vận hành. Hướng dẫn sử dụng cho người dùng cuối (mô tả tính năng, cách thao tác) nằm ở [docs/huong-dan-su-dung.md](docs/huong-dan-su-dung.md).
+
 ## Kiến trúc
 
 | Lớp | Công nghệ |
