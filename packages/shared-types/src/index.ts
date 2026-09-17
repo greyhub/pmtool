@@ -10,3 +10,4 @@ export * from './dashboard/schemas';
 export * from './activity/schemas';
 export * from './gamification/schemas';
 export * from './ai/schemas';
+export * from './integrations/schemas';

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMe, useLogout } from '@pmtool/api-client';
 import { Avatar } from '@pmtool/ui';
-import { useRouter } from '../../i18n/navigation';
+import { Link, useRouter } from '../../i18n/navigation';
 
 export function UserMenu() {
   const { data: user } = useMe();
@@ -43,6 +43,14 @@ export function UserMenu() {
         >
           <div className="px-3 py-2 text-sm text-ink-secondary">{user.email}</div>
           <div className="my-1 border-t border-line-glass" />
+          <Link
+            href="/settings"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+          >
+            Cài đặt
+          </Link>
           <button
             type="button"
             role="menuitem"

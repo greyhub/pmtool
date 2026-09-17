@@ -19,6 +19,14 @@ export const envSchema = z.object({
   // Optional: AI features (modules/ai) fail with a clear error at request
   // time when this is absent, rather than blocking app startup.
   ANTHROPIC_API_KEY: z.string().optional(),
+  // Optional: Telegram integration (modules/telegram) is disabled with a
+  // clear message when absent, rather than blocking app startup.
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+  // Base URL Telegram's setWebhook is told to call back on. Defaults to
+  // localhost, which Telegram cannot actually reach — fine for local dev
+  // where the webhook path is exercised directly in tests instead.
+  API_PUBLIC_URL: z.string().default('http://localhost:3001'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

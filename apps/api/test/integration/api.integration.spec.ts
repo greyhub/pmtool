@@ -9,6 +9,8 @@ import {
   StartedPostgreSqlContainer,
 } from '@testcontainers/postgresql';
 import { AppModule } from '../../src/app.module';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { hashLinkCode } from '../../src/modules/telegram/link-code.util';
 
 /**
  * Full-stack integration tests against a real, ephemeral Postgres
@@ -76,6 +78,12 @@ beforeAll(async () => {
     'integration-test-refresh-secret-at-least-32-chars';
   process.env.CORS_ORIGIN = 'http://localhost:3000';
   process.env.NODE_ENV = 'test';
+  process.env.TELEGRAM_WEBHOOK_SECRET = 'integration-test-webhook-secret';
+  // TELEGRAM_BOT_TOKEN is deliberately left unset: it disables the
+  // real Telegram HTTP calls (webhook registration on boot, and the
+  // link-code endpoint, which needs a live getMe call) — those aren't
+  // reachable from this sandboxed environment. The webhook secret check
+  // and code-consumption logic below don't depend on the bot token.
 
   execSync('pnpm exec prisma migrate deploy', {
     cwd: path.resolve(__dirname, '../..'),
@@ -218,5 +226,59 @@ describe('Gamification', () => {
       currentStreakDays: 1,
       rank: 1,
     });
+  });
+});
+
+describe('Telegram integration', () => {
+  it('consuming a valid link code via the webhook links the chat id to the user', async () => {
+    const user = await registerUser('Telegram User');
+    const prisma = app.get(PrismaService);
+    const userRecord = await prisma.db.user.findUniqueOrThrow({
+      where: { email: user.email },
+    });
+
+    const rawCode = 'integration-test-link-code';
+    await prisma.db.telegramLinkCode.create({
+      data: {
+        userId: userRecord.id,
+        codeHash: hashLinkCode(rawCode),
+        expiresAt: new Date(Date.now() + 60_000),
+      },
+    });
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/integrations/telegram/webhook`)
+      .set('X-Telegram-Bot-Api-Secret-Token', 'integration-test-webhook-secret')
+      .send({
+        update_id: 1,
+        message: {
+          message_id: 1,
+          chat: { id: 999888777 },
+          text: `/start ${rawCode}`,
+        },
+      })
+      .expect(201);
+
+    const updated = await prisma.db.user.findUniqueOrThrow({
+      where: { id: userRecord.id },
+    });
+    expect(updated.telegramChatId).toBe('999888777');
+
+    const status = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/integrations/telegram/status`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .expect(200);
+    expect(status.body.data.linked).toBe(true);
+  });
+
+  it('rejects a webhook call whose secret header does not match', async () => {
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/integrations/telegram/webhook`)
+      .set('X-Telegram-Bot-Api-Secret-Token', 'not-the-right-secret')
+      .send({
+        update_id: 2,
+        message: { message_id: 2, chat: { id: 1 }, text: '/start bogus' },
+      })
+      .expect(401);
   });
 });

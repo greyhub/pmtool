@@ -12,6 +12,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { toRichText } from './rich-text.util';
 import { GamificationService } from '../gamification/gamification.service';
+import { TelegramNotificationsService } from '../telegram/telegram-notifications.service';
 
 const TASK_INCLUDE = {
   assignees: {
@@ -27,6 +28,7 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gamificationService: GamificationService,
+    private readonly telegramNotifications: TelegramNotificationsService,
   ) {}
 
   async create(
@@ -93,6 +95,12 @@ export class TasksService {
       5,
       'task_created',
     );
+    if (input.assigneeIds?.length) {
+      await this.telegramNotifications.notifyTaskAssigned(
+        task,
+        input.assigneeIds,
+      );
+    }
     return task;
   }
 
@@ -169,6 +177,9 @@ export class TasksService {
               : input.dueDate
                 ? new Date(input.dueDate)
                 : null,
+          // A changed due date invalidates any reminder already sent for the old one.
+          telegramReminderSentAt:
+            input.dueDate === undefined ? undefined : null,
           estimateHours: input.estimateHours,
         },
         include: TASK_INCLUDE,
@@ -182,6 +193,19 @@ export class TasksService {
         10,
         'task_completed',
       );
+    }
+
+    if (input.assigneeIds) {
+      const oldAssigneeIds = new Set(existing.assignees.map((a) => a.userId));
+      const newlyAssigned = input.assigneeIds.filter(
+        (id) => !oldAssigneeIds.has(id),
+      );
+      if (newlyAssigned.length > 0) {
+        await this.telegramNotifications.notifyTaskAssigned(
+          updated,
+          newlyAssigned,
+        );
+      }
     }
 
     return updated;

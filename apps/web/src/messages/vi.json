@@ -259,5 +259,20 @@
       "overdueTasks": "Công việc quá hạn",
       "noOverdueTasks": "Không có công việc quá hạn."
     }
+  },
+  "settings": {
+    "title": "Cài đặt"
+  },
+  "integrations": {
+    "telegram": {
+      "title": "Telegram",
+      "description": "Nhận thông báo khi được giao việc và nhắc nhở công việc sắp đến hạn qua Telegram.",
+      "connect": "Kết nối Telegram",
+      "connected": "Đã kết nối",
+      "disconnect": "Ngắt kết nối",
+      "instructions": "Nhấn vào liên kết bên dưới, sau đó nhấn Start trong Telegram để hoàn tất liên kết.",
+      "codeExpires": "Mã liên kết có hiệu lực trong 10 phút.",
+      "generateError": "Không thể tạo mã liên kết. Vui lòng thử lại."
+    }
   }
 }

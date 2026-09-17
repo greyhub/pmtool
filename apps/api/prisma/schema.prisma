@@ -16,15 +16,16 @@ enum OrgRole {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String
-  avatarUrl    String?
-  locale       String   @default("vi")
-  themePref    String   @default("system")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  fullName       String
+  avatarUrl      String?
+  locale         String   @default("vi")
+  themePref      String   @default("system")
+  telegramChatId String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   memberships       Membership[]
   refreshTokens     RefreshToken[]
@@ -35,6 +36,7 @@ model User {
   activityLogs      ActivityLog[]
   userScores        UserScore[]
   userBadges        UserBadge[]
+  telegramLinkCodes TelegramLinkCode[]
 
   @@map("users")
 }
@@ -178,29 +180,30 @@ enum TaskPriority {
 }
 
 model Task {
-  id             String        @id @default(cuid())
-  organizationId String // denormalized for the tenant-scoping Prisma extension + fast index
-  projectId      String
-  humanKey       String // e.g. "PMT-123", minted from Project.key + Project.taskSequence
-  parentTaskId   String? // self-relation -> WBS hierarchy (subtasks)
-  title          String
-  description    Json? // structured rich-text doc, not a plain string — AI features can parse it later without a migration
-  status         TaskStatus    @default(TODO)
-  priority       TaskPriority  @default(MEDIUM)
-  startDate      DateTime?
-  dueDate        DateTime?
-  estimateHours  Float?
-  orderIndex     Float // fractional index for drag-reorder within a WBS level/board column
-  boardColumnId  String?
-  createdById    String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id                     String       @id @default(cuid())
+  organizationId         String // denormalized for the tenant-scoping Prisma extension + fast index
+  projectId              String
+  humanKey               String // e.g. "PMT-123", minted from Project.key + Project.taskSequence
+  parentTaskId           String? // self-relation -> WBS hierarchy (subtasks)
+  title                  String
+  description            Json? // structured rich-text doc, not a plain string — AI features can parse it later without a migration
+  status                 TaskStatus   @default(TODO)
+  priority               TaskPriority @default(MEDIUM)
+  startDate              DateTime?
+  dueDate                DateTime?
+  estimateHours          Float?
+  orderIndex             Float // fractional index for drag-reorder within a WBS level/board column
+  boardColumnId          String?
+  createdById            String
+  telegramReminderSentAt DateTime? // dedup marker for the daily due-date reminder cron; reset to null whenever dueDate changes
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 
-  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parent       Task?            @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
-  subtasks     Task[]           @relation("TaskHierarchy")
-  boardColumn  BoardColumn?     @relation(fields: [boardColumnId], references: [id])
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent       Task?          @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks     Task[]         @relation("TaskHierarchy")
+  boardColumn  BoardColumn?   @relation(fields: [boardColumnId], references: [id])
   assignees    TaskAssignee[]
   comments     Comment[]
 
@@ -391,4 +394,20 @@ model UserBadge {
 
   @@unique([organizationId, userId, badgeKey])
   @@map("user_badges")
+}
+
+/// Short-lived, hashed, single-use code linking a Telegram chat to a User —
+/// shaped like RefreshToken (hash + compare), not MembershipInvite, since
+/// this is user-level, not org-level (no organizationId, correctly excluded
+/// from TENANT_SCOPED_MODELS the same way RefreshToken already is).
+model TelegramLinkCode {
+  id        String   @id @default(cuid())
+  userId    String
+  codeHash  String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("telegram_link_codes")
 }

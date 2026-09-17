@@ -2,7 +2,7 @@
 
 Ứng dụng quản lý dự án chuẩn PMP — multi-tenant SaaS, thiết kế tối giản/hiện đại (chủ đạo vàng, phụ xám), sáng/tối, song ngữ Việt/Anh.
 
-Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi) và **Phase 2** (gamification + AI). Tích hợp (Telegram/Calendar/Drive) và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
+Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi), **Phase 2** (gamification + AI) và **Phase 3** (tích hợp Telegram). Google Calendar/Drive và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
 
 ## Kiến trúc
 
@@ -47,6 +47,12 @@ infra/            docker-compose cho Postgres + Redis (dev)
 - Điểm hoạt động, chuỗi ngày (streak, theo múi giờ UTC+7), 6 huy hiệu, bảng xếp hạng theo tổ chức
 - Tóm tắt công việc bằng AI, gợi ý công việc con bằng AI, tạo công việc từ mô tả ngôn ngữ tự nhiên — qua Anthropic Claude API (cần `ANTHROPIC_API_KEY`, xem bên dưới); AI chỉ đề xuất, người dùng luôn xác nhận trước khi tạo công việc thật
 
+**Phase 3 — tích hợp Telegram:**
+- Liên kết tài khoản Telegram cá nhân (trang `/settings`, độc lập với tổ chức) qua mã liên kết dùng một lần và bot Telegram dùng chung (cần `TELEGRAM_BOT_TOKEN`, xem bên dưới)
+- Thông báo tức thì qua Telegram khi được giao công việc
+- Nhắc nhở hằng ngày (8:00 giờ Việt Nam) cho công việc đến hạn trong ngày, qua `@nestjs/schedule`
+- Thiếu `TELEGRAM_BOT_TOKEN` thì tính năng tự tắt êm (không lỗi khi khởi động, chỉ ẩn/báo lỗi rõ ràng ở nơi cần bot thật)
+
 ## Yêu cầu môi trường
 
 - Node.js >= 20.18 (xem `.nvmrc`)
@@ -64,6 +70,11 @@ cp apps/api/.env.example apps/api/.env
 # -> sửa JWT_ACCESS_SECRET / JWT_REFRESH_SECRET thành chuỗi ngẫu nhiên >= 32 ký tự
 # -> ANTHROPIC_API_KEY là tuỳ chọn: thiếu thì cả app vẫn chạy bình thường,
 #    chỉ riêng 3 tính năng AI trả lỗi rõ ràng thay vì hoạt động
+# -> TELEGRAM_BOT_TOKEN/TELEGRAM_WEBHOOK_SECRET cũng tuỳ chọn: thiếu thì
+#    thông báo Telegram tự tắt êm. Lấy token từ @BotFather trên Telegram.
+#    Webhook Telegram cần API_PUBLIC_URL là URL HTTPS truy cập công khai
+#    được (vd. qua ngrok khi phát triển local) — localhost sẽ không nhận
+#    được webhook thật, nhưng phần liên kết tài khoản vẫn cấu hình được.
 
 # 3. Khởi động Postgres + Redis
 docker compose -f infra/docker-compose.yml up -d
@@ -102,7 +113,7 @@ pnpm exec turbo run build lint typecheck test
 
 - **Unit** (`apps/*/src/**/*.spec.ts`): business logic với Prisma mock — phát hiện cycle trong WBS/dependency graph, tính điểm rủi ro, AuditLogInterceptor, v.v.
 - **Integration** (`apps/api/test/integration`): chạy qua HTTP thật (Supertest) trên một Postgres ephemeral (Testcontainers), xác nhận cách ly đa tenant và RBAC hoạt động đúng qua toàn bộ pipeline guard thật, không phải mock.
-- **E2E** (`apps/web/e2e`): Playwright — đăng ký/đăng nhập, tạo tổ chức, tạo dự án, tạo task+subtask+dependency, kéo-thả Kanban (giữ nguyên sau khi reload), chuyển theme (giữ nguyên sau khi reload), chuyển ngôn ngữ (giữ nguyên qua cookie `NEXT_LOCALE`), hoàn thành công việc → điểm hiện trên bảng xếp hạng. Không có E2E cho AI (gọi API Anthropic thật sẽ tốn phí và không ổn định trong CI) — AI chỉ kiểm thử ở mức unit (mock Anthropic client).
+- **E2E** (`apps/web/e2e`): Playwright — đăng ký/đăng nhập, tạo tổ chức, tạo dự án, tạo task+subtask+dependency, kéo-thả Kanban (giữ nguyên sau khi reload), chuyển theme (giữ nguyên sau khi reload), chuyển ngôn ngữ (giữ nguyên qua cookie `NEXT_LOCALE`), hoàn thành công việc → điểm hiện trên bảng xếp hạng, trang `/settings` render đúng và báo lỗi êm khi Telegram chưa cấu hình. Không có E2E cho AI hay round-trip Telegram thật (gọi API thật sẽ tốn phí/cần webhook công khai, không ổn định trong CI) — cả hai chỉ kiểm thử đầy đủ ở mức unit + integration (mock/HTTP giả lập).
 
 ## CI
 
@@ -112,5 +123,4 @@ pnpm exec turbo run build lint typecheck test
 
 Chưa thiết kế/xây dựng, dự kiến ở các phase sau:
 
-- **Phase 3** — Tích hợp Telegram, Google Calendar, Google Drive — mỗi cái là một module `integrations/` riêng với OAuth credential lưu theo từng tổ chức.
-- **Phase 4** — Billing/subscription (Stripe), giới hạn theo gói, SSO (SAML/OIDC), Postgres RLS (defense-in-depth), rate limiting, observability, EVM/cost tracking, resource capacity planning, stakeholder matrices, procurement.
+- **Phase 4** — Tích hợp Google Calendar, Google Drive (OAuth2 per-organization, mã hoá credential khi lưu trữ), billing/subscription (Stripe), giới hạn theo gói, SSO (SAML/OIDC), Postgres RLS (defense-in-depth), rate limiting, observability, EVM/cost tracking, resource capacity planning, stakeholder matrices, procurement.

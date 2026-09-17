@@ -10,3 +10,4 @@ export * from './hooks/dashboard';
 export * from './hooks/activity';
 export * from './hooks/gamification';
 export * from './hooks/ai';
+export * from './hooks/integrations';
