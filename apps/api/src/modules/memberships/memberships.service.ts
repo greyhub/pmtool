@@ -151,7 +151,14 @@ export class MembershipsService {
     if (target.role === 'OWNER') {
       await this.assertNotLastOwner(organizationId, membershipId);
     }
-    await this.prisma.db.membership.delete({ where: { id: membershipId } });
+    await this.prisma.db.$transaction(async (tx) => {
+      await tx.membership.delete({ where: { id: membershipId } });
+      // Clear any per-project role overrides too, so a later re-invite at a
+      // lower role can't silently resurrect an old project-level override.
+      await tx.projectMember.deleteMany({
+        where: { organizationId, userId: target.userId },
+      });
+    });
   }
 
   private async getMembershipOrThrow(

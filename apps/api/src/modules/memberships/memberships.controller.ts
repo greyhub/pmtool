@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -53,6 +54,11 @@ export class MembershipsController {
     @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(createInviteSchema)) body: CreateInviteInput,
   ) {
+    if (ctx.organization.status === 'ARCHIVED') {
+      throw new ForbiddenException(
+        'Không thể mời thành viên mới vào tổ chức đã lưu trữ',
+      );
+    }
     return {
       data: await this.membershipsService.createInvite(
         ctx.organization.id,

@@ -15,6 +15,11 @@ enum OrgRole {
   VIEWER
 }
 
+enum OrganizationStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
@@ -46,11 +51,12 @@ model User {
 }
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String             @id @default(cuid())
   name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug      String             @unique
+  status    OrganizationStatus @default(ACTIVE)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
   memberships      Membership[]
   invites          MembershipInvite[]

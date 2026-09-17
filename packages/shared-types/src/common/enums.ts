@@ -1,6 +1,9 @@
 export const ORG_ROLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
 export type OrgRole = (typeof ORG_ROLES)[number];
 
+export const ORGANIZATION_STATUSES = ['ACTIVE', 'ARCHIVED'] as const;
+export type OrganizationStatus = (typeof ORGANIZATION_STATUSES)[number];
+
 export const LOCALES = ['vi', 'en'] as const;
 export type Locale = (typeof LOCALES)[number];
 

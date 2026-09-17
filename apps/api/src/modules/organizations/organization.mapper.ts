@@ -6,6 +6,7 @@ export function toOrganizationDto(org: Organization): OrganizationDto {
     id: org.id,
     name: org.name,
     slug: org.slug,
+    status: org.status,
     createdAt: org.createdAt.toISOString(),
   };
 }

@@ -21,7 +21,7 @@ import { BoardsService } from './boards.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { ProjectRolesGuard } from '../../common/guards/project-roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CurrentOrg,
@@ -54,7 +54,7 @@ export class BoardsController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_BOARD)
   async create(
     @CurrentOrg() ctx: CurrentOrgContext,
@@ -71,7 +71,7 @@ export class BoardsController {
   }
 
   @Patch(':columnId')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_BOARD)
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
@@ -88,7 +88,7 @@ export class BoardsController {
   }
 
   @Delete(':columnId')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_BOARD)
   async remove(
     @CurrentOrg() ctx: CurrentOrgContext,

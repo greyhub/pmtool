@@ -31,7 +31,7 @@ import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { ProjectRolesGuard } from '../../common/guards/project-roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CurrentOrg,
@@ -56,7 +56,7 @@ export class TasksController {
   ) {}
 
   @Post()
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'created')
   async create(
@@ -103,7 +103,7 @@ export class TasksController {
   }
 
   @Patch(':taskId')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'updated')
   async update(
@@ -122,7 +122,7 @@ export class TasksController {
   }
 
   @Patch(':taskId/move')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'moved')
   async move(
@@ -143,7 +143,7 @@ export class TasksController {
   }
 
   @Delete(':taskId')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'deleted', 'taskId')
   async remove(
@@ -166,7 +166,7 @@ export class TasksController {
   }
 
   @Post(':taskId/comments')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Comment', 'created')
   async createComment(

@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -47,7 +49,7 @@ export class OrganizationsController {
   async listMine(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ data: OrganizationDto[] }> {
-    const orgs = await this.organizationsService.listForUser(user.id);
+    const orgs = await this.organizationsService.listForUser(user.id, false);
     return { data: orgs.map(toOrganizationDto) };
   }
 
@@ -72,6 +74,28 @@ export class OrganizationsController {
       ctx.organization.id,
       body.name,
     );
+    return { data: toOrganizationDto(org) };
+  }
+
+  @Post(':orgSlug/archive')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OrgMembershipGuard, RolesGuard)
+  @Roles('OWNER')
+  async archive(
+    @CurrentOrg() ctx: CurrentOrgContext,
+  ): Promise<{ data: OrganizationDto }> {
+    const org = await this.organizationsService.archive(ctx.organization.id);
+    return { data: toOrganizationDto(org) };
+  }
+
+  @Post(':orgSlug/unarchive')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OrgMembershipGuard, RolesGuard)
+  @Roles('OWNER')
+  async unarchive(
+    @CurrentOrg() ctx: CurrentOrgContext,
+  ): Promise<{ data: OrganizationDto }> {
+    const org = await this.organizationsService.unarchive(ctx.organization.id);
     return { data: toOrganizationDto(org) };
   }
 }

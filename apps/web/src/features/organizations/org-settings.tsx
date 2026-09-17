@@ -1,0 +1,297 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  ApiError,
+  useArchiveOrganization,
+  useCreateInvite,
+  useOrganization,
+  useOrganizationInvites,
+  useOrganizationMembers,
+  useRemoveMember,
+  useUnarchiveOrganization,
+  useUpdateMembershipRole,
+  useUpdateOrganizationName,
+} from '@pmtool/api-client';
+import {
+  Badge,
+  Button,
+  Card,
+  FormField,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from '@pmtool/ui';
+
+const ORG_ROLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
+const INVITE_ROLES = ['ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
+
+function GeneralCard({ orgSlug }: { orgSlug: string }) {
+  const t = useTranslations('organizations.settings.general');
+  const { data: org } = useOrganization(orgSlug);
+  const updateName = useUpdateOrganizationName(orgSlug);
+  const archiveOrg = useArchiveOrganization(orgSlug);
+  const unarchiveOrg = useUnarchiveOrganization(orgSlug);
+  const [name, setName] = useState('');
+
+  useEffect(() => {
+    if (org) setName(org.name);
+  }, [org]);
+
+  if (!org) return null;
+  const archived = org.status === 'ARCHIVED';
+
+  return (
+    <Card className="flex flex-col gap-4 p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
+        {archived ? (
+          <Badge variant="neutral">{t('archivedBadge')}</Badge>
+        ) : (
+          <Badge variant="success">{t('activeBadge')}</Badge>
+        )}
+      </div>
+
+      <FormField label={t('name')} htmlFor="org-name">
+        <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} />
+      </FormField>
+
+      {updateName.isError && (
+        <p role="alert" className="text-sm text-danger">
+          {updateName.error instanceof ApiError ? updateName.error.message : t('genericError')}
+        </p>
+      )}
+
+      <div className="flex justify-between gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={archiveOrg.isPending || unarchiveOrg.isPending}
+          onClick={() => {
+            if (archived) {
+              unarchiveOrg.mutate();
+              return;
+            }
+            if (window.confirm(t('archiveConfirm'))) {
+              archiveOrg.mutate();
+            }
+          }}
+        >
+          {archived ? t('unarchive') : t('archive')}
+        </Button>
+        <Button
+          type="button"
+          disabled={updateName.isPending || name.trim().length === 0}
+          onClick={() => updateName.mutate({ name: name.trim() })}
+        >
+          {t('save')}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+function MembersCard({ orgSlug }: { orgSlug: string }) {
+  const t = useTranslations('organizations.settings.members');
+  const { data: members } = useOrganizationMembers(orgSlug);
+  const updateRole = useUpdateMembershipRole(orgSlug);
+  const removeMember = useRemoveMember(orgSlug);
+
+  return (
+    <Card className="p-0">
+      <div className="p-6 pb-0">
+        <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
+      </div>
+      <div className="mt-4">
+        {members && members.length > 0 ? (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>{t('columnName')}</TableHeaderCell>
+                <TableHeaderCell>{t('columnRole')}</TableHeaderCell>
+                <TableHeaderCell></TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {members.map((m) => (
+                <TableRow key={m.id}>
+                  <TableCell>
+                    <span className="font-medium">{m.user?.fullName}</span>
+                    <span className="block text-xs text-ink-muted">{m.user?.email}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={m.role}
+                      onChange={(e) =>
+                        updateRole.mutate({
+                          membershipId: m.id,
+                          role: e.target.value as (typeof INVITE_ROLES)[number],
+                        })
+                      }
+                      disabled={m.role === 'OWNER'}
+                      className="w-36"
+                    >
+                      {ORG_ROLES.map((r) => (
+                        <option key={r} value={r} disabled={r === 'OWNER'}>
+                          {r}
+                        </option>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={m.role === 'OWNER'}
+                        onClick={() => {
+                          if (window.confirm(t('removeConfirm'))) {
+                            removeMember.mutate(m.id);
+                          }
+                        }}
+                      >
+                        {t('remove')}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <p className="p-6 pt-0 text-sm text-ink-secondary">{t('empty')}</p>
+        )}
+      </div>
+      {(updateRole.isError || removeMember.isError) && (
+        <p role="alert" className="px-6 pb-4 text-sm text-danger">
+          {t('actionError')}
+        </p>
+      )}
+    </Card>
+  );
+}
+
+function InvitesCard({ orgSlug }: { orgSlug: string }) {
+  const t = useTranslations('organizations.settings.invites');
+  const { data: invites } = useOrganizationInvites(orgSlug);
+  const createInvite = useCreateInvite(orgSlug);
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState<(typeof INVITE_ROLES)[number]>('MEMBER');
+  const [lastLink, setLastLink] = useState<string | null>(null);
+
+  function handleInvite() {
+    createInvite.mutate(
+      { email: email.trim(), role },
+      {
+        onSuccess: (invite) => {
+          setEmail('');
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          setLastLink(`${origin}/invite/accept?token=${invite.rawToken}`);
+        },
+      },
+    );
+  }
+
+  return (
+    <Card className="flex flex-col gap-4 p-6">
+      <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <FormField label={t('email')} htmlFor="invite-email" className="flex-1">
+          <Input
+            id="invite-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </FormField>
+        <FormField label={t('role')} htmlFor="invite-role">
+          <Select
+            id="invite-role"
+            value={role}
+            onChange={(e) => setRole(e.target.value as (typeof INVITE_ROLES)[number])}
+            className="w-36"
+          >
+            {INVITE_ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+        <Button
+          type="button"
+          disabled={createInvite.isPending || email.trim().length === 0}
+          onClick={handleInvite}
+        >
+          {t('send')}
+        </Button>
+      </div>
+
+      {createInvite.isError && (
+        <p role="alert" className="text-sm text-danger">
+          {createInvite.error instanceof ApiError ? createInvite.error.message : t('genericError')}
+        </p>
+      )}
+
+      {lastLink && (
+        <div className="rounded-md border border-line bg-surface-subtle p-3 text-xs">
+          <p className="mb-1 text-ink-secondary">{t('linkHint')}</p>
+          <code className="break-all text-ink-primary">{lastLink}</code>
+        </div>
+      )}
+
+      {invites && invites.length > 0 && (
+        <div className="mt-2">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
+            {t('pendingTitle')}
+          </p>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>{t('columnEmail')}</TableHeaderCell>
+                <TableHeaderCell>{t('columnRole')}</TableHeaderCell>
+                <TableHeaderCell>{t('columnExpires')}</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {invites.map((inv) => (
+                <TableRow key={inv.id}>
+                  <TableCell>{inv.email}</TableCell>
+                  <TableCell>
+                    <Badge variant="neutral">{inv.role}</Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-ink-secondary">
+                    {new Date(inv.expiresAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+export function OrgSettings({ orgSlug }: { orgSlug: string }) {
+  const t = useTranslations('organizations.settings');
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
+        <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
+      </div>
+      <GeneralCard orgSlug={orgSlug} />
+      <MembersCard orgSlug={orgSlug} />
+      <InvitesCard orgSlug={orgSlug} />
+    </div>
+  );
+}

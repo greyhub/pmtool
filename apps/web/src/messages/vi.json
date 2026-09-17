@@ -19,32 +19,97 @@
       "kicker": "Mô hình tổng quan",
       "title": "Cấu trúc dữ liệu",
       "description": "Toàn bộ ứng dụng đặt trên một mô hình phân cấp 3 lớp — mọi tính năng khác đều là lớp bổ sung quanh nó.",
-      "org": { "label": "Lớp 1", "title": "Tổ chức", "description": "Không gian làm việc biệt lập hoàn toàn (đa tenant) — RBAC 5 vai trò" },
-      "project": { "label": "Lớp 2", "title": "Dự án", "description": "Có mã riêng, điều lệ, các bên liên quan, danh mục tài liệu" },
-      "task": { "label": "Lớp 3", "title": "Công việc", "description": "Phân cấp WBS cha/con, phụ thuộc, Kanban, Gantt, rủi ro gắn theo" }
+      "org": {
+        "label": "Lớp 1",
+        "title": "Tổ chức",
+        "description": "Không gian làm việc biệt lập hoàn toàn (đa tenant) — RBAC 5 vai trò"
+      },
+      "project": {
+        "label": "Lớp 2",
+        "title": "Dự án",
+        "description": "Có mã riêng, điều lệ, các bên liên quan, danh mục tài liệu"
+      },
+      "task": {
+        "label": "Lớp 3",
+        "title": "Công việc",
+        "description": "Phân cấp WBS cha/con, phụ thuộc, Kanban, Gantt, rủi ro gắn theo"
+      }
     },
     "features": {
       "kicker": "Tính năng chính",
       "title": "Mọi thứ một PM cần, trong một chỗ",
-      "wbs": { "tag": "WBS", "title": "Công việc phân cấp & phụ thuộc", "description": "Cha/con không giới hạn độ sâu, phụ thuộc FS/SS/FF/SF với chống vòng lặp tự động." },
-      "kanban": { "tag": "Kanban", "title": "Bảng kéo-thả tuỳ biến", "description": "Cột mặc định hoặc tự tạo, vị trí lưu ngay lập tức, còn nguyên sau khi tải lại." },
-      "gantt": { "tag": "Gantt", "title": "Tiến độ trực quan", "description": "Toàn bộ công việc trên một trục thời gian dùng chung, theo ngày bắt đầu/kết thúc thật." },
-      "risks": { "tag": "Rủi ro", "title": "Rủi ro & Vấn đề", "description": "Chấm điểm tự động = khả năng × ảnh hưởng, sắp theo mức độ ưu tiên xử lý." },
-      "ai": { "tag": "AI", "title": "Trợ lý AI", "description": "Tóm tắt công việc, gợi ý công việc con, tạo việc từ ngôn ngữ tự nhiên — luôn chỉ đề xuất, bạn xác nhận." },
-      "charter": { "tag": "PMBOK", "title": "Điều lệ dự án", "description": "Mục đích, mục tiêu, phạm vi, ngân sách — phê duyệt riêng, sửa lại tự quay về bản nháp." },
-      "stakeholders": { "tag": "PMBOK", "title": "Các bên liên quan", "description": "Ma trận Quyền lực/Quan tâm trực quan, hỗ trợ cả người ngoài tổ chức." },
-      "documents": { "tag": "PMBOK", "title": "Danh mục tài liệu", "description": "Sổ theo dõi tài liệu — loại, phiên bản, trạng thái, liên kết tới nơi lưu thật." },
-      "gamification": { "tag": "Gamification", "title": "Điểm & bảng xếp hạng", "description": "Điểm hoạt động, chuỗi ngày, 6 huy hiệu — khuyến khích cập nhật tiến độ đều đặn." },
-      "telegram": { "tag": "Tích hợp", "title": "Thông báo Telegram", "description": "Báo khi được giao việc, nhắc hạn 8:00 sáng mỗi ngày — qua bot Telegram dùng chung." },
-      "artifacts": { "tag": "Artifact", "title": "Trang HTML/CSS/JS tự viết", "description": "Xem trước trực tiếp trong khung cách ly an toàn — như tính năng Artifact của Claude." }
+      "wbs": {
+        "tag": "WBS",
+        "title": "Công việc phân cấp & phụ thuộc",
+        "description": "Cha/con không giới hạn độ sâu, phụ thuộc FS/SS/FF/SF với chống vòng lặp tự động."
+      },
+      "kanban": {
+        "tag": "Kanban",
+        "title": "Bảng kéo-thả tuỳ biến",
+        "description": "Cột mặc định hoặc tự tạo, vị trí lưu ngay lập tức, còn nguyên sau khi tải lại."
+      },
+      "gantt": {
+        "tag": "Gantt",
+        "title": "Tiến độ trực quan",
+        "description": "Toàn bộ công việc trên một trục thời gian dùng chung, theo ngày bắt đầu/kết thúc thật."
+      },
+      "risks": {
+        "tag": "Rủi ro",
+        "title": "Rủi ro & Vấn đề",
+        "description": "Chấm điểm tự động = khả năng × ảnh hưởng, sắp theo mức độ ưu tiên xử lý."
+      },
+      "ai": {
+        "tag": "AI",
+        "title": "Trợ lý AI",
+        "description": "Tóm tắt công việc, gợi ý công việc con, tạo việc từ ngôn ngữ tự nhiên — luôn chỉ đề xuất, bạn xác nhận."
+      },
+      "charter": {
+        "tag": "PMBOK",
+        "title": "Điều lệ dự án",
+        "description": "Mục đích, mục tiêu, phạm vi, ngân sách — phê duyệt riêng, sửa lại tự quay về bản nháp."
+      },
+      "stakeholders": {
+        "tag": "PMBOK",
+        "title": "Các bên liên quan",
+        "description": "Ma trận Quyền lực/Quan tâm trực quan, hỗ trợ cả người ngoài tổ chức."
+      },
+      "documents": {
+        "tag": "PMBOK",
+        "title": "Danh mục tài liệu",
+        "description": "Sổ theo dõi tài liệu — loại, phiên bản, trạng thái, liên kết tới nơi lưu thật."
+      },
+      "gamification": {
+        "tag": "Gamification",
+        "title": "Điểm & bảng xếp hạng",
+        "description": "Điểm hoạt động, chuỗi ngày, 6 huy hiệu — khuyến khích cập nhật tiến độ đều đặn."
+      },
+      "telegram": {
+        "tag": "Tích hợp",
+        "title": "Thông báo Telegram",
+        "description": "Báo khi được giao việc, nhắc hạn 8:00 sáng mỗi ngày — qua bot Telegram dùng chung."
+      },
+      "artifacts": {
+        "tag": "Artifact",
+        "title": "Trang HTML/CSS/JS tự viết",
+        "description": "Xem trước trực tiếp trong khung cách ly an toàn — như tính năng Artifact của Claude."
+      }
     },
     "docs": {
       "kicker": "Tài liệu",
       "title": "Tìm hiểu sâu hơn",
       "description": "Ba tài liệu do Claude tạo, đi kèm sơ đồ và ảnh chụp thật từ ứng dụng.",
-      "sotay": { "title": "Sổ tay PMTool", "description": "Hướng dẫn sử dụng từng tính năng theo đúng thứ tự người dùng mới sẽ chạm tới." },
-      "kientruc": { "title": "Kiến trúc PMTool", "description": "Kiến trúc nghiệp vụ, hệ thống, tech stack và luồng dữ liệu — kèm sơ đồ." },
-      "tongquan": { "title": "Tổng quan PMTool", "description": "Mô hình tổng quan, bản đồ tính năng theo từng phase, và liên kết tới hai tài liệu kia." },
+      "sotay": {
+        "title": "Sổ tay PMTool",
+        "description": "Hướng dẫn sử dụng từng tính năng theo đúng thứ tự người dùng mới sẽ chạm tới."
+      },
+      "kientruc": {
+        "title": "Kiến trúc PMTool",
+        "description": "Kiến trúc nghiệp vụ, hệ thống, tech stack và luồng dữ liệu — kèm sơ đồ."
+      },
+      "tongquan": {
+        "title": "Tổng quan PMTool",
+        "description": "Mô hình tổng quan, bản đồ tính năng theo từng phase, và liên kết tới hai tài liệu kia."
+      },
       "open": "Mở"
     },
     "ctaTitle": "Bắt đầu quản lý dự án ngay",
@@ -83,7 +148,9 @@
   },
   "nav": {
     "projects": "Dự án",
-    "leaderboard": "Bảng xếp hạng"
+    "leaderboard": "Bảng xếp hạng",
+    "orgSettings": "Cài đặt tổ chức",
+    "archivedBanner": "Tổ chức này đã được lưu trữ — không thể tạo dự án hoặc mời thành viên mới."
   },
   "projects": {
     "list": {
@@ -116,7 +183,37 @@
       "charter": "Điều lệ",
       "stakeholders": "Các bên liên quan",
       "documents": "Tài liệu",
-      "artifacts": "Artifact"
+      "artifacts": "Artifact",
+      "settings": "Cài đặt"
+    },
+    "settings": {
+      "title": "Cài đặt dự án",
+      "subtitle": "Chỉnh sửa thông tin và quản lý vai trò riêng của thành viên trong dự án.",
+      "general": {
+        "title": "Thông tin chung",
+        "name": "Tên dự án",
+        "description": "Mô tả",
+        "startDate": "Ngày bắt đầu",
+        "targetEndDate": "Ngày kết thúc dự kiến",
+        "status": "Trạng thái",
+        "archiveHint": "Chọn \"Lưu trữ\" để lưu trữ dự án này.",
+        "save": "Lưu",
+        "genericError": "Có lỗi xảy ra, vui lòng thử lại"
+      },
+      "members": {
+        "title": "Vai trò riêng trong dự án",
+        "subtitle": "Gán một vai trò khác với vai trò tổ chức cho từng thành viên, chỉ áp dụng trong dự án này.",
+        "addMember": "Thêm thành viên",
+        "selectMember": "Chọn thành viên tổ chức...",
+        "role": "Vai trò",
+        "add": "Thêm",
+        "columnName": "Thành viên",
+        "columnRole": "Vai trò riêng",
+        "remove": "Xoá",
+        "removeHint": "Xoá vai trò riêng sẽ đưa thành viên về vai trò mặc định theo tổ chức, không xoá quyền truy cập dự án.",
+        "empty": "Chưa có thành viên nào có vai trò riêng — mọi người đang dùng vai trò tổ chức của họ.",
+        "actionError": "Có lỗi xảy ra, vui lòng thử lại"
+      }
     }
   },
   "board": {
@@ -250,12 +347,30 @@
       "badges": "Huy hiệu"
     },
     "badges": {
-      "FIRST_TASK": { "name": "Khởi đầu", "description": "Tạo công việc đầu tiên" },
-      "STREAK_7": { "name": "Kiên trì 7 ngày", "description": "Hoạt động liên tục 7 ngày" },
-      "STREAK_30": { "name": "Bền bỉ 30 ngày", "description": "Hoạt động liên tục 30 ngày" },
-      "RISK_RESOLVER": { "name": "Người giải quyết rủi ro", "description": "Giải quyết 5 rủi ro/vấn đề" },
-      "TASK_MACHINE": { "name": "Cỗ máy công việc", "description": "Hoàn thành 50 công việc" },
-      "TEAM_PLAYER": { "name": "Đồng đội tích cực", "description": "Viết 20 bình luận" }
+      "FIRST_TASK": {
+        "name": "Khởi đầu",
+        "description": "Tạo công việc đầu tiên"
+      },
+      "STREAK_7": {
+        "name": "Kiên trì 7 ngày",
+        "description": "Hoạt động liên tục 7 ngày"
+      },
+      "STREAK_30": {
+        "name": "Bền bỉ 30 ngày",
+        "description": "Hoạt động liên tục 30 ngày"
+      },
+      "RISK_RESOLVER": {
+        "name": "Người giải quyết rủi ro",
+        "description": "Giải quyết 5 rủi ro/vấn đề"
+      },
+      "TASK_MACHINE": {
+        "name": "Cỗ máy công việc",
+        "description": "Hoàn thành 50 công việc"
+      },
+      "TEAM_PLAYER": {
+        "name": "Đồng đội tích cực",
+        "description": "Viết 20 bình luận"
+      }
     }
   },
   "ai": {
@@ -450,6 +565,54 @@
       "previewLabel": "Xem trước",
       "save": "Lưu",
       "delete": "Xoá"
+    }
+  },
+  "organizations": {
+    "settings": {
+      "title": "Cài đặt tổ chức",
+      "subtitle": "Quản lý thông tin, thành viên và lời mời của tổ chức.",
+      "general": {
+        "title": "Thông tin chung",
+        "name": "Tên tổ chức",
+        "save": "Lưu",
+        "archive": "Lưu trữ tổ chức",
+        "unarchive": "Bỏ lưu trữ",
+        "archiveConfirm": "Lưu trữ tổ chức này? Sẽ không thể tạo dự án hoặc mời thành viên mới cho đến khi bỏ lưu trữ.",
+        "archivedBadge": "Đã lưu trữ",
+        "activeBadge": "Đang hoạt động",
+        "genericError": "Có lỗi xảy ra, vui lòng thử lại"
+      },
+      "members": {
+        "title": "Thành viên",
+        "columnName": "Thành viên",
+        "columnRole": "Vai trò",
+        "remove": "Xoá",
+        "removeConfirm": "Xoá thành viên này khỏi tổ chức?",
+        "empty": "Chưa có thành viên nào.",
+        "actionError": "Có lỗi xảy ra, vui lòng thử lại"
+      },
+      "invites": {
+        "title": "Mời thành viên",
+        "email": "Email",
+        "role": "Vai trò",
+        "send": "Gửi lời mời",
+        "genericError": "Có lỗi xảy ra, vui lòng thử lại",
+        "linkHint": "Chưa có gửi email tự động — hãy sao chép liên kết dưới đây và gửi cho người được mời:",
+        "pendingTitle": "Lời mời đang chờ",
+        "columnEmail": "Email",
+        "columnRole": "Vai trò",
+        "columnExpires": "Hết hạn"
+      }
+    }
+  },
+  "invites": {
+    "accept": {
+      "title": "Lời mời tham gia tổ chức",
+      "description": "Nhấn nút bên dưới để chấp nhận lời mời và tham gia tổ chức.",
+      "accept": "Chấp nhận lời mời",
+      "redirecting": "Đang chuyển hướng...",
+      "missingToken": "Liên kết lời mời không hợp lệ.",
+      "genericError": "Không thể chấp nhận lời mời, vui lòng thử lại"
     }
   }
 }

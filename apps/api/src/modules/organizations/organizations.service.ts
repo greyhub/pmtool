@@ -35,9 +35,15 @@ export class OrganizationsService {
     });
   }
 
-  async listForUser(userId: string): Promise<Organization[]> {
+  async listForUser(
+    userId: string,
+    includeArchived = false,
+  ): Promise<Organization[]> {
     const memberships = await this.prisma.db.membership.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(includeArchived ? {} : { organization: { status: 'ACTIVE' } }),
+      },
       include: { organization: true },
       orderBy: { createdAt: 'asc' },
     });
@@ -61,6 +67,20 @@ export class OrganizationsService {
     return this.prisma.db.organization.update({
       where: { id: organizationId },
       data: { name },
+    });
+  }
+
+  async archive(organizationId: string): Promise<Organization> {
+    return this.prisma.db.organization.update({
+      where: { id: organizationId },
+      data: { status: 'ARCHIVED' },
+    });
+  }
+
+  async unarchive(organizationId: string): Promise<Organization> {
+    return this.prisma.db.organization.update({
+      where: { id: organizationId },
+      data: { status: 'ACTIVE' },
     });
   }
 }

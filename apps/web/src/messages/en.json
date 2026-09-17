@@ -19,32 +19,97 @@
       "kicker": "Overview",
       "title": "Data structure",
       "description": "The whole app sits on a 3-layer hierarchy — every other feature is built around it.",
-      "org": { "label": "Layer 1", "title": "Organization", "description": "A fully isolated workspace (multi-tenant) — 5-role RBAC" },
-      "project": { "label": "Layer 2", "title": "Project", "description": "Its own key, charter, stakeholders, and document registry" },
-      "task": { "label": "Layer 3", "title": "Task", "description": "Parent/child WBS hierarchy, dependencies, Kanban, Gantt, linked risks" }
+      "org": {
+        "label": "Layer 1",
+        "title": "Organization",
+        "description": "A fully isolated workspace (multi-tenant) — 5-role RBAC"
+      },
+      "project": {
+        "label": "Layer 2",
+        "title": "Project",
+        "description": "Its own key, charter, stakeholders, and document registry"
+      },
+      "task": {
+        "label": "Layer 3",
+        "title": "Task",
+        "description": "Parent/child WBS hierarchy, dependencies, Kanban, Gantt, linked risks"
+      }
     },
     "features": {
       "kicker": "Key features",
       "title": "Everything a PM needs, in one place",
-      "wbs": { "tag": "WBS", "title": "Hierarchical tasks & dependencies", "description": "Unlimited-depth parent/child tasks, FS/SS/FF/SF dependencies with automatic cycle prevention." },
-      "kanban": { "tag": "Kanban", "title": "Customizable drag-and-drop board", "description": "Default or custom columns, position saved instantly and preserved on reload." },
-      "gantt": { "tag": "Gantt", "title": "Visual timeline", "description": "Every task on one shared timeline, based on real start/end dates." },
-      "risks": { "tag": "Risks", "title": "Risks & Issues", "description": "Automatic severity score = probability × impact, sorted by priority." },
-      "ai": { "tag": "AI", "title": "AI assistant", "description": "Task summaries, subtask suggestions, natural-language task creation — always a suggestion you confirm." },
-      "charter": { "tag": "PMBOK", "title": "Project charter", "description": "Purpose, objectives, scope, budget — approved separately; editing reverts it to draft." },
-      "stakeholders": { "tag": "PMBOK", "title": "Stakeholder register", "description": "A visual Power/Interest grid, supporting people outside the organization too." },
-      "documents": { "tag": "PMBOK", "title": "Document registry", "description": "A catalog of project documents — category, version, status, link to where it lives." },
-      "gamification": { "tag": "Gamification", "title": "Points & leaderboard", "description": "Activity points, streaks, 6 badges — encourages regular progress updates." },
-      "telegram": { "tag": "Integration", "title": "Telegram notifications", "description": "Assignment alerts and an 8am daily due-date reminder, via a shared Telegram bot." },
-      "artifacts": { "tag": "Artifact", "title": "Self-authored HTML/CSS/JS pages", "description": "Live preview in a safely sandboxed frame — like Claude's own Artifacts feature." }
+      "wbs": {
+        "tag": "WBS",
+        "title": "Hierarchical tasks & dependencies",
+        "description": "Unlimited-depth parent/child tasks, FS/SS/FF/SF dependencies with automatic cycle prevention."
+      },
+      "kanban": {
+        "tag": "Kanban",
+        "title": "Customizable drag-and-drop board",
+        "description": "Default or custom columns, position saved instantly and preserved on reload."
+      },
+      "gantt": {
+        "tag": "Gantt",
+        "title": "Visual timeline",
+        "description": "Every task on one shared timeline, based on real start/end dates."
+      },
+      "risks": {
+        "tag": "Risks",
+        "title": "Risks & Issues",
+        "description": "Automatic severity score = probability × impact, sorted by priority."
+      },
+      "ai": {
+        "tag": "AI",
+        "title": "AI assistant",
+        "description": "Task summaries, subtask suggestions, natural-language task creation — always a suggestion you confirm."
+      },
+      "charter": {
+        "tag": "PMBOK",
+        "title": "Project charter",
+        "description": "Purpose, objectives, scope, budget — approved separately; editing reverts it to draft."
+      },
+      "stakeholders": {
+        "tag": "PMBOK",
+        "title": "Stakeholder register",
+        "description": "A visual Power/Interest grid, supporting people outside the organization too."
+      },
+      "documents": {
+        "tag": "PMBOK",
+        "title": "Document registry",
+        "description": "A catalog of project documents — category, version, status, link to where it lives."
+      },
+      "gamification": {
+        "tag": "Gamification",
+        "title": "Points & leaderboard",
+        "description": "Activity points, streaks, 6 badges — encourages regular progress updates."
+      },
+      "telegram": {
+        "tag": "Integration",
+        "title": "Telegram notifications",
+        "description": "Assignment alerts and an 8am daily due-date reminder, via a shared Telegram bot."
+      },
+      "artifacts": {
+        "tag": "Artifact",
+        "title": "Self-authored HTML/CSS/JS pages",
+        "description": "Live preview in a safely sandboxed frame — like Claude's own Artifacts feature."
+      }
     },
     "docs": {
       "kicker": "Documentation",
       "title": "Learn more",
       "description": "Three documents generated by Claude, with diagrams and real screenshots from the app.",
-      "sotay": { "title": "PMTool Handbook", "description": "A usage guide covering every feature in the order a new user would reach it." },
-      "kientruc": { "title": "PMTool Architecture", "description": "Business architecture, system architecture, tech stack, and data flow — with diagrams." },
-      "tongquan": { "title": "PMTool Overview", "description": "The data model, a feature map by phase, and links to the two documents above." },
+      "sotay": {
+        "title": "PMTool Handbook",
+        "description": "A usage guide covering every feature in the order a new user would reach it."
+      },
+      "kientruc": {
+        "title": "PMTool Architecture",
+        "description": "Business architecture, system architecture, tech stack, and data flow — with diagrams."
+      },
+      "tongquan": {
+        "title": "PMTool Overview",
+        "description": "The data model, a feature map by phase, and links to the two documents above."
+      },
       "open": "Open"
     },
     "ctaTitle": "Start managing projects now",
@@ -83,7 +148,9 @@
   },
   "nav": {
     "projects": "Projects",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "orgSettings": "Organization settings",
+    "archivedBanner": "This organization is archived — new projects and invites are disabled."
   },
   "projects": {
     "list": {
@@ -116,7 +183,37 @@
       "charter": "Charter",
       "stakeholders": "Stakeholders",
       "documents": "Documents",
-      "artifacts": "Artifact"
+      "artifacts": "Artifact",
+      "settings": "Settings"
+    },
+    "settings": {
+      "title": "Project settings",
+      "subtitle": "Edit project details and manage per-project member role overrides.",
+      "general": {
+        "title": "General",
+        "name": "Project name",
+        "description": "Description",
+        "startDate": "Start date",
+        "targetEndDate": "Target end date",
+        "status": "Status",
+        "archiveHint": "Pick \"Archived\" to archive this project.",
+        "save": "Save",
+        "genericError": "Something went wrong, please try again"
+      },
+      "members": {
+        "title": "Project role overrides",
+        "subtitle": "Grant a member a different role than their org role, scoped to this project only.",
+        "addMember": "Add member",
+        "selectMember": "Select an org member...",
+        "role": "Role",
+        "add": "Add",
+        "columnName": "Member",
+        "columnRole": "Project role",
+        "remove": "Remove",
+        "removeHint": "Removing an override reverts the member to their default org role — it does not revoke project access.",
+        "empty": "No project role overrides yet — everyone is using their org role.",
+        "actionError": "Something went wrong, please try again"
+      }
     }
   },
   "board": {
@@ -250,12 +347,30 @@
       "badges": "Badges"
     },
     "badges": {
-      "FIRST_TASK": { "name": "Getting started", "description": "Created your first task" },
-      "STREAK_7": { "name": "7-day streak", "description": "Active 7 days in a row" },
-      "STREAK_30": { "name": "30-day streak", "description": "Active 30 days in a row" },
-      "RISK_RESOLVER": { "name": "Risk resolver", "description": "Resolved 5 risks/issues" },
-      "TASK_MACHINE": { "name": "Task machine", "description": "Completed 50 tasks" },
-      "TEAM_PLAYER": { "name": "Team player", "description": "Posted 20 comments" }
+      "FIRST_TASK": {
+        "name": "Getting started",
+        "description": "Created your first task"
+      },
+      "STREAK_7": {
+        "name": "7-day streak",
+        "description": "Active 7 days in a row"
+      },
+      "STREAK_30": {
+        "name": "30-day streak",
+        "description": "Active 30 days in a row"
+      },
+      "RISK_RESOLVER": {
+        "name": "Risk resolver",
+        "description": "Resolved 5 risks/issues"
+      },
+      "TASK_MACHINE": {
+        "name": "Task machine",
+        "description": "Completed 50 tasks"
+      },
+      "TEAM_PLAYER": {
+        "name": "Team player",
+        "description": "Posted 20 comments"
+      }
     }
   },
   "ai": {
@@ -450,6 +565,54 @@
       "previewLabel": "Preview",
       "save": "Save",
       "delete": "Delete"
+    }
+  },
+  "organizations": {
+    "settings": {
+      "title": "Organization settings",
+      "subtitle": "Manage the organization's info, members, and invites.",
+      "general": {
+        "title": "General",
+        "name": "Organization name",
+        "save": "Save",
+        "archive": "Archive organization",
+        "unarchive": "Unarchive",
+        "archiveConfirm": "Archive this organization? New projects and invites will be disabled until it's unarchived.",
+        "archivedBadge": "Archived",
+        "activeBadge": "Active",
+        "genericError": "Something went wrong, please try again"
+      },
+      "members": {
+        "title": "Members",
+        "columnName": "Member",
+        "columnRole": "Role",
+        "remove": "Remove",
+        "removeConfirm": "Remove this member from the organization?",
+        "empty": "No members yet.",
+        "actionError": "Something went wrong, please try again"
+      },
+      "invites": {
+        "title": "Invite a member",
+        "email": "Email",
+        "role": "Role",
+        "send": "Send invite",
+        "genericError": "Something went wrong, please try again",
+        "linkHint": "There's no automatic email yet — copy the link below and send it to the invitee:",
+        "pendingTitle": "Pending invites",
+        "columnEmail": "Email",
+        "columnRole": "Role",
+        "columnExpires": "Expires"
+      }
+    }
+  },
+  "invites": {
+    "accept": {
+      "title": "Organization invite",
+      "description": "Press the button below to accept the invite and join the organization.",
+      "accept": "Accept invite",
+      "redirecting": "Redirecting...",
+      "missingToken": "This invite link is invalid.",
+      "genericError": "Could not accept the invite, please try again"
     }
   }
 }

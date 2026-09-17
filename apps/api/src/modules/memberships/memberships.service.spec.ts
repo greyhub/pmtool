@@ -23,6 +23,10 @@ describe('MembershipsService', () => {
         delete: ReturnType<typeof vi.fn>;
         count: ReturnType<typeof vi.fn>;
       };
+      projectMember: {
+        deleteMany: ReturnType<typeof vi.fn>;
+      };
+      $transaction: ReturnType<typeof vi.fn>;
     };
   };
   let service: MembershipsService;
@@ -36,6 +40,10 @@ describe('MembershipsService', () => {
           delete: vi.fn(),
           count: vi.fn(),
         },
+        projectMember: {
+          deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+        },
+        $transaction: vi.fn((cb: (tx: unknown) => unknown) => cb(prisma.db)),
       },
     };
     service = new MembershipsService(prisma as unknown as PrismaService);
@@ -102,6 +110,18 @@ describe('MembershipsService', () => {
 
       expect(prisma.db.membership.delete).toHaveBeenCalledWith({
         where: { id: member.id },
+      });
+    });
+
+    it('also clears any per-project role overrides for the removed user', async () => {
+      const member = makeMembership({ role: 'MEMBER' });
+      prisma.db.membership.findUnique.mockResolvedValue(member);
+      prisma.db.membership.delete.mockResolvedValue(member);
+
+      await service.removeMember('org_1', member.id);
+
+      expect(prisma.db.projectMember.deleteMany).toHaveBeenCalledWith({
+        where: { organizationId: 'org_1', userId: member.userId },
       });
     });
   });

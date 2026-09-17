@@ -13,7 +13,7 @@ import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { ProjectRolesGuard } from '../../common/guards/project-roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CurrentOrg,
@@ -47,7 +47,7 @@ export class CharterController {
   }
 
   @Put()
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_CHARTER)
   @LogActivity('ProjectCharter', 'updated')
   async upsert(
@@ -66,7 +66,7 @@ export class CharterController {
   }
 
   @Post('approve')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_APPROVE_CHARTER)
   @LogActivity('ProjectCharter', 'updated')
   async approve(

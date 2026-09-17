@@ -52,7 +52,9 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
     { href: `/${orgSlug}/dashboard`, label: 'Dashboard' },
     { href: `/${orgSlug}/projects`, label: tNav('projects') },
     { href: `/${orgSlug}/leaderboard`, label: tNav('leaderboard') },
+    { href: `/${orgSlug}/settings`, label: tNav('orgSettings') },
   ];
+  const archived = org.data.status === 'ARCHIVED';
 
   return (
     <div className="flex min-h-screen">
@@ -84,6 +86,11 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
             </>
           }
         />
+        {archived && (
+          <div className="border-b border-line-glass bg-surface-subtle px-6 py-2 text-sm text-ink-secondary">
+            {tNav('archivedBanner')}
+          </div>
+        )}
         <main className="flex-1 p-6">{children}</main>
       </div>
 

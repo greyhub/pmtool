@@ -53,6 +53,12 @@ async function rawRequest<T>(path: string, options: RequestOptions): Promise<T> 
     );
   }
 
+  // A successful response with no parseable body (e.g. a plain `void`
+  // handler that isn't explicitly 204) has nothing to unwrap.
+  if (json === undefined) {
+    return undefined as T;
+  }
+
   return (json as ApiSuccess<T>).data;
 }
 

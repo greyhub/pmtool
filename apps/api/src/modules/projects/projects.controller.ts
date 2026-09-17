@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -21,13 +22,17 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
+import { ProjectGuard } from '../../common/guards/project.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { ProjectRolesGuard } from '../../common/guards/project-roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CurrentOrg,
   CurrentOrgContext,
 } from '../../common/decorators/current-org.decorator';
+import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toProjectDto } from './project.mapper';
+import { Project } from '@prisma/client';
 
 @ApiTags('projects')
 @Controller({ path: 'organizations/:orgSlug/projects', version: '1' })
@@ -44,6 +49,11 @@ export class ProjectsController {
     @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(createProjectSchema)) body: CreateProjectInput,
   ): Promise<{ data: ProjectDto }> {
+    if (ctx.organization.status === 'ARCHIVED') {
+      throw new ForbiddenException(
+        'Không thể tạo dự án mới trong tổ chức đã lưu trữ',
+      );
+    }
     const project = await this.projectsService.create(
       ctx.organization.id,
       user.id,
@@ -73,18 +83,14 @@ export class ProjectsController {
   }
 
   @Patch(':projectKey')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectGuard, ProjectRolesGuard)
   @Roles('OWNER', 'ADMIN', 'PM')
   @LogActivity('Project', 'updated')
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
-    @Param('projectKey') projectKey: string,
+    @CurrentProject() project: Project,
     @Body(new ZodValidationPipe(updateProjectSchema)) body: UpdateProjectInput,
   ): Promise<{ data: ProjectDto }> {
-    const project = await this.projectsService.findByKeyOrThrow(
-      ctx.organization.id,
-      projectKey,
-    );
     const updated = await this.projectsService.update(
       ctx.organization.id,
       project.id,

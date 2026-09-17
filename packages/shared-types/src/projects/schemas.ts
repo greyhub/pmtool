@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PROJECT_STATUSES } from '../common/enums';
+import { ORG_ROLES, PROJECT_STATUSES } from '../common/enums';
 
 export const projectKeySchema = z
   .string()
@@ -39,3 +39,32 @@ export const projectSchema = z.object({
   updatedAt: z.string(),
 });
 export type ProjectDto = z.infer<typeof projectSchema>;
+
+export const projectMemberSchema = z.object({
+  id: z.string(),
+  organizationId: z.string(),
+  projectId: z.string(),
+  userId: z.string(),
+  role: z.enum(ORG_ROLES),
+  user: z
+    .object({
+      id: z.string(),
+      email: z.string().email(),
+      fullName: z.string(),
+      avatarUrl: z.string().url().nullable(),
+    })
+    .optional(),
+  createdAt: z.string(),
+});
+export type ProjectMemberDto = z.infer<typeof projectMemberSchema>;
+
+export const addProjectMemberSchema = z.object({
+  userId: z.string().min(1),
+  role: z.enum(ORG_ROLES),
+});
+export type AddProjectMemberInput = z.infer<typeof addProjectMemberSchema>;
+
+export const updateProjectMemberRoleSchema = z.object({
+  role: z.enum(ORG_ROLES),
+});
+export type UpdateProjectMemberRoleInput = z.infer<typeof updateProjectMemberRoleSchema>;

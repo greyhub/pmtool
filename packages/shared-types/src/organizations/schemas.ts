@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ORG_ROLES } from '../common/enums';
+import { ORG_ROLES, ORGANIZATION_STATUSES } from '../common/enums';
 
 const slugSchema = z
   .string()
@@ -22,6 +22,7 @@ export const organizationSchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: slugSchema,
+  status: z.enum(ORGANIZATION_STATUSES),
   createdAt: z.string(),
 });
 export type OrganizationDto = z.infer<typeof organizationSchema>;

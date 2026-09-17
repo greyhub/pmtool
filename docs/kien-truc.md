@@ -69,6 +69,8 @@ erDiagram
     ORGANIZATION ||--o{ MEMBERSHIP : "thành viên (role)"
     USER ||--o{ MEMBERSHIP : "tham gia"
     ORGANIZATION ||--o{ PROJECT : "sở hữu"
+    PROJECT ||--o{ PROJECT_MEMBER : "vai trò riêng (role override)"
+    USER ||--o{ PROJECT_MEMBER : "được gán vai trò riêng"
     PROJECT ||--o{ TASK : "chứa"
     TASK ||--o{ TASK : "công việc con (parentTaskId) · phụ thuộc (TaskDependency)"
     USER }o--o{ TASK : "phụ trách (TaskAssignee)"
@@ -86,9 +88,10 @@ erDiagram
     PROJECT ||--o{ PROJECT_DOCUMENT : "danh mục tài liệu"
     PROJECT ||--o{ ARTIFACT : "trang HTML/CSS/JS tự viết"
 
-    ORGANIZATION { string slug }
+    ORGANIZATION { string slug string status "ACTIVE|ARCHIVED" }
     USER { string email "telegramChatId?" }
     PROJECT { string key "WEB, PMT, ..." string status }
+    PROJECT_MEMBER { string role "OrgRole — override, không phải bản sao" }
     TASK { string humanKey "WEB-1" string status string priority date dueDate }
     RISK_ISSUE { int probability "1-5" int impact "1-5" int severity "= probability × impact" }
     USER_SCORE { int totalPoints int currentStreakDays }
@@ -99,6 +102,8 @@ erDiagram
 ```
 
 `Artifact.createdById` (như mọi `createdById` khác trong schema — `Project`, `Task`, `RiskIssue`, `ProjectCharter`, `Stakeholder`, `ProjectDocument`) là cột `String` thuần, không có quan hệ `@relation` — chỉ những trường mang ý nghĩa vai trò cụ thể (`ownerId`, `projectManagerId`, `approvedById`) mới có quan hệ thật tới `User`.
+
+`ProjectMember` tồn tại từ Phase 1 nhưng **chỉ thật sự được đọc/ghi/kiểm tra quyền từ mốc Quản lý Tổ chức & Dự án** (trước đó chỉ ghi một lần lúc tạo dự án, không ai đọc lại) — xem [2.4](#24-hai-lớp-phân-quyền-tổ-chức-và-dự-án) để biết cách một dòng `ProjectMember` thay đổi quyền thật sự của một request.
 
 `Task` tự tham chiếu chính nó theo **hai** quan hệ độc lập, gộp chung một cạnh trong sơ đồ trên cho gọn: `parentTaskId` (cây phân cấp WBS) và `TaskDependency` (predecessor/successor FS/SS/FF/SF, có kiểm tra chống vòng lặp khi tạo).
 
@@ -206,7 +211,27 @@ sequenceDiagram
 
 Vì việc thêm điều kiện lọc xảy ra ở tầng Prisma extension chứ không phải ở từng service, một service **không thể vô tình quên scope** — chỉ có nguy cơ duy nhất là quên đăng ký model mới vào `TENANT_SCOPED_MODELS` khi thêm bảng tenant-owned mới.
 
-### 2.4 Đồ thị phụ thuộc module (backend)
+### 2.4 Hai lớp phân quyền: tổ chức và dự án
+
+Từ mốc Quản lý Tổ chức & Dự án, quyền của một request trong phạm vi dự án không còn chỉ phụ thuộc vào `Membership.role` (vai trò cấp tổ chức) — một dòng `ProjectMember` (nếu có) cho đúng `(projectId, userId)` đó sẽ **thay thế hoàn toàn** vai trò tổ chức cho các request trong phạm vi dự án này:
+
+```mermaid
+flowchart LR
+    R["Request tới route<br/>đã resolve :projectKey"] --> U["resolveEffectiveProjectRole()"]
+    U --> Q{"Có dòng ProjectMember<br/>cho (projectId, userId)?"}
+    Q -->|"Có"| OV["role hiệu lực = ProjectMember.role"]
+    Q -->|"Không"| ORG["role hiệu lực = Membership.role<br/>(vai trò tổ chức, hành vi y hệt trước đây)"]
+    OV --> CHK["ProjectRolesGuard so sánh<br/>role hiệu lực với @Roles(...)"]
+    ORG --> CHK
+```
+
+- **Mặc định không đổi**: một người dùng chưa từng được gán vai trò riêng có hành vi *y hệt* trước mốc này — `resolveEffectiveProjectRole()` (`apps/api/src/common/guards/project-role.util.ts`) chỉ trả về vai trò tổ chức khi không tìm thấy `ProjectMember`. Đây là lý do việc đổi `RolesGuard` → `ProjectRolesGuard` ở 9 controller cấp-dự-án (`tasks`, `dependencies`, `artifacts`, `charter`, `stakeholders`, `ai`, `boards`, `documents`, `risks`) không phá vỡ hành vi RBAC hiện có.
+- **Vai trò riêng có thể nâng lên hoặc hạ xuống** so với vai trò tổ chức — không chỉ giới hạn ở việc hạn chế quyền.
+- **Không phải là điều kiện hiển thị/truy cập dự án**: xoá một `ProjectMember` không ẩn dự án khỏi người đó — khả năng *nhìn thấy* dự án luôn dựa trên tư cách thành viên tổ chức (`OrgMembershipGuard`), không đổi. `ProjectMember` chỉ quyết định họ *làm được gì* trong dự án đó.
+- **Ngoại lệ tránh tự khoá bản thân**: quản lý chính danh sách `ProjectMember` của một dự án (`apps/api/src/modules/projects/project-members.controller.ts`) dùng `ProjectMemberManageGuard`, không phải `ProjectRolesGuard` — cho phép request khi **hoặc** vai trò tổ chức là OWNER/ADMIN, **hoặc** vai trò hiệu lực trên chính dự án đó là OWNER/ADMIN. Nếu chỉ dùng `ProjectRolesGuard` đơn thuần, một Owner/Admin tổ chức tự hạ vai trò riêng của mình trên một dự án sẽ tự khoá mình khỏi việc sửa lại chính danh sách đó.
+- **`MembershipsService.removeMember` dọn luôn `ProjectMember`**: xoá một người khỏi tổ chức xoá theo mọi `ProjectMember` của họ trong tổ chức đó (cùng transaction) — nếu không, một người bị mời lại sau ở vai trò thấp hơn sẽ vô tình "hồi sinh" vai trò riêng cũ trên các dự án họ từng có, do `Membership` và `ProjectMember` là hai bảng độc lập không tự động đồng bộ.
+
+### 2.5 Đồ thị phụ thuộc module (backend)
 
 ```mermaid
 flowchart LR
@@ -236,13 +261,13 @@ flowchart LR
 
 Quy tắc bất biến: `GamificationModule` và `TelegramModule` **không bao giờ import ngược lại `TasksModule`** dù có lý do hợp lý (vd. "xem việc đã giao") — tránh vòng lặp import. Cả hai chỉ đọc bảng `Task` trực tiếp qua `PrismaService` khi cần, không qua `TasksService`.
 
-### 2.5 Xác thực & phiên đăng nhập
+### 2.6 Xác thực & phiên đăng nhập
 
 - Mật khẩu băm bằng **argon2id**.
 - Đăng nhập trả về **access token** (JWT, 15 phút) + **refresh token** xoay vòng (cookie `httpOnly`, 30 ngày). Refresh token cũ bị đánh dấu revoked ngay khi dùng; tái sử dụng một refresh token đã revoked bị coi là dấu hiệu bị đánh cắp và thu hồi toàn bộ phiên của người dùng đó.
 - `RequestContextMiddleware` best-effort giải mã JWT để seed tenant context sớm; `JwtAuthGuard` (global, qua `APP_GUARD`) mới là nơi thật sự từ chối request không hợp lệ — route nào cần bỏ qua thì đánh dấu `@Public()`.
 
-### 2.6 Cách ly nội dung do người dùng viết (Artifact sandbox)
+### 2.7 Cách ly nội dung do người dùng viết (Artifact sandbox)
 
 Tính năng Artifact (`apps/web/src/features/artifacts/artifact-editor.tsx`) là mẫu kiến trúc mới duy nhất cho phép người dùng chạy JS tuỳ ý trong app — cần một mô hình cách ly riêng, khác hẳn phần còn lại của hệ thống:
 

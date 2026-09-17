@@ -25,7 +25,7 @@ import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { ProjectRolesGuard } from '../../common/guards/project-roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CurrentOrg,
@@ -70,7 +70,7 @@ export class ArtifactsController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_ARTIFACTS)
   @LogActivity('Artifact', 'created')
   async create(
@@ -90,7 +90,7 @@ export class ArtifactsController {
   }
 
   @Patch(':artifactId')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_ARTIFACTS)
   @LogActivity('Artifact', 'updated')
   async update(
@@ -108,7 +108,7 @@ export class ArtifactsController {
   }
 
   @Delete(':artifactId')
-  @UseGuards(RolesGuard)
+  @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_ARTIFACTS)
   @LogActivity('Artifact', 'deleted', 'artifactId')
   async remove(

@@ -88,6 +88,13 @@ async function inviteAndAccept(
   return invitee;
 }
 
+/** Looks up a registered user's id by email — used to build ProjectMember payloads in tests. */
+async function getUserId(email: string): Promise<string> {
+  const prisma = app.get(PrismaService);
+  const user = await prisma.db.user.findUniqueOrThrow({ where: { email } });
+  return user.id;
+}
+
 beforeAll(async () => {
   container = await new PostgreSqlContainer('postgres:16-alpine').start();
 
@@ -450,6 +457,298 @@ describe('Document Registry', () => {
       .set('Authorization', `Bearer ${viewer.accessToken}`)
       .expect(200);
     expect(list.body.data).toHaveLength(1);
+  });
+});
+
+describe('Organization archive', () => {
+  it('hides an archived org from the list, blocks new projects/invites, unarchive restores it', async () => {
+    const owner = await registerUser('Archive Owner');
+    const org = await createOrg(owner.accessToken, 'Archive Org');
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/archive`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    const list = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(
+      list.body.data.find((o: { slug: string }) => o.slug === org.slug),
+    ).toBeUndefined();
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ key: 'ARCH', name: 'Should be blocked' })
+      .expect(403);
+
+    const member = await registerUser('Archive Invitee');
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: member.email, role: 'MEMBER' })
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/unarchive`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    const listAfter = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(
+      listAfter.body.data.find((o: { slug: string }) => o.slug === org.slug),
+    ).toBeDefined();
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ key: 'ARCH', name: 'Now allowed' })
+      .expect(201);
+  });
+
+  it('still allows shrinkage (member removal) while archived', async () => {
+    const owner = await registerUser('Archive Shrink Owner');
+    const org = await createOrg(owner.accessToken, 'Archive Shrink Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Archive Shrink Member',
+    );
+    const membersList = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/members`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    const membershipId = membersList.body.data.find(
+      (m: { user: { email: string } }) => m.user.email === member.email,
+    ).id;
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/archive`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .delete(`${API_PREFIX}/organizations/${org.slug}/members/${membershipId}`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+  });
+});
+
+describe('Project-level RBAC overrides', () => {
+  it('grants a project-scoped override upward: an org VIEWER made PM on one project can act there but not on another', async () => {
+    const owner = await registerUser('Override Owner');
+    const org = await createOrg(owner.accessToken, 'Override Org');
+    const projectA = await createProject(owner.accessToken, org.slug, 'OVA');
+    const projectB = await createProject(owner.accessToken, org.slug, 'OVB');
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Override Viewer',
+    );
+
+    // Baseline: a VIEWER cannot create tasks anywhere.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectA.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .send({ title: 'Should be forbidden' })
+      .expect(403);
+
+    // Grant a PM override on project A only.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectA.key}/members`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ userId: await getUserId(viewer.email), role: 'PM' })
+      .expect(201);
+
+    // Now allowed on project A...
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectA.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .send({ title: 'Now allowed on A' })
+      .expect(201);
+
+    // ...but still forbidden on project B in the same org (proves per-project scope, not a global unlock).
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectB.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .send({ title: 'Still forbidden on B' })
+      .expect(403);
+  });
+
+  it('grants a project-scoped override downward: an org PM demoted to VIEWER on one project is blocked there but not elsewhere', async () => {
+    const owner = await registerUser('Downgrade Owner');
+    const org = await createOrg(owner.accessToken, 'Downgrade Org');
+    const projectA = await createProject(owner.accessToken, org.slug, 'DGA');
+    const projectB = await createProject(owner.accessToken, org.slug, 'DGB');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Downgrade PM',
+    );
+
+    // Baseline: org PM can create tasks anywhere.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectB.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .send({ title: 'Allowed on B by default' })
+      .expect(201);
+
+    // Downgrade to VIEWER on project A only.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectA.key}/members`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ userId: await getUserId(pm.email), role: 'VIEWER' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectA.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .send({ title: 'Now forbidden on A' })
+      .expect(403);
+
+    // Still allowed on project B, unaffected.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${projectB.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .send({ title: 'Still allowed on B' })
+      .expect(201);
+  });
+
+  it('re-inviting a removed member at a lower role does not resurrect their old project override', async () => {
+    const owner = await registerUser('Resurrect Owner');
+    const org = await createOrg(owner.accessToken, 'Resurrect Org');
+    const project = await createProject(owner.accessToken, org.slug, 'RES');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Resurrect PM',
+    );
+    const userId = await getUserId(pm.email);
+
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/members`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ userId, role: 'OWNER' })
+      .expect(201);
+
+    const membersList = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/members`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    const membershipId = membersList.body.data.find(
+      (m: { user: { email: string } }) => m.user.email === pm.email,
+    ).id;
+    await request(app.getHttpServer())
+      .delete(`${API_PREFIX}/organizations/${org.slug}/members/${membershipId}`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    // Re-invite the SAME email at VIEWER — the old project OWNER override
+    // must not silently reactivate. (inviteAndAccept always registers a
+    // brand-new random user, so it can't be reused for "the same person".)
+    const reinvite = await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: pm.email, role: 'VIEWER' })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/invites/accept`)
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .send({ token: reinvite.body.data.rawToken })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .send({ title: 'Should still be forbidden as VIEWER' })
+      .expect(403);
+
+    const overrides = await request(app.getHttpServer())
+      .get(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/members`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    // The project creator's own auto-created OWNER override is unrelated and
+    // still expected; only the removed-and-rejoined user's override must be gone.
+    expect(
+      overrides.body.data.find((m: { userId: string }) => m.userId === userId),
+    ).toBeUndefined();
+  });
+});
+
+describe('Project member management authorization', () => {
+  it("a delegated project-level OWNER (plain org MEMBER) can manage that project's members; a plain org PM with no override cannot", async () => {
+    const owner = await registerUser('Delegate Owner');
+    const org = await createOrg(owner.accessToken, 'Delegate Org');
+    const project = await createProject(owner.accessToken, org.slug, 'DEL');
+    const delegate = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Delegate Member',
+    );
+    const outsider = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Delegate Outsider PM',
+    );
+
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/members`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ userId: await getUserId(delegate.email), role: 'OWNER' })
+      .expect(201);
+
+    // The plain org PM (no override on this project) cannot manage its membership.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/members`,
+      )
+      .set('Authorization', `Bearer ${outsider.accessToken}`)
+      .send({ userId: await getUserId(owner.email), role: 'MEMBER' })
+      .expect(403);
+
+    // The delegated project-level OWNER (plain org MEMBER) can.
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/members`,
+      )
+      .set('Authorization', `Bearer ${delegate.accessToken}`)
+      .send({ userId: await getUserId(outsider.email), role: 'VIEWER' })
+      .expect(201);
   });
 });
 
