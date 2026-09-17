@@ -23,6 +23,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'ProjectCharter',
   'Stakeholder',
   'ProjectDocument',
+  'Artifact',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([

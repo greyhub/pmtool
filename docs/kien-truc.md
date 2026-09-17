@@ -42,6 +42,10 @@ flowchart TD
         G2["Các bên liên quan<br/>(Power/Interest grid · engagement)"]
         G3["Danh mục tài liệu<br/>(catalog, không lưu file)"]
     end
+    subgraph EMBED["Nội dung tương tác (Milestone Artifact)"]
+        direction TB
+        A1["Artifact<br/>(HTML/CSS/JS tự viết, sandbox iframe)"]
+    end
 
     C1 --> C2
     C2 --> C3
@@ -53,9 +57,10 @@ flowchart TD
     C2 --> G1
     C2 --> G2
     C2 --> G3
+    C2 --> A1
 ```
 
-Ba nhóm năng lực được xây theo 3 phase, nhưng đều đặt trên cùng một lõi nghiệp vụ: **Tổ chức → Dự án → Công việc**. Gamification, AI và Telegram không phải module độc lập — chúng phản ứng lại các sự kiện xảy ra ở lõi (tạo việc, hoàn thành việc, giao việc), không có nghiệp vụ riêng. Nhóm quản trị PMBOK (Phase 4a) thì ngược lại — là dữ liệu độc lập gắn trực tiếp vào dự án (không phát sinh từ sự kiện công việc), nên chỉ nhận cạnh từ C2 chứ không có cạnh phản hồi ngược lại như E1/E2/N1.
+Ba nhóm năng lực được xây theo 3 phase, nhưng đều đặt trên cùng một lõi nghiệp vụ: **Tổ chức → Dự án → Công việc**. Gamification, AI và Telegram không phải module độc lập — chúng phản ứng lại các sự kiện xảy ra ở lõi (tạo việc, hoàn thành việc, giao việc), không có nghiệp vụ riêng. Nhóm quản trị PMBOK (Phase 4a) và Artifact thì ngược lại — là dữ liệu độc lập gắn trực tiếp vào dự án (không phát sinh từ sự kiện công việc), nên chỉ nhận cạnh từ C2 chứ không có cạnh phản hồi ngược lại như E1/E2/N1.
 
 ### 1.2 Mô hình miền dữ liệu (domain model)
 
@@ -79,6 +84,7 @@ erDiagram
     PROJECT ||--o{ STAKEHOLDER : "các bên liên quan"
     USER ||--o{ STAKEHOLDER : "liên kết (tuỳ chọn, có thể là bên ngoài)"
     PROJECT ||--o{ PROJECT_DOCUMENT : "danh mục tài liệu"
+    PROJECT ||--o{ ARTIFACT : "trang HTML/CSS/JS tự viết"
 
     ORGANIZATION { string slug }
     USER { string email "telegramChatId?" }
@@ -89,7 +95,10 @@ erDiagram
     PROJECT_CHARTER { string status "DRAFT | APPROVED" string sponsorName }
     STAKEHOLDER { string fullName string influence "LOW|MEDIUM|HIGH" string interest "LOW|MEDIUM|HIGH" string currentEngagement string desiredEngagement }
     PROJECT_DOCUMENT { string category string version string status "DRAFT|IN_REVIEW|APPROVED|OBSOLETE" string url }
+    ARTIFACT { string title string htmlContent "cap 200,000 chars" }
 ```
+
+`Artifact.createdById` (như mọi `createdById` khác trong schema — `Project`, `Task`, `RiskIssue`, `ProjectCharter`, `Stakeholder`, `ProjectDocument`) là cột `String` thuần, không có quan hệ `@relation` — chỉ những trường mang ý nghĩa vai trò cụ thể (`ownerId`, `projectManagerId`, `approvedById`) mới có quan hệ thật tới `User`.
 
 `Task` tự tham chiếu chính nó theo **hai** quan hệ độc lập, gộp chung một cạnh trong sơ đồ trên cho gọn: `parentTaskId` (cây phân cấp WBS) và `TaskDependency` (predecessor/successor FS/SS/FF/SF, có kiểm tra chống vòng lặp khi tạo).
 
@@ -221,6 +230,7 @@ flowchart LR
         Charter
         Stakeholders
         Documents
+        Artifacts
     end
 ```
 
@@ -231,6 +241,35 @@ Quy tắc bất biến: `GamificationModule` và `TelegramModule` **không bao g
 - Mật khẩu băm bằng **argon2id**.
 - Đăng nhập trả về **access token** (JWT, 15 phút) + **refresh token** xoay vòng (cookie `httpOnly`, 30 ngày). Refresh token cũ bị đánh dấu revoked ngay khi dùng; tái sử dụng một refresh token đã revoked bị coi là dấu hiệu bị đánh cắp và thu hồi toàn bộ phiên của người dùng đó.
 - `RequestContextMiddleware` best-effort giải mã JWT để seed tenant context sớm; `JwtAuthGuard` (global, qua `APP_GUARD`) mới là nơi thật sự từ chối request không hợp lệ — route nào cần bỏ qua thì đánh dấu `@Public()`.
+
+### 2.6 Cách ly nội dung do người dùng viết (Artifact sandbox)
+
+Tính năng Artifact (`apps/web/src/features/artifacts/artifact-editor.tsx`) là mẫu kiến trúc mới duy nhất cho phép người dùng chạy JS tuỳ ý trong app — cần một mô hình cách ly riêng, khác hẳn phần còn lại của hệ thống:
+
+```mermaid
+flowchart LR
+    subgraph PARENT["Trang PMTool (origin thật)"]
+        EDIT["Textarea soạn HTML/CSS/JS"]
+        TOKEN["Access token<br/>(biến JS in-memory, không phải cookie/localStorage)"]
+    end
+    subgraph IFRAME["iframe sandbox='allow-scripts'<br/>(origin opaque 'null', KHÔNG allow-same-origin)"]
+        RUN["JS của artifact chạy ở đây"]
+    end
+
+    EDIT -- "srcdoc (cập nhật khi gõ)" --> RUN
+    RUN -. "document.cookie" .-> BLOCKED1["❌ chặn — sandboxed, thiếu allow-same-origin"]
+    RUN -. "window.parent.*" .-> BLOCKED2["❌ chặn — cross-origin từ origin null"]
+    RUN -. "fetch(api.pmtool)" .-> BLOCKED3["❌ chặn — CORS: origin null ≠ CORS_ORIGIN cấu hình"]
+    TOKEN -.->|"không có kênh nào tới iframe"| RUN
+```
+
+Ba lớp phòng thủ độc lập, đã kiểm chứng trực tiếp (không chỉ suy luận — xem `apps/web/e2e/artifact-embed.spec.ts` và một lần chạy thử thủ công gọi `document.cookie`/`window.parent.location`/`fetch()` từ bên trong artifact, cả ba đều bị chặn với lỗi rõ ràng):
+
+1. **`sandbox="allow-scripts"` không có `allow-same-origin`** — iframe nhận một origin "opaque" (rỗng) duy nhất mỗi lần render, không phải origin thật của PMTool. Theo đặc tả trình duyệt, điều này tự động chặn truy cập `document.cookie`, `localStorage`, và DOM/JS của trang cha, bất kể nội dung tới từ `srcdoc` hay một URL thật.
+2. **Access token không nằm trong cookie** — `packages/api-client/src/access-token-store.ts` giữ token trong một biến JS in-memory, gắn vào header `Authorization: Bearer` cho mỗi request. Artifact không có kênh nào (postMessage, DOM, storage) để lấy được biến này.
+3. **CORS chặn ở lớp cuối** — `apps/api/src/main.ts` cấu hình `origin` là một chuỗi cố định (`CORS_ORIGIN`), không phải wildcard; một request `fetch()` từ origin `null` của iframe bị CORS từ chối dù có cố gắng gọi thẳng tới API.
+
+**Quy tắc bất biến cho code review sau này**: không bao giờ thêm `allow-same-origin` vào iframe này, và không thêm listener `postMessage` trên trang chứa nó mà không kiểm tra `event.origin` — cả hai đều được ghi thành comment ngay tại `artifact-editor.tsx`, không chỉ ở tài liệu này.
 
 ## 3. Tech stack
 

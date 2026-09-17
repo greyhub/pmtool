@@ -68,6 +68,7 @@ model Organization {
   projectCharters  ProjectCharter[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
+  artifacts        Artifact[]
 
   @@map("organizations")
 }
@@ -151,6 +152,7 @@ model Project {
   charter      ProjectCharter?
   stakeholders Stakeholder[]
   documents    ProjectDocument[]
+  artifacts    Artifact[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
@@ -474,6 +476,29 @@ model ProjectDocument {
   @@index([organizationId])
   @@index([projectId])
   @@map("project_documents")
+}
+
+/// User-authored HTML/CSS/JS page, rendered client-side in a sandboxed
+/// iframe (sandbox="allow-scripts", no allow-same-origin — see
+/// apps/web/src/features/artifacts/artifact-editor.tsx for the security
+/// rationale). htmlContent capped at 200,000 chars by the Zod schema, not
+/// here — Prisma String maps to Postgres text (unbounded) either way.
+model Artifact {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String
+  title          String
+  htmlContent    String   @default("")
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("artifacts")
 }
 
 /// Append-only event stream (actor, entity, action, metadata) written by

@@ -14,3 +14,4 @@ export * from './integrations/schemas';
 export * from './charter/schemas';
 export * from './stakeholders/schemas';
 export * from './documents/schemas';
+export * from './artifacts/schemas';

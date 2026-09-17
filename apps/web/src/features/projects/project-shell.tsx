@@ -36,6 +36,7 @@ export function ProjectShell({
     { href: `/${orgSlug}/projects/${projectKey}/charter`, label: tTabs('charter') },
     { href: `/${orgSlug}/projects/${projectKey}/stakeholders`, label: tTabs('stakeholders') },
     { href: `/${orgSlug}/projects/${projectKey}/documents`, label: tTabs('documents') },
+    { href: `/${orgSlug}/projects/${projectKey}/artifacts`, label: tTabs('artifacts') },
   ];
 
   return (

@@ -105,7 +105,8 @@
       "dashboard": "Tổng quan",
       "charter": "Điều lệ",
       "stakeholders": "Các bên liên quan",
-      "documents": "Tài liệu"
+      "documents": "Tài liệu",
+      "artifacts": "Artifact"
     }
   },
   "board": {
@@ -210,7 +211,8 @@
       "Comment": "bình luận",
       "ProjectCharter": "điều lệ dự án",
       "Stakeholder": "bên liên quan",
-      "ProjectDocument": "tài liệu"
+      "ProjectDocument": "tài liệu",
+      "Artifact": "artifact"
     },
     "action": {
       "created": "đã tạo",
@@ -421,6 +423,23 @@
       "IN_REVIEW": "Đang xem xét",
       "APPROVED": "Đã phê duyệt",
       "OBSOLETE": "Đã lỗi thời"
+    }
+  },
+  "artifacts": {
+    "list": {
+      "title": "Artifact",
+      "subtitle": "Trang HTML/CSS/JS tự viết, hiển thị trực tiếp trong trình duyệt",
+      "create": "Tạo artifact mới",
+      "empty": "Chưa có artifact nào.",
+      "updatedAt": "Cập nhật {date}"
+    },
+    "editor": {
+      "titleLabel": "Tiêu đề",
+      "titlePlaceholder": "Ví dụ: Sơ đồ tiến độ, Bảng tính nhanh...",
+      "htmlLabel": "HTML/CSS/JS",
+      "previewLabel": "Xem trước",
+      "save": "Lưu",
+      "delete": "Xoá"
     }
   }
 }

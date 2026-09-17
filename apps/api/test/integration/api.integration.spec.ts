@@ -452,3 +452,55 @@ describe('Document Registry', () => {
     expect(list.body.data).toHaveLength(1);
   });
 });
+
+describe('Artifacts', () => {
+  it('list omits htmlContent, single-get includes it, a VIEWER can read but not create', async () => {
+    const owner = await registerUser('Artifact Owner');
+    const org = await createOrg(owner.accessToken, 'Artifact Org');
+    const project = await createProject(owner.accessToken, org.slug, 'ART');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Artifact Member',
+    );
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Artifact Viewer',
+    );
+
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/artifacts`;
+
+    await request(app.getHttpServer())
+      .post(base)
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .send({ title: 'Should be forbidden', htmlContent: '<h1>x</h1>' })
+      .expect(403);
+
+    const created = await request(app.getHttpServer())
+      .post(base)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .send({
+        title: 'Sơ đồ tiến độ',
+        htmlContent: '<h1 id="hello">Xin chào</h1>',
+      })
+      .expect(201);
+    expect(created.body.data.htmlContent).toBe('<h1 id="hello">Xin chào</h1>');
+
+    const list = await request(app.getHttpServer())
+      .get(base)
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .expect(200);
+    expect(list.body.data).toHaveLength(1);
+    expect(list.body.data[0].title).toBe('Sơ đồ tiến độ');
+    expect(list.body.data[0]).not.toHaveProperty('htmlContent');
+
+    const detail = await request(app.getHttpServer())
+      .get(`${base}/${created.body.data.id}`)
+      .set('Authorization', `Bearer ${viewer.accessToken}`)
+      .expect(200);
+    expect(detail.body.data.htmlContent).toBe('<h1 id="hello">Xin chào</h1>');
+  });
+});

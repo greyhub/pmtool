@@ -105,7 +105,8 @@
       "dashboard": "Dashboard",
       "charter": "Charter",
       "stakeholders": "Stakeholders",
-      "documents": "Documents"
+      "documents": "Documents",
+      "artifacts": "Artifact"
     }
   },
   "board": {
@@ -210,7 +211,8 @@
       "Comment": "comment",
       "ProjectCharter": "project charter",
       "Stakeholder": "stakeholder",
-      "ProjectDocument": "document"
+      "ProjectDocument": "document",
+      "Artifact": "artifact"
     },
     "action": {
       "created": "created",
@@ -421,6 +423,23 @@
       "IN_REVIEW": "In review",
       "APPROVED": "Approved",
       "OBSOLETE": "Obsolete"
+    }
+  },
+  "artifacts": {
+    "list": {
+      "title": "Artifact",
+      "subtitle": "Self-authored HTML/CSS/JS pages, rendered live in the browser",
+      "create": "Create artifact",
+      "empty": "No artifacts yet.",
+      "updatedAt": "Updated {date}"
+    },
+    "editor": {
+      "titleLabel": "Title",
+      "titlePlaceholder": "E.g. Progress diagram, Quick calculator...",
+      "htmlLabel": "HTML/CSS/JS",
+      "previewLabel": "Preview",
+      "save": "Save",
+      "delete": "Delete"
     }
   }
 }
