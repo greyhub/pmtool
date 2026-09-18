@@ -136,16 +136,28 @@ describe('TelegramLinkingService', () => {
 
   describe('getStatus', () => {
     it('reports linked: true when a chat id is set', async () => {
-      prisma.db.user.findUnique.mockResolvedValue({ telegramChatId: 'chat_1' });
+      prisma.db.user.findUnique.mockResolvedValue({
+        telegramChatId: 'chat_1',
+        dailyDigestEnabled: true,
+        dailyDigestHour: 17,
+      });
       await expect(service.getStatus('user_1')).resolves.toEqual({
         linked: true,
+        dailyDigestEnabled: true,
+        dailyDigestHour: 17,
       });
     });
 
     it('reports linked: false when no chat id is set', async () => {
-      prisma.db.user.findUnique.mockResolvedValue({ telegramChatId: null });
+      prisma.db.user.findUnique.mockResolvedValue({
+        telegramChatId: null,
+        dailyDigestEnabled: true,
+        dailyDigestHour: 17,
+      });
       await expect(service.getStatus('user_1')).resolves.toEqual({
         linked: false,
+        dailyDigestEnabled: true,
+        dailyDigestHour: 17,
       });
     });
   });

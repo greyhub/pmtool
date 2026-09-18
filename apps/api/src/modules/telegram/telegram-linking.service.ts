@@ -1,4 +1,8 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import type {
+  TelegramStatusDto,
+  UpdateTelegramDigestPreferencesInput,
+} from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TelegramProviderService } from './telegram-provider.service';
 import { generateLinkCodeRaw, hashLinkCode } from './link-code.util';
@@ -78,11 +82,26 @@ export class TelegramLinkingService {
     });
   }
 
-  async getStatus(userId: string): Promise<{ linked: boolean }> {
+  async getStatus(userId: string): Promise<TelegramStatusDto> {
     const user = await this.prisma.db.user.findUnique({
       where: { id: userId },
-      select: { telegramChatId: true },
+      select: {
+        telegramChatId: true,
+        dailyDigestEnabled: true,
+        dailyDigestHour: true,
+      },
     });
-    return { linked: Boolean(user?.telegramChatId) };
+    return {
+      linked: Boolean(user?.telegramChatId),
+      dailyDigestEnabled: user?.dailyDigestEnabled ?? true,
+      dailyDigestHour: user?.dailyDigestHour ?? 17,
+    };
+  }
+
+  async updateDigestPreferences(
+    userId: string,
+    input: UpdateTelegramDigestPreferencesInput,
+  ): Promise<void> {
+    await this.prisma.db.user.update({ where: { id: userId }, data: input });
   }
 }

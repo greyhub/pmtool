@@ -168,6 +168,7 @@ Vào **Cài đặt** (bấm avatar ở góc phải trên → Cài đặt) để 
 3. Sau khi liên kết, bạn sẽ nhận được:
    - Thông báo ngay khi được giao một công việc.
    - Nhắc nhở hằng ngày lúc 8:00 sáng (giờ Việt Nam) cho các công việc đến hạn trong ngày.
+   - **Nhắc cập nhật trạng thái công việc hàng ngày**: một tin nhắn tổng hợp mọi công việc bạn đang được giao mà chưa Hoàn thành, gửi vào giờ bạn tự chọn (mặc định 17:00, bật sẵn khi vừa liên kết). Bấm ô **Nhắc việc mỗi ngày** ngay dưới nút Ngắt kết nối để tắt/bật, và chọn lại giờ gửi ở ô **Gửi lúc**.
 
 Có thể **Ngắt kết nối** bất cứ lúc nào từ cùng trang Cài đặt.
 

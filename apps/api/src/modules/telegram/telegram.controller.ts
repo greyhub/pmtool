@@ -3,13 +3,19 @@ import {
   Controller,
   Get,
   Headers,
+  Patch,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { timingSafeEqual } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
-import { TelegramLinkCodeDto, TelegramStatusDto } from '@pmtool/shared-types';
+import {
+  TelegramLinkCodeDto,
+  TelegramStatusDto,
+  UpdateTelegramDigestPreferencesInput,
+  updateTelegramDigestPreferencesSchema,
+} from '@pmtool/shared-types';
 import { TelegramLinkingService } from './telegram-linking.service';
 import { TelegramProviderService } from './telegram-provider.service';
 import { telegramUpdateSchema, TelegramUpdate } from './telegram-update.schema';
@@ -82,6 +88,17 @@ export class TelegramController {
   async status(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ data: TelegramStatusDto }> {
+    const data = await this.linkingService.getStatus(user.id);
+    return { data };
+  }
+
+  @Patch('digest-preferences')
+  async updateDigestPreferences(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(updateTelegramDigestPreferencesSchema))
+    body: UpdateTelegramDigestPreferencesInput,
+  ): Promise<{ data: TelegramStatusDto }> {
+    await this.linkingService.updateDigestPreferences(user.id, body);
     const data = await this.linkingService.getStatus(user.id);
     return { data };
   }

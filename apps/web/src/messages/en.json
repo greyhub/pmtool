@@ -432,7 +432,11 @@
       "disconnect": "Disconnect",
       "instructions": "Open the link below, then press Start in Telegram to finish linking.",
       "codeExpires": "This link code is valid for 10 minutes.",
-      "generateError": "Could not generate a link code. Please try again."
+      "generateError": "Could not generate a link code. Please try again.",
+      "digest": {
+        "label": "Daily task digest",
+        "hourLabel": "Send at"
+      }
     }
   },
   "charter": {

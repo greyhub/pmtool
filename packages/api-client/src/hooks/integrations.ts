@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { TelegramLinkCodeDto, TelegramStatusDto } from '@pmtool/shared-types';
+import type {
+  TelegramLinkCodeDto,
+  TelegramStatusDto,
+  UpdateTelegramDigestPreferencesInput,
+} from '@pmtool/shared-types';
 import { apiRequest } from '../http-client';
 
 export const telegramKeys = {
@@ -25,7 +29,25 @@ export function useUnlinkTelegram() {
   return useMutation({
     mutationFn: () => apiRequest<void>('/api/v1/integrations/telegram/unlink', { method: 'POST' }),
     onSuccess: () => {
-      queryClient.setQueryData(telegramKeys.status, { linked: false } satisfies TelegramStatusDto);
+      queryClient.setQueryData(telegramKeys.status, {
+        linked: false,
+        dailyDigestEnabled: true,
+        dailyDigestHour: 17,
+      } satisfies TelegramStatusDto);
+    },
+  });
+}
+
+export function useUpdateTelegramDigestPreferences() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateTelegramDigestPreferencesInput) =>
+      apiRequest<TelegramStatusDto>('/api/v1/integrations/telegram/digest-preferences', {
+        method: 'PATCH',
+        body: input,
+      }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(telegramKeys.status, data);
     },
   });
 }

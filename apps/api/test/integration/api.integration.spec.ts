@@ -309,6 +309,41 @@ describe('Telegram integration', () => {
       })
       .expect(401);
   });
+
+  it('defaults digest preferences to enabled/17:00, and persists an update through GET /status', async () => {
+    const user = await registerUser('Digest User');
+
+    const initial = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/integrations/telegram/status`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .expect(200);
+    expect(initial.body.data.dailyDigestEnabled).toBe(true);
+    expect(initial.body.data.dailyDigestHour).toBe(17);
+
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/integrations/telegram/digest-preferences`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .send({ dailyDigestEnabled: false, dailyDigestHour: 9 })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data.dailyDigestEnabled).toBe(false);
+        expect(res.body.data.dailyDigestHour).toBe(9);
+      });
+
+    const after = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/integrations/telegram/status`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .expect(200);
+    expect(after.body.data.dailyDigestEnabled).toBe(false);
+    expect(after.body.data.dailyDigestHour).toBe(9);
+  });
+
+  it('rejects an unauthenticated digest-preferences update', async () => {
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/integrations/telegram/digest-preferences`)
+      .send({ dailyDigestEnabled: true, dailyDigestHour: 8 })
+      .expect(401);
+  });
 });
 
 describe('Project Charter', () => {

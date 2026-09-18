@@ -29,6 +29,13 @@ model User {
   locale         String   @default("vi")
   themePref      String   @default("system")
   telegramChatId String?  @unique
+  // Daily task-status digest via Telegram — distinct from the due-date
+  // sweep (Task.telegramReminderSentAt). Enabled by default so anyone who
+  // links Telegram gets it unless they opt out; hour is plain VN local
+  // time (0-23), no per-user timezone field exists yet.
+  dailyDigestEnabled      Boolean   @default(true)
+  dailyDigestHour         Int       @default(17)
+  dailyDigestLastSentDate DateTime? @db.Date
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
