@@ -58,7 +58,10 @@ Vào menu bên trái, chọn **Cài đặt tổ chức** (chỉ Owner/Admin thao
 
 - **Thông tin chung**: sửa **Tên tổ chức**, bấm **Lưu**. Nút **Lưu trữ tổ chức** (chỉ Owner) đưa tổ chức vào trạng thái lưu trữ: tổ chức biến mất khỏi danh sách chuyển đổi tổ chức, không tạo được dự án mới hay mời thêm thành viên mới — các thao tác khác (sửa dự án, xoá thành viên, ...) vẫn hoạt động bình thường. Bấm **Bỏ lưu trữ** bất cứ lúc nào để khôi phục lại như cũ.
 - **Thành viên**: bảng liệt kê toàn bộ thành viên, đổi vai trò trực tiếp qua ô chọn hoặc **Xoá** khỏi tổ chức. Tổ chức luôn phải còn ít nhất một Owner — hệ thống chặn việc hạ vai trò hoặc xoá Owner cuối cùng.
-- **Mời thành viên**: nhập **Email** và chọn **Vai trò**, bấm **Gửi lời mời**. Vì PMTool chưa gửi email tự động, hệ thống hiển thị một **liên kết chấp nhận lời mời** để bạn sao chép và gửi thủ công cho người được mời (Slack, email cá nhân, ...) — liên kết có hiệu lực 7 ngày. Người nhận đăng nhập/đăng ký tài khoản rồi mở liên kết đó để tham gia tổ chức.
+- **Mời thành viên**: nhập **Email** và chọn **Vai trò**, bấm **Gửi lời mời**. Vì PMTool chưa gửi email tự động, hệ thống hiển thị một **liên kết chấp nhận lời mời** để bạn sao chép và gửi thủ công cho người được mời (Slack, email cá nhân, ...) — liên kết có hiệu lực 7 ngày. Người nhận đăng nhập/đăng ký tài khoản rồi mở liên kết đó để tham gia tổ chức — nếu họ chưa đăng nhập, hệ thống tự đưa họ quay lại đúng liên kết mời sau khi đăng nhập/đăng ký xong, không cần mở lại link.
+  - Mời một email **đã là thành viên** sẽ báo lỗi rõ ràng thay vì tạo lời mời trùng — hãy đổi vai trò trực tiếp trong bảng Thành viên ở trên.
+  - Mời lại **cùng một email** đang có lời mời chờ sẽ thay thế lời mời cũ (coi như gửi lại/đổi vai trò lời mời), không tạo thêm bản sao.
+  - Bấm **Huỷ** trên một lời mời đang chờ để thu hồi — liên kết cũ ngay lập tức không dùng được nữa.
 
 ## 4. Dự án và công việc (WBS)
 

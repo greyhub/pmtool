@@ -460,6 +460,138 @@ describe('Document Registry', () => {
   });
 });
 
+describe('Organization invite management', () => {
+  it('rejects inviting an email that is already a member', async () => {
+    const owner = await registerUser('Invite Conflict Owner');
+    const org = await createOrg(owner.accessToken, 'Invite Conflict Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Invite Conflict Member',
+    );
+
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: member.email, role: 'ADMIN' })
+      .expect(409);
+  });
+
+  it('re-inviting the same pending email replaces the old invite instead of stacking duplicates', async () => {
+    const owner = await registerUser('Invite Replace Owner');
+    const org = await createOrg(owner.accessToken, 'Invite Replace Org');
+    const inviteeEmail = `${uniqueSuffix()}@example.com`;
+
+    const first = await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: inviteeEmail, role: 'MEMBER' })
+      .expect(201);
+
+    const second = await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: inviteeEmail, role: 'ADMIN' })
+      .expect(201);
+
+    const pending = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    const matching = pending.body.data.filter(
+      (inv: { email: string }) => inv.email === inviteeEmail,
+    );
+    expect(matching).toHaveLength(1);
+    expect(matching[0].role).toBe('ADMIN');
+
+    // Register the invitee under the EXACT invited email (registerUser()
+    // always picks a random one) so acceptance's email-match check passes.
+    const inviteeReg = await request(app.getHttpServer())
+      .post(`${API_PREFIX}/auth/register`)
+      .send({
+        email: inviteeEmail,
+        password: 'Password123',
+        fullName: 'Invite Replace Invitee',
+      })
+      .expect(201);
+    const invitee = { accessToken: inviteeReg.body.data.accessToken };
+
+    // The first (superseded) token must no longer work.
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/invites/accept`)
+      .set('Authorization', `Bearer ${invitee.accessToken}`)
+      .send({ token: first.body.data.rawToken })
+      .expect(404);
+
+    // The second (current) token still works.
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/invites/accept`)
+      .set('Authorization', `Bearer ${invitee.accessToken}`)
+      .send({ token: second.body.data.rawToken })
+      .expect(200);
+  });
+
+  it('lets an OWNER/ADMIN cancel a pending invite, after which its token no longer works', async () => {
+    const owner = await registerUser('Invite Cancel Owner');
+    const org = await createOrg(owner.accessToken, 'Invite Cancel Org');
+    const inviteeEmail = `${uniqueSuffix()}@example.com`;
+
+    const invite = await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: inviteeEmail, role: 'MEMBER' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(
+        `${API_PREFIX}/organizations/${org.slug}/invites/${invite.body.data.id}`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    const pending = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(
+      pending.body.data.find(
+        (inv: { email: string }) => inv.email === inviteeEmail,
+      ),
+    ).toBeUndefined();
+
+    const invitee = await registerUser('Invite Cancel Invitee');
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/invites/accept`)
+      .set('Authorization', `Bearer ${invitee.accessToken}`)
+      .send({ token: invite.body.data.rawToken })
+      .expect(404);
+  });
+
+  it('a plain MEMBER cannot cancel a pending invite', async () => {
+    const owner = await registerUser('Invite Cancel RBAC Owner');
+    const org = await createOrg(owner.accessToken, 'Invite Cancel RBAC Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Invite Cancel RBAC Member',
+    );
+    const invite = await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: `${uniqueSuffix()}@example.com`, role: 'MEMBER' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(
+        `${API_PREFIX}/organizations/${org.slug}/invites/${invite.body.data.id}`,
+      )
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .expect(403);
+  });
+});
+
 describe('Organization archive', () => {
   it('hides an archived org from the list, blocks new projects/invites, unarchive restores it', async () => {
     const owner = await registerUser('Archive Owner');

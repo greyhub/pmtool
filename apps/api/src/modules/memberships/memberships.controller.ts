@@ -79,6 +79,16 @@ export class MembershipsController {
     };
   }
 
+  @Delete('invites/:inviteId')
+  @UseGuards(RolesGuard)
+  @Roles('OWNER', 'ADMIN')
+  async cancelInvite(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('inviteId') inviteId: string,
+  ): Promise<void> {
+    await this.membershipsService.cancelInvite(ctx.organization.id, inviteId);
+  }
+
   @Patch('members/:membershipId')
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'ADMIN')

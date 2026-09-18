@@ -601,7 +601,8 @@
         "pendingTitle": "Pending invites",
         "columnEmail": "Email",
         "columnRole": "Role",
-        "columnExpires": "Expires"
+        "columnExpires": "Expires",
+        "cancel": "Cancel"
       }
     }
   },

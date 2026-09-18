@@ -601,7 +601,8 @@
         "pendingTitle": "Lời mời đang chờ",
         "columnEmail": "Email",
         "columnRole": "Vai trò",
-        "columnExpires": "Hết hạn"
+        "columnExpires": "Hết hạn",
+        "cancel": "Huỷ"
       }
     }
   },

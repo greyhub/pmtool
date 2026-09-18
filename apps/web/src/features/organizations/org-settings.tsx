@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import {
   ApiError,
   useArchiveOrganization,
+  useCancelInvite,
   useCreateInvite,
   useOrganization,
   useOrganizationInvites,
@@ -181,6 +182,7 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('organizations.settings.invites');
   const { data: invites } = useOrganizationInvites(orgSlug);
   const createInvite = useCreateInvite(orgSlug);
+  const cancelInvite = useCancelInvite(orgSlug);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<(typeof INVITE_ROLES)[number]>('MEMBER');
   const [lastLink, setLastLink] = useState<string | null>(null);
@@ -258,6 +260,7 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
                 <TableHeaderCell>{t('columnEmail')}</TableHeaderCell>
                 <TableHeaderCell>{t('columnRole')}</TableHeaderCell>
                 <TableHeaderCell>{t('columnExpires')}</TableHeaderCell>
+                <TableHeaderCell></TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -269,6 +272,18 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
                   </TableCell>
                   <TableCell className="text-xs text-ink-secondary">
                     {new Date(inv.expiresAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={cancelInvite.isPending}
+                        onClick={() => cancelInvite.mutate(inv.id)}
+                      >
+                        {t('cancel')}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

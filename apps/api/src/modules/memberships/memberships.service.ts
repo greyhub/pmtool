@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -41,24 +42,60 @@ export class MembershipsService {
     rawToken: string;
     expiresAt: Date;
   }> {
-    const rawToken = generateRefreshToken();
-    const invite = await this.prisma.db.membershipInvite.create({
-      data: {
-        organizationId,
-        email: input.email.toLowerCase(),
-        role: input.role,
-        tokenHash: hashRefreshToken(rawToken),
-        invitedById,
-        expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000),
-      },
+    const email = input.email.toLowerCase();
+
+    const existingMember = await this.prisma.db.membership.findFirst({
+      where: { organizationId, user: { email } },
     });
-    return {
-      id: invite.id,
-      email: invite.email,
-      role: invite.role,
-      rawToken,
-      expiresAt: invite.expiresAt,
-    };
+    if (existingMember) {
+      throw new ConflictException(
+        'Người này đã là thành viên của tổ chức — hãy đổi vai trò trực tiếp trong danh sách Thành viên thay vì mời lại',
+      );
+    }
+
+    return this.prisma.db.$transaction(async (tx) => {
+      // Re-inviting the same email replaces any still-pending invite rather
+      // than stacking up duplicates with independently valid tokens/roles —
+      // this also gives "resend" behavior for free.
+      await tx.membershipInvite.deleteMany({
+        where: { organizationId, email, acceptedAt: null },
+      });
+
+      const rawToken = generateRefreshToken();
+      const invite = await tx.membershipInvite.create({
+        data: {
+          organizationId,
+          email,
+          role: input.role,
+          tokenHash: hashRefreshToken(rawToken),
+          invitedById,
+          expiresAt: new Date(
+            Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000,
+          ),
+        },
+      });
+      return {
+        id: invite.id,
+        email: invite.email,
+        role: invite.role,
+        rawToken,
+        expiresAt: invite.expiresAt,
+      };
+    });
+  }
+
+  async cancelInvite(organizationId: string, inviteId: string): Promise<void> {
+    const invite = await this.prisma.db.membershipInvite.findUnique({
+      where: { id: inviteId },
+    });
+    if (
+      !invite ||
+      invite.organizationId !== organizationId ||
+      invite.acceptedAt
+    ) {
+      throw new NotFoundException('Không tìm thấy lời mời đang chờ này');
+    }
+    await this.prisma.db.membershipInvite.delete({ where: { id: inviteId } });
   }
 
   async listPendingInvites(organizationId: string) {

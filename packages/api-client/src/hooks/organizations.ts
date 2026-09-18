@@ -120,6 +120,17 @@ export function useCreateInvite(slug: string | undefined) {
   });
 }
 
+export function useCancelInvite(slug: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (inviteId: string) =>
+      apiRequest<void>(`/api/v1/organizations/${slug}/invites/${inviteId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: organizationKeys.invites(slug ?? '') });
+    },
+  });
+}
+
 export function useUpdateMembershipRole(slug: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
