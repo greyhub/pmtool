@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl';
 import { Badge } from '@pmtool/ui';
 import type { TaskDto } from '@pmtool/shared-types';
 
-const STATUS_VARIANT = {
+export const STATUS_VARIANT = {
   TODO: 'neutral',
   IN_PROGRESS: 'info',
   IN_REVIEW: 'warning',
@@ -10,7 +10,7 @@ const STATUS_VARIANT = {
   BLOCKED: 'danger',
 } as const;
 
-const PRIORITY_VARIANT = {
+export const PRIORITY_VARIANT = {
   LOW: 'neutral',
   MEDIUM: 'info',
   HIGH: 'warning',

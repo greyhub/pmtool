@@ -18,3 +18,25 @@
   --wx-gantt-summary-fill-color: #f59e0b;
   --wx-gantt-milestone-color: #fbbf24;
 }
+
+/* Weekend/today shading, driven by GanttChart's `highlightTime` callback.
+   `markers` (the documented "today line" API) is PRO-only and hard-disabled
+   in the installed free build, so this is the real mechanism — see the
+   comment on `ganttHighlightTime` in GanttChart.tsx. Reuses the library's
+   own (otherwise-unconsumed-by-us) holiday CSS vars for the weekend shade. */
+.wx-weekend {
+  background: var(--wx-gantt-holiday-background, rgba(0, 0, 0, 0.035));
+}
+.pm-gantt-today {
+  background: color-mix(in srgb, var(--color-action-primary-bg) 16%, transparent);
+}
+
+/* A plain-string column header wraps across multiple lines inside the
+   library's fixed-height header cell and visually overlaps the next
+   column — every header in GanttChart.tsx passes this class via the
+   `css` field to force single-line truncation instead. */
+.pm-gantt-header-nowrap {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

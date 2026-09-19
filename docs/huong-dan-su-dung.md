@@ -89,6 +89,13 @@ Tab **Bảng** hiển thị công việc theo cột trạng thái, kéo-thả đ
 
 Tab **Tiến độ** vẽ toàn bộ công việc của dự án theo ngày bắt đầu/kết thúc trên trục thời gian — công việc chưa đặt ngày sẽ mặc định hiển thị tại ngày tạo. Đặt ngày bắt đầu/kết thúc trong trang chi tiết công việc để biểu đồ phản ánh đúng kế hoạch thực tế.
 
+- **Màu thanh công việc theo trạng thái**: xanh lá (Hoàn thành), xanh dương (Đang làm), vàng (Đang xem xét), đỏ (Bị chặn), xám (Cần làm) — nhất quán với màu trạng thái ở Bảng Kanban và danh sách Công việc.
+- **Công việc cha** (có công việc con) hiển thị dạng thanh tổng hợp bao trùm toàn bộ khoảng thời gian của các công việc con. **Công việc mốc** (ngày bắt đầu = ngày kết thúc) hiển thị dạng hình thoi thay vì thanh dài.
+- Đường kẻ dọc màu vàng nhạt đánh dấu **hôm nay**; các ngày cuối tuần được tô nền xám nhạt.
+- Bấm vào tên một công việc để mở trang chi tiết của nó. Kéo thả một thanh để đổi ngày bắt đầu/kết thúc — hệ thống tự lưu và báo "Đã lưu" ngay dưới thanh công cụ.
+- Chọn mức hiển thị **Ngày / Tuần / Tháng** ở góc trên bên phải để thu phóng trục thời gian.
+- Bảng bên trái hiển thị thêm cột **Trạng thái**, **Độ ưu tiên**, **Người phụ trách** cho từng công việc; trên màn hình hẹp, bảng tự thu gọn chỉ còn cột tên để dành chỗ cho biểu đồ.
+
 ## 8. Rủi ro & Vấn đề
 
 Tab **Rủi ro/Vấn đề** là sổ theo dõi rủi ro (Risk) và vấn đề (Issue) của dự án theo chuẩn PMP:

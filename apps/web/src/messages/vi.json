@@ -680,5 +680,24 @@
       "missingToken": "Liên kết lời mời không hợp lệ.",
       "genericError": "Không thể chấp nhận lời mời, vui lòng thử lại"
     }
+  },
+  "gantt": {
+    "columns": {
+      "task": "Công việc",
+      "start": "Bắt đầu",
+      "duration": "Thời lượng",
+      "status": "Trạng thái",
+      "priority": "Độ ưu tiên",
+      "assignee": "Người phụ trách"
+    },
+    "empty": "Chưa có công việc nào trong dự án này.",
+    "loadError": "Không thể tải dữ liệu tiến độ.",
+    "saved": "Đã lưu",
+    "saveError": "Lưu thay đổi thất bại.",
+    "zoom": {
+      "day": "Ngày",
+      "week": "Tuần",
+      "month": "Tháng"
+    }
   }
 }

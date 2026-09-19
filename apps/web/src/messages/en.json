@@ -680,5 +680,24 @@
       "missingToken": "This invite link is invalid.",
       "genericError": "Could not accept the invite, please try again"
     }
+  },
+  "gantt": {
+    "columns": {
+      "task": "Task",
+      "start": "Start",
+      "duration": "Duration",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee"
+    },
+    "empty": "No tasks in this project yet.",
+    "loadError": "Couldn't load the schedule.",
+    "saved": "Saved",
+    "saveError": "Failed to save the change.",
+    "zoom": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    }
   }
 }
