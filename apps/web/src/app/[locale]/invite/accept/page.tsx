@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { ApiError, useAcceptInvite, useOrganizations } from '@pmtool/api-client';
 import { Button, Card } from '@pmtool/ui';
 import { RequireAuth } from '../../../../features/auth/require-auth';
+import { BackHomeLinksWidget } from '../../../../features/shell/back-home-links-widget';
 import { useRouter } from '../../../../i18n/navigation';
 
 function AcceptInviteContent() {
@@ -27,6 +28,7 @@ function AcceptInviteContent() {
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-6 px-4 py-24 text-center">
+      <BackHomeLinksWidget homeHref="/" className="self-start" />
       <Card className="w-full p-8">
         <h1 className="mb-2 text-lg font-semibold text-ink-primary">{t('title')}</h1>
         <p className="mb-6 text-sm text-ink-secondary">{t('description')}</p>

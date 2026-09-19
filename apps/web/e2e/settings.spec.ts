@@ -13,6 +13,12 @@ test('settings page renders and the Telegram card surfaces a graceful error when
   await page.goto('/vi/settings');
   await expect(page.getByRole('heading', { name: 'Telegram' })).toBeVisible();
 
+  const homeLink = page.getByRole('link', { name: 'Trang chủ' });
+  await expect(homeLink).toBeVisible();
+  await homeLink.click();
+  await page.waitForURL((url) => !url.pathname.includes('/settings'), { timeout: 10_000 });
+
+  await page.goto('/vi/settings');
   await page.getByRole('button', { name: 'Kết nối Telegram' }).click();
   await expect(page.getByText('Không thể tạo mã liên kết. Vui lòng thử lại.')).toBeVisible();
 });

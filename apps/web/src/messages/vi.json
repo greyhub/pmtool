@@ -147,6 +147,8 @@
     }
   },
   "nav": {
+    "back": "Quay lại",
+    "home": "Trang chủ",
     "projects": "Dự án",
     "leaderboard": "Bảng xếp hạng",
     "orgSettings": "Cài đặt tổ chức",

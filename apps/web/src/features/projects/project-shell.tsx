@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useProject } from '@pmtool/api-client';
 import { Badge } from '@pmtool/ui';
 import { Link, usePathname } from '../../i18n/navigation';
+import { BackHomeLinksWidget } from '../shell/back-home-links-widget';
 
 const STATUS_VARIANT = {
   PLANNING: 'neutral',
@@ -42,6 +43,7 @@ export function ProjectShell({
 
   return (
     <div>
+      <BackHomeLinksWidget homeHref={`/${orgSlug}/dashboard`} className="mb-3" />
       {project && (
         <div className="mb-4 flex items-center gap-3">
           <span className="font-mono text-xs font-semibold text-ink-muted">{project.key}</span>

@@ -40,6 +40,7 @@ test('opening an invite link while logged out returns to that invite after loggi
   await inviteePage.getByRole('button', { name: 'Đăng nhập' }).click();
 
   await inviteePage.waitForURL(/\/invite\/accept\?token=/, { timeout: 10_000 });
+  await expect(inviteePage.getByRole('link', { name: 'Trang chủ' })).toBeVisible();
   await inviteePage.getByRole('button', { name: 'Chấp nhận lời mời' }).click();
   await inviteePage.waitForURL(new RegExp(`${org.slug}/dashboard`), { timeout: 10_000 });
 });

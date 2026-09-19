@@ -18,6 +18,7 @@ export * from './components/Nav/OrgSwitcher';
 export * from './components/Nav/Sidebar';
 export * from './components/Nav/MobileNavDrawer';
 export * from './components/Nav/TopBar';
+export * from './components/Nav/BackHomeLinks';
 
 export * from './components/Kanban/KanbanBoard';
 export * from './components/Kanban/KanbanColumn';
