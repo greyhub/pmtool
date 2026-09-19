@@ -687,10 +687,6 @@
   "gantt": {
     "columns": {
       "task": "Công việc",
-      "start": "Bắt đầu",
-      "duration": "Thời lượng",
-      "status": "Trạng thái",
-      "priority": "Độ ưu tiên",
       "assignee": "Người phụ trách"
     },
     "empty": "Chưa có công việc nào trong dự án này.",

@@ -18,7 +18,6 @@ import {
   type GanttLinkType,
   type GanttTaskInput,
 } from '@pmtool/ui';
-import { STATUS_VARIANT, PRIORITY_VARIANT } from '../tasks/task-badges';
 import { useRouter } from '../../i18n/navigation';
 
 const DEPENDENCY_TYPE_TO_LINK_TYPE: Record<DependencyType, GanttLinkType> = {
@@ -59,8 +58,6 @@ function toAssignees(task: TaskDto): { name: string; character: string }[] {
 
 export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('gantt');
-  const tStatus = useTranslations('tasks.status');
-  const tPriority = useTranslations('tasks.priority');
   const router = useRouter();
 
   const { data: tasks, isLoading: tasksLoading, isError: tasksError } = useTasks(orgSlug, projectKey);
@@ -122,14 +119,10 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
         parent: task.parentTaskId ?? undefined,
         type,
         barColor: STATUS_BAR_COLOR[task.status],
-        statusLabel: tStatus(task.status),
-        statusVariant: STATUS_VARIANT[task.status],
-        priorityLabel: tPriority(task.priority),
-        priorityVariant: PRIORITY_VARIANT[task.priority],
         assignees: toAssignees(task),
       };
     });
-  }, [tasks, tStatus, tPriority]);
+  }, [tasks]);
 
   const ganttLinks = useMemo<GanttLinkInput[]>(
     () =>
@@ -173,10 +166,6 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
         links={ganttLinks}
         labels={{
           columnTask: t('columns.task'),
-          columnStart: t('columns.start'),
-          columnDuration: t('columns.duration'),
-          columnStatus: t('columns.status'),
-          columnPriority: t('columns.priority'),
           columnAssignee: t('columns.assignee'),
           zoomDay: t('zoom.day'),
           zoomWeek: t('zoom.week'),

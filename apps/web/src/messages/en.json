@@ -687,10 +687,6 @@
   "gantt": {
     "columns": {
       "task": "Task",
-      "start": "Start",
-      "duration": "Duration",
-      "status": "Status",
-      "priority": "Priority",
       "assignee": "Assignee"
     },
     "empty": "No tasks in this project yet.",

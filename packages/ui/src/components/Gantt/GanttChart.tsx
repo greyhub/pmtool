@@ -4,14 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Gantt, Willow, WillowDark } from '@svar-ui/react-gantt';
 import type { IApi, IColumnConfig } from '@svar-ui/react-gantt';
 import { useTheme } from 'next-themes';
-import { Badge } from '../Badge/Badge';
-import type { BadgeProps } from '../Badge/Badge';
 import { cn } from '../../lib/cn';
 import '@svar-ui/react-gantt/style.css';
 import './gantt-theme.css';
 
 export type GanttLinkType = 's2s' | 's2e' | 'e2s' | 'e2e';
-export type GanttBadgeVariant = NonNullable<BadgeProps['variant']>;
 
 export interface GanttTaskInput {
   id: string;
@@ -24,10 +21,6 @@ export interface GanttTaskInput {
   type?: 'task' | 'summary' | 'milestone';
   /** CSS color value (e.g. `var(--color-success)`) used to recolor this task's bar/milestone. */
   barColor?: string;
-  statusLabel?: string;
-  statusVariant?: GanttBadgeVariant;
-  priorityLabel?: string;
-  priorityVariant?: GanttBadgeVariant;
   /** Rendered as small character-icon sprites (see `character-card.tsx`'s
    * identical technique), not text — relies on each org member having a
    * distinct `character` (enforced server-side) so the icon alone reliably
@@ -68,10 +61,6 @@ export interface GanttLinkChange {
 
 export interface GanttLabels {
   columnTask: string;
-  columnStart: string;
-  columnDuration: string;
-  columnStatus: string;
-  columnPriority: string;
   columnAssignee: string;
   zoomDay: string;
   zoomWeek: string;
@@ -152,15 +141,6 @@ export function AssigneeIcons({ assignees }: { assignees: { name: string; charac
       )}
     </span>
   );
-}
-
-/** `DD/MM` — deliberately terser than the library's default `DD-MM-YYYY`; the year rarely matters at a glance in a project-scoped chart. Exported for unit testing. */
-export function formatCompactDate(value: unknown): string {
-  const date = value instanceof Date ? value : new Date(String(value));
-  if (Number.isNaN(date.getTime())) return '';
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}`;
 }
 
 /**
@@ -266,37 +246,15 @@ export function GanttChart({
       },
     ];
     if (narrow) return base;
+    // Start/duration/status/priority used to each get their own grid column,
+    // but that repeated on the chart itself: status is already the bar's
+    // color, priority already a badge on the task detail page, and
+    // start/duration are already the bar's position/length on the same row.
+    // Keeping them here was the "too much detail, not enough color" the
+    // Gantt was reworked to move away from — the grid now only carries what
+    // the chart can't show: the task name and who's on it.
     return [
       ...base,
-      {
-        id: 'start',
-        header: { text: labels.columnStart, css: 'pm-gantt-header-nowrap' },
-        width: 70,
-        align: 'center',
-        cell: ({ row }) => <span>{formatCompactDate(row.start)}</span>,
-      },
-      {
-        id: 'duration',
-        header: { text: labels.columnDuration, css: 'pm-gantt-header-nowrap' },
-        width: 90,
-        align: 'center',
-      },
-      {
-        id: 'status',
-        header: { text: labels.columnStatus, css: 'pm-gantt-header-nowrap' },
-        width: 130,
-        cell: ({ row }) =>
-          row.statusLabel ? <Badge variant={row.statusVariant as GanttBadgeVariant}>{row.statusLabel}</Badge> : null,
-      },
-      {
-        id: 'priority',
-        header: { text: labels.columnPriority, css: 'pm-gantt-header-nowrap' },
-        width: 110,
-        cell: ({ row }) =>
-          row.priorityLabel ? (
-            <Badge variant={row.priorityVariant as GanttBadgeVariant}>{row.priorityLabel}</Badge>
-          ) : null,
-      },
       {
         id: 'assignee',
         header: { text: labels.columnAssignee, css: 'pm-gantt-header-nowrap' },

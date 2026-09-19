@@ -3,7 +3,6 @@ import {
   AssigneeIcons,
   buildStatusColorCss,
   computeGridWidth,
-  formatCompactDate,
   ganttHighlightTime,
   type GanttTaskInput,
 } from './GanttChart';
@@ -60,20 +59,6 @@ describe('buildStatusColorCss', () => {
     expect(rules).toHaveLength(2);
     expect(rules[0]).toContain('data-task-id=":a"');
     expect(rules[1]).toContain('data-task-id=":c"');
-  });
-});
-
-describe('formatCompactDate', () => {
-  it('formats as DD/MM, dropping the year', () => {
-    expect(formatCompactDate(new Date('2026-03-05T00:00:00.000Z'))).toBe('05/03');
-  });
-
-  it('pads single-digit day and month', () => {
-    expect(formatCompactDate(new Date('2026-01-09T00:00:00.000Z'))).toBe('09/01');
-  });
-
-  it('returns an empty string for an invalid value', () => {
-    expect(formatCompactDate('not-a-date')).toBe('');
   });
 });
 

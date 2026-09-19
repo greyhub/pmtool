@@ -94,8 +94,8 @@ Tab **Tiến độ** vẽ toàn bộ công việc của dự án theo ngày bắ
 - Đường kẻ dọc màu vàng nhạt đánh dấu **hôm nay**; các ngày cuối tuần được tô nền xám nhạt.
 - Bấm vào tên một công việc để mở trang chi tiết của nó. Kéo thả một thanh để đổi ngày bắt đầu/kết thúc — hệ thống tự lưu và báo "Đã lưu" ngay dưới thanh công cụ.
 - Chọn mức hiển thị **Ngày / Tuần / Tháng** ở góc trên bên phải để thu phóng trục thời gian.
-- Bảng bên trái hiển thị thêm cột **Trạng thái**, **Độ ưu tiên**, **Người phụ trách** cho từng công việc; trên màn hình hẹp, bảng tự thu gọn chỉ còn cột tên để dành chỗ cho biểu đồ.
-- Cột **Người phụ trách** hiển thị icon nhân vật đồng hành của từng người (tối đa 2 icon, thêm "+N" nếu nhiều hơn) thay vì tên đầy đủ, giữ bảng gọn — di chuột vào icon để xem tên. Cách này nhận diện đúng từng người vì mỗi thành viên trong một tổ chức bắt buộc chọn một nhân vật khác nhau (xem mục 18). Cột **Bắt đầu** hiển thị ngày rút gọn dạng DD/MM.
+- Bảng bên trái chỉ giữ hai cột **Công việc** và **Người phụ trách** — cố tình gọn để nhường chỗ cho biểu đồ; Trạng thái/Độ ưu tiên/Ngày đã có sẵn ngay trên chính thanh công việc (màu sắc, vị trí, độ dài) nên không lặp lại thành cột riêng. Trên màn hình hẹp, bảng tự thu gọn chỉ còn cột tên.
+- Cột **Người phụ trách** hiển thị icon nhân vật đồng hành của từng người (tối đa 2 icon, thêm "+N" nếu nhiều hơn) thay vì tên đầy đủ — di chuột vào icon để xem tên. Cách này nhận diện đúng từng người vì mỗi thành viên trong một tổ chức bắt buộc chọn một nhân vật khác nhau (xem mục 18).
 
 ## 8. Rủi ro & Vấn đề
 
