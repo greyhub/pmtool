@@ -183,4 +183,4 @@ Có thể **Ngắt kết nối** bất cứ lúc nào từ cùng trang Cài đ�
 
 ## 18. Nhân vật đồng hành
 
-Ở góc dưới bên trái mọi trang (khi đã đăng nhập), một nhân vật nhỏ theo dõi con trỏ chuột của bạn và phản ứng khi bạn bấm vào ("boop"). Vào **Cài đặt** để chọn nhân vật mình thích trong số 12 nhân vật có sẵn — lựa chọn được lưu theo tài khoản và hiển thị trên mọi trang, mọi tổ chức bạn tham gia. Nhân vật tự ẩn trên màn hình hẹp (điện thoại) và tự tắt hiệu ứng theo dõi con trỏ nếu thiết bị không có chuột, hoặc tắt hiệu ứng chuyển động nếu hệ điều hành đang bật chế độ giảm chuyển động (reduced motion).
+Ở góc dưới bên trái mọi trang (khi đã đăng nhập), một nhân vật nhỏ theo dõi con trỏ chuột của bạn và phản ứng khi bạn bấm vào ("boop"). Vào **Cài đặt** để chọn nhân vật mình thích trong số 52 nhân vật có sẵn — lựa chọn được lưu theo tài khoản và hiển thị trên mọi trang, mọi tổ chức bạn tham gia. Nhân vật tự ẩn trên màn hình hẹp (điện thoại) và tự tắt hiệu ứng theo dõi con trỏ nếu thiết bị không có chuột, hoặc tắt hiệu ứng chuyển động nếu hệ điều hành đang bật chế độ giảm chuyển động (reduced motion).
