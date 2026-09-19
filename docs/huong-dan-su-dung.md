@@ -95,6 +95,7 @@ Tab **Tiến độ** vẽ toàn bộ công việc của dự án theo ngày bắ
 - Bấm vào tên một công việc để mở trang chi tiết của nó. Kéo thả một thanh để đổi ngày bắt đầu/kết thúc — hệ thống tự lưu và báo "Đã lưu" ngay dưới thanh công cụ.
 - Chọn mức hiển thị **Ngày / Tuần / Tháng** ở góc trên bên phải để thu phóng trục thời gian.
 - Bảng bên trái hiển thị thêm cột **Trạng thái**, **Độ ưu tiên**, **Người phụ trách** cho từng công việc; trên màn hình hẹp, bảng tự thu gọn chỉ còn cột tên để dành chỗ cho biểu đồ.
+- Cột **Người phụ trách** hiển thị icon nhân vật đồng hành của từng người (tối đa 2 icon, thêm "+N" nếu nhiều hơn) thay vì tên đầy đủ, giữ bảng gọn — di chuột vào icon để xem tên. Cách này nhận diện đúng từng người vì mỗi thành viên trong một tổ chức bắt buộc chọn một nhân vật khác nhau (xem mục 18). Cột **Bắt đầu** hiển thị ngày rút gọn dạng DD/MM.
 
 ## 8. Rủi ro & Vấn đề
 
@@ -187,7 +188,10 @@ Có thể **Ngắt kết nối** bất cứ lúc nào từ cùng trang Cài đ�
 - **Chủ đề sáng/tối**: bấm biểu tượng mặt trăng/mặt trời ở thanh trên cùng, lựa chọn được lưu lại cho lần sau.
 - **Ngôn ngữ**: chọn Tiếng Việt / English ở góc phải thanh trên cùng, lưu qua cookie nên giữ nguyên khi điều hướng.
 - **Di động**: giao diện responsive — menu bên trái chuyển thành drawer trượt ra khi màn hình hẹp.
+- **Thu gọn menu trái**: bấm nút mũi tên ở đầu menu bên trái (trang tổ chức, màn hình rộng) để thu menu chỉ còn icon, có thêm khoảng trống cho nội dung chính. Lựa chọn được ghi nhớ trên trình duyệt và giữ nguyên ở lần truy cập sau.
 
 ## 18. Nhân vật đồng hành
 
 Ở góc dưới bên trái mọi trang (khi đã đăng nhập), một nhân vật nhỏ theo dõi con trỏ chuột của bạn và phản ứng khi bạn bấm vào ("boop"). Vào **Cài đặt** để chọn nhân vật mình thích trong số 52 nhân vật có sẵn — lựa chọn được lưu theo tài khoản và hiển thị trên mọi trang, mọi tổ chức bạn tham gia. Nhân vật tự ẩn trên màn hình hẹp (điện thoại) và tự tắt hiệu ứng theo dõi con trỏ nếu thiết bị không có chuột, hoặc tắt hiệu ứng chuyển động nếu hệ điều hành đang bật chế độ giảm chuyển động (reduced motion).
+
+**Mỗi nhân vật chỉ thuộc về một người trong cùng tổ chức**: nếu một thành viên khác trong bất kỳ tổ chức nào bạn tham gia đã chọn nhân vật đó, hệ thống báo lỗi và giữ nguyên lựa chọn cũ của bạn — chọn nhân vật khác chưa ai dùng. Quy tắc này áp dụng theo từng tổ chức (không phải toàn hệ thống), nên nhân vật vẫn có thể trùng giữa hai người ở hai tổ chức khác nhau không liên quan.
