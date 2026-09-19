@@ -10,6 +10,22 @@ export type Locale = (typeof LOCALES)[number];
 export const THEME_PREFERENCES = ['light', 'dark', 'system'] as const;
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
+export const MASCOT_CHARACTERS = [
+  'fox',
+  'otter',
+  'panda',
+  'owl',
+  'cat',
+  'bear',
+  'koala',
+  'deer',
+  'penguin',
+  'astronaut',
+  'wizard',
+  'gearbot',
+] as const;
+export type MascotCharacter = (typeof MASCOT_CHARACTERS)[number];
+
 export const PROJECT_STATUSES = ['PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'ARCHIVED'] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 

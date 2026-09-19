@@ -423,7 +423,26 @@
     }
   },
   "settings": {
-    "title": "Cài đặt"
+    "title": "Cài đặt",
+    "character": {
+      "title": "Nhân vật đồng hành",
+      "description": "Chọn một nhân vật nhỏ sẽ theo dõi con trỏ chuột của bạn trên mọi trang.",
+      "label": "nhân vật đồng hành",
+      "options": {
+        "fox": "Cáo",
+        "otter": "Rái cá",
+        "panda": "Gấu trúc",
+        "owl": "Cú",
+        "cat": "Mèo",
+        "bear": "Gấu",
+        "koala": "Gấu túi",
+        "deer": "Hươu",
+        "penguin": "Chim cánh cụt",
+        "astronaut": "Phi hành gia",
+        "wizard": "Phù thủy",
+        "gearbot": "Robot bánh răng"
+      }
+    }
   },
   "integrations": {
     "telegram": {

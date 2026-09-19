@@ -62,3 +62,37 @@ test('daily digest toggle and hour picker persist across reload', async ({ page,
   await page.reload();
   await expect(digestCheckbox).not.toBeChecked();
 });
+
+test('the floating mascot appears on authenticated pages and reflects the chosen character', async ({ page }) => {
+  await page.goto('/vi/login');
+  await expect(page.getByRole('button', { name: /Boop the/ })).toHaveCount(0);
+
+  const user = makeUser('mascot');
+  await registerUser(page, user);
+
+  // registerUser lands on /onboarding/create-organization, which — like
+  // /login and /register — is intentionally chrome-less and not wrapped in
+  // RequireAuth, so the mascot correctly does not appear there. It should
+  // appear on any page that IS wrapped in RequireAuth, e.g. /settings.
+  await page.goto('/vi/settings');
+  await expect(page.getByRole('heading', { name: 'Nhân vật đồng hành' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Boop the/ })).toBeVisible();
+
+  const otterTile = page.getByRole('button', { name: 'Rái cá' });
+  await expect(otterTile).toHaveAttribute('aria-pressed', 'false');
+  await otterTile.click();
+  await page.waitForTimeout(500);
+  await expect(otterTile).toHaveAttribute('aria-pressed', 'true');
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Rái cá' })).toHaveAttribute('aria-pressed', 'true');
+
+  const mascotButton = page.getByRole('button', { name: /Boop the/ });
+  await expect(mascotButton).toBeVisible();
+  // The button's markup is <button><span><span/><span/></span></button> — the
+  // two inner spans are the directions/reactions sprite layers.
+  await expect(mascotButton.locator('span > span').first()).toHaveCSS(
+    'background-image',
+    /otter-directions\.webp/,
+  );
+});

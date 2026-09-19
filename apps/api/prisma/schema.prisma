@@ -28,6 +28,7 @@ model User {
   avatarUrl      String?
   locale         String   @default("vi")
   themePref      String   @default("system")
+  mascotCharacter String  @default("fox")
   telegramChatId String?  @unique
   // Daily task-status digest via Telegram — distinct from the due-date
   // sweep (Task.telegramReminderSentAt). Enabled by default so anyone who

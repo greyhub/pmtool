@@ -423,7 +423,26 @@
     }
   },
   "settings": {
-    "title": "Settings"
+    "title": "Settings",
+    "character": {
+      "title": "Companion character",
+      "description": "Pick a little character that follows your cursor around the app.",
+      "label": "companion character",
+      "options": {
+        "fox": "Fox",
+        "otter": "Otter",
+        "panda": "Panda",
+        "owl": "Owl",
+        "cat": "Cat",
+        "bear": "Bear",
+        "koala": "Koala",
+        "deer": "Deer",
+        "penguin": "Penguin",
+        "astronaut": "Astronaut",
+        "wizard": "Wizard",
+        "gearbot": "Gearbot"
+      }
+    }
   },
   "integrations": {
     "telegram": {

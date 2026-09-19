@@ -257,6 +257,43 @@ describe('Gamification', () => {
   });
 });
 
+describe('User preferences', () => {
+  it('defaults mascotCharacter to fox, and PATCH persists a new selection', async () => {
+    const user = await registerUser('Preferences User');
+
+    const before = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/auth/me`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .expect(200);
+    expect(before.body.data.mascotCharacter).toBe('fox');
+
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .send({ mascotCharacter: 'otter' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data.mascotCharacter).toBe('otter');
+      });
+
+    const after = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/auth/me`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .expect(200);
+    expect(after.body.data.mascotCharacter).toBe('otter');
+  });
+
+  it('rejects an unknown character slug', async () => {
+    const user = await registerUser('Preferences User Bad');
+
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .send({ mascotCharacter: 'not-a-real-character' })
+      .expect(400);
+  });
+});
+
 describe('Telegram integration', () => {
   it('consuming a valid link code via the webhook links the chat id to the user', async () => {
     const user = await registerUser('Telegram User');

@@ -52,6 +52,7 @@ describe('AuthService.refresh', () => {
             avatarUrl: null,
             locale: 'vi',
             themePref: 'system',
+            mascotCharacter: 'fox',
             createdAt: new Date(),
           }),
         },

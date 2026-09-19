@@ -9,6 +9,7 @@ export function toUserDto(user: User): UserDto {
     avatarUrl: user.avatarUrl,
     locale: user.locale as UserDto['locale'],
     themePref: user.themePref as UserDto['themePref'],
+    mascotCharacter: user.mascotCharacter as UserDto['mascotCharacter'],
     createdAt: user.createdAt.toISOString(),
   };
 }

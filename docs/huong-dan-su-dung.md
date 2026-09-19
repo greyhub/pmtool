@@ -23,6 +23,7 @@ PMTool tổ chức dữ liệu theo 3 cấp: **Tổ chức** (Organization) → 
 15. [Trợ lý AI](#15-trợ-lý-ai)
 16. [Thông báo Telegram](#16-thông-báo-telegram)
 17. [Giao diện: sáng/tối, song ngữ, di động](#17-giao-diện-sángtối-song-ngữ-di-động)
+18. [Nhân vật đồng hành](#18-nhân-vật-đồng-hành)
 
 ---
 
@@ -179,3 +180,7 @@ Có thể **Ngắt kết nối** bất cứ lúc nào từ cùng trang Cài đ�
 - **Chủ đề sáng/tối**: bấm biểu tượng mặt trăng/mặt trời ở thanh trên cùng, lựa chọn được lưu lại cho lần sau.
 - **Ngôn ngữ**: chọn Tiếng Việt / English ở góc phải thanh trên cùng, lưu qua cookie nên giữ nguyên khi điều hướng.
 - **Di động**: giao diện responsive — menu bên trái chuyển thành drawer trượt ra khi màn hình hẹp.
+
+## 18. Nhân vật đồng hành
+
+Ở góc dưới bên trái mọi trang (khi đã đăng nhập), một nhân vật nhỏ theo dõi con trỏ chuột của bạn và phản ứng khi bạn bấm vào ("boop"). Vào **Cài đặt** để chọn nhân vật mình thích trong số 12 nhân vật có sẵn — lựa chọn được lưu theo tài khoản và hiển thị trên mọi trang, mọi tổ chức bạn tham gia. Nhân vật tự ẩn trên màn hình hẹp (điện thoại) và tự tắt hiệu ứng theo dõi con trỏ nếu thiết bị không có chuột, hoặc tắt hiệu ứng chuyển động nếu hệ điều hành đang bật chế độ giảm chuyển động (reduced motion).

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LOCALES, THEME_PREFERENCES } from '../common/enums';
+import { LOCALES, MASCOT_CHARACTERS, THEME_PREFERENCES } from '../common/enums';
 
 export const emailSchema = z.string().email().max(255);
 
@@ -31,6 +31,7 @@ export const userSchema = z.object({
   avatarUrl: z.string().url().nullable(),
   locale: z.enum(LOCALES),
   themePref: z.enum(THEME_PREFERENCES),
+  mascotCharacter: z.enum(MASCOT_CHARACTERS),
   createdAt: z.string(),
 });
 export type UserDto = z.infer<typeof userSchema>;
@@ -45,5 +46,6 @@ export type AuthTokens = z.infer<typeof authTokensSchema>;
 export const updateUserPreferencesSchema = z.object({
   locale: z.enum(LOCALES).optional(),
   themePref: z.enum(THEME_PREFERENCES).optional(),
+  mascotCharacter: z.enum(MASCOT_CHARACTERS).optional(),
 });
 export type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSchema>;
