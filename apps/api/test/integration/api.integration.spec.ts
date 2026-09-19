@@ -292,6 +292,49 @@ describe('User preferences', () => {
       .send({ mascotCharacter: 'not-a-real-character' })
       .expect(400);
   });
+
+  it('rejects a mascotCharacter another member of the same org already has, but allows it once that org member changes away from it', async () => {
+    const owner = await registerUser('Character Owner');
+    const org = await createOrg(owner.accessToken, 'Character Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Character Member',
+    );
+
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ mascotCharacter: 'panda' })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .send({ mascotCharacter: 'panda' })
+      .expect(409);
+
+    // A user with no shared org can freely pick the same character.
+    const stranger = await registerUser('Character Stranger');
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${stranger.accessToken}`)
+      .send({ mascotCharacter: 'panda' })
+      .expect(200);
+
+    // Once the owner moves off "panda", the member can now take it.
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ mascotCharacter: 'owl' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .send({ mascotCharacter: 'panda' })
+      .expect(200);
+  });
 });
 
 describe('Telegram integration', () => {

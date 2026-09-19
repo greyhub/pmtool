@@ -4,7 +4,7 @@ import { fromRichText } from './rich-text.util';
 
 type TaskWithRelations = Task & {
   assignees?: (TaskAssignee & {
-    user: Pick<User, 'id' | 'fullName' | 'avatarUrl'>;
+    user: Pick<User, 'id' | 'fullName' | 'avatarUrl' | 'mascotCharacter'>;
   })[];
   _count?: { subtasks: number };
 };
@@ -32,6 +32,8 @@ export function toTaskDto(task: TaskWithRelations): TaskDto {
       id: a.user.id,
       fullName: a.user.fullName,
       avatarUrl: a.user.avatarUrl,
+      mascotCharacter: a.user
+        .mascotCharacter as TaskDto['assignees'][number]['mascotCharacter'],
     })),
     subtaskCount: task._count?.subtasks,
   };

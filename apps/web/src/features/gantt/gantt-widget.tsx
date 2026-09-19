@@ -53,10 +53,8 @@ function isSameCalendarDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function formatAssignees(task: TaskDto): string | undefined {
-  if (!task.assignees || task.assignees.length === 0) return undefined;
-  const [first, ...rest] = task.assignees;
-  return rest.length > 0 ? `${first!.fullName} +${rest.length}` : first!.fullName;
+function toAssignees(task: TaskDto): { name: string; character: string }[] {
+  return (task.assignees ?? []).map((a) => ({ name: a.fullName, character: a.mascotCharacter }));
 }
 
 export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
@@ -128,7 +126,7 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
         statusVariant: STATUS_VARIANT[task.status],
         priorityLabel: tPriority(task.priority),
         priorityVariant: PRIORITY_VARIANT[task.priority],
-        assigneeLabel: formatAssignees(task),
+        assignees: toAssignees(task),
       };
     });
   }, [tasks, tStatus, tPriority]);

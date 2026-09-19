@@ -43,3 +43,24 @@ test('edit org name, invite a member, then archive/unarchive removes and restore
   await page.getByRole('button', { name: 'Bỏ lưu trữ' }).click();
   await expect(page.getByText('Đang hoạt động')).toBeVisible();
 });
+
+test('collapsing the org sidebar persists across a reload', async ({ page }) => {
+  const user = makeUser('sidebarcollapse');
+  await registerUser(page, user);
+  const org = makeOrg('sidebarcollapse');
+  await createOrganization(page, org);
+
+  await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
+  await page.getByRole('button', { name: 'Thu gọn' }).click();
+
+  // Collapsed: the label is visually hidden (sr-only) but still in the
+  // accessibility tree, so the link is still findable by its accessible name.
+  await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Mở rộng' })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Mở rộng' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Mở rộng' }).click();
+  await expect(page.getByRole('button', { name: 'Thu gọn' })).toBeVisible();
+});

@@ -28,7 +28,11 @@ export interface GanttTaskInput {
   statusVariant?: GanttBadgeVariant;
   priorityLabel?: string;
   priorityVariant?: GanttBadgeVariant;
-  assigneeLabel?: string;
+  /** Rendered as small character-icon sprites (see `character-card.tsx`'s
+   * identical technique), not text — relies on each org member having a
+   * distinct `character` (enforced server-side) so the icon alone reliably
+   * identifies who, without needing a name label in the narrow column. */
+  assignees?: { name: string; character: string }[];
 }
 
 export interface GanttLinkInput {
@@ -121,6 +125,55 @@ export function buildStatusColorCss(tasks: GanttTaskInput[]): string {
         `.wx-bar[data-task-id=":${t.id}"]{--wx-gantt-task-color:${t.barColor};--wx-gantt-task-fill-color:${t.barColor};--wx-gantt-summary-color:${t.barColor};--wx-gantt-summary-fill-color:${t.barColor};--wx-gantt-milestone-color:${t.barColor};}`,
     )
     .join('\n');
+}
+
+/** Up to 2 character-icon sprites plus a "+N" tail. Exported so the cell renderer used inside `columns` stays unit-testable. */
+export function AssigneeIcons({ assignees }: { assignees: { name: string; character: string }[] }) {
+  if (assignees.length === 0) return <span className="text-ink-muted">—</span>;
+  const shown = assignees.slice(0, 2);
+  return (
+    <span className="flex items-center gap-1">
+      {shown.map((a, i) => (
+        <span
+          key={i}
+          title={a.name}
+          aria-label={a.name}
+          className="h-5 w-5 shrink-0 rounded-full bg-surface-subtle"
+          style={{
+            backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
+            backgroundSize: '300% 300%',
+            backgroundPosition: '50% 50%',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      ))}
+      {assignees.length > shown.length && (
+        <span className="text-xs text-ink-muted">+{assignees.length - shown.length}</span>
+      )}
+    </span>
+  );
+}
+
+/** `DD/MM` — deliberately terser than the library's default `DD-MM-YYYY`; the year rarely matters at a glance in a project-scoped chart. Exported for unit testing. */
+export function formatCompactDate(value: unknown): string {
+  const date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${day}/${month}`;
+}
+
+/**
+ * Sum of configured column pixel widths. The library defaults to auto-sizing
+ * the grid to a fraction of the container's width rather than this sum —
+ * with 6 columns that left less room than the fixed-width columns alone
+ * needed, squeezing the flexgrow task-name column to near zero and clipping
+ * the assignee icons entirely (confirmed live via DOM inspection: `.wx-grid`
+ * rendered at 491px against a 690px column-width sum). Passed as the
+ * library's `gridWidth` prop to force it to match. Exported for unit testing.
+ */
+export function computeGridWidth(columns: IColumnConfig[]): number {
+  return columns.reduce((sum, col) => sum + (col.width ?? 0), 0);
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -218,8 +271,9 @@ export function GanttChart({
       {
         id: 'start',
         header: { text: labels.columnStart, css: 'pm-gantt-header-nowrap' },
-        width: 110,
+        width: 70,
         align: 'center',
+        cell: ({ row }) => <span>{formatCompactDate(row.start)}</span>,
       },
       {
         id: 'duration',
@@ -246,11 +300,13 @@ export function GanttChart({
       {
         id: 'assignee',
         header: { text: labels.columnAssignee, css: 'pm-gantt-header-nowrap' },
-        width: 140,
-        cell: ({ row }) => <span className="truncate text-sm text-ink-secondary">{row.assigneeLabel ?? '—'}</span>,
+        width: 90,
+        cell: ({ row }) => <AssigneeIcons assignees={(row.assignees ?? []) as { name: string; character: string }[]} />,
       },
     ];
   }, [labels, narrow]);
+
+  const gridWidth = useMemo(() => computeGridWidth(columns), [columns]);
 
   if (!mounted) {
     return <div className="h-96 rounded-lg border border-line bg-surface" />;
@@ -324,13 +380,14 @@ export function GanttChart({
           className="w-full overflow-x-auto overflow-y-hidden rounded-lg border border-line"
           ref={scrollRef}
         >
-          <div className={narrow ? 'min-w-[360px]' : 'min-w-[640px]'}>
+          <div style={{ minWidth: gridWidth + 200 }}>
             <Skin>
               <Gantt
                 tasks={tasks}
                 links={links}
                 scales={SCALE_PRESETS[zoom]}
                 columns={columns}
+                gridWidth={gridWidth}
                 highlightTime={ganttHighlightTime}
                 init={handleInit}
               />

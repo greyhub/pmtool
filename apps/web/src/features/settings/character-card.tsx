@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { MASCOT_CHARACTERS } from '@pmtool/shared-types';
 import type { MascotCharacter } from '@pmtool/shared-types';
-import { useMe, useUpdatePreferences } from '@pmtool/api-client';
+import { ApiError, useMe, useUpdatePreferences } from '@pmtool/api-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@pmtool/ui';
 
 export function CharacterCard() {
@@ -49,6 +49,11 @@ export function CharacterCard() {
             </button>
           ))}
         </div>
+        {updatePreferences.isError && (
+          <p role="alert" className="mt-3 text-sm text-danger">
+            {updatePreferences.error instanceof ApiError ? updatePreferences.error.message : t('conflictError')}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

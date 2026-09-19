@@ -152,7 +152,9 @@
     "projects": "Projects",
     "leaderboard": "Leaderboard",
     "orgSettings": "Organization settings",
-    "archivedBanner": "This organization is archived — new projects and invites are disabled."
+    "archivedBanner": "This organization is archived — new projects and invites are disabled.",
+    "collapseSidebar": "Collapse",
+    "expandSidebar": "Expand"
   },
   "projects": {
     "list": {
@@ -481,7 +483,8 @@
         "scout": "Scout",
         "toaster": "Toaster",
         "tv": "TV"
-      }
+      },
+      "conflictError": "Could not select this character. Please try again."
     }
   },
   "integrations": {

@@ -24,11 +24,16 @@ test('shows an empty-state message for a project with no tasks, and Vietnamese c
 
   // SVAR renders some grid cells twice (once as a zero-size measurement
   // node) — filter to the actually-visible instance throughout this file.
+  // Scoped to the Gantt grid itself (not `page`): "Công việc" also matches
+  // the page's own "Công việc" tab link, which is ambiguous now that the
+  // grid's header column is sized correctly (see the gridWidth fix in
+  // GanttChart.tsx) and therefore counts as visible too.
   await page.goto(`/vi/${org.slug}/projects/${project.key}/gantt`);
-  await expect(page.getByText('Công việc', { exact: true }).filter({ visible: true })).toBeVisible();
-  await expect(page.getByText('Bắt đầu', { exact: true }).filter({ visible: true })).toBeVisible();
-  await expect(page.getByText('Trạng thái', { exact: true }).filter({ visible: true })).toBeVisible();
-  await expect(page.getByText('Độ ưu tiên', { exact: true }).filter({ visible: true })).toBeVisible();
+  const ganttGrid = page.locator('.wx-grid');
+  await expect(ganttGrid.getByText('Công việc', { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(ganttGrid.getByText('Bắt đầu', { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(ganttGrid.getByText('Trạng thái', { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(ganttGrid.getByText('Độ ưu tiên', { exact: true }).filter({ visible: true })).toBeVisible();
 });
 
 test('a dependency added from a task detail page renders as a link on the Gantt after reload, and clicking a task bar opens its detail page', async ({

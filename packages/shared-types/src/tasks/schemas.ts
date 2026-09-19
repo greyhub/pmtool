@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DEPENDENCY_TYPES, TASK_PRIORITIES, TASK_STATUSES } from '../common/enums';
+import { DEPENDENCY_TYPES, MASCOT_CHARACTERS, TASK_PRIORITIES, TASK_STATUSES } from '../common/enums';
 
 export const createTaskSchema = z.object({
   title: z.string().min(1).max(300),
@@ -36,6 +36,7 @@ const taskAssigneeSchema = z.object({
   id: z.string(),
   fullName: z.string(),
   avatarUrl: z.string().nullable(),
+  mascotCharacter: z.enum(MASCOT_CHARACTERS),
 });
 
 export const taskSchema = z.object({

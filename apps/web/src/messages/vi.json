@@ -152,7 +152,9 @@
     "projects": "Dự án",
     "leaderboard": "Bảng xếp hạng",
     "orgSettings": "Cài đặt tổ chức",
-    "archivedBanner": "Tổ chức này đã được lưu trữ — không thể tạo dự án hoặc mời thành viên mới."
+    "archivedBanner": "Tổ chức này đã được lưu trữ — không thể tạo dự án hoặc mời thành viên mới.",
+    "collapseSidebar": "Thu gọn",
+    "expandSidebar": "Mở rộng"
   },
   "projects": {
     "list": {
@@ -481,7 +483,8 @@
         "scout": "Robot trinh sát",
         "toaster": "Robot lò nướng",
         "tv": "Robot tivi"
-      }
+      },
+      "conflictError": "Không thể chọn nhân vật này. Vui lòng thử lại."
     }
   },
   "integrations": {

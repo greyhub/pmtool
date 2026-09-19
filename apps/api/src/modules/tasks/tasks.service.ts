@@ -17,7 +17,14 @@ import { TelegramNotificationsService } from '../telegram/telegram-notifications
 const TASK_INCLUDE = {
   assignees: {
     include: {
-      user: { select: { id: true, fullName: true, avatarUrl: true } },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          avatarUrl: true,
+          mascotCharacter: true,
+        },
+      },
     },
   },
   _count: { select: { subtasks: true } },

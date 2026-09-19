@@ -1,4 +1,12 @@
-import { buildStatusColorCss, ganttHighlightTime, type GanttTaskInput } from './GanttChart';
+import { render, screen } from '@testing-library/react';
+import {
+  AssigneeIcons,
+  buildStatusColorCss,
+  computeGridWidth,
+  formatCompactDate,
+  ganttHighlightTime,
+  type GanttTaskInput,
+} from './GanttChart';
 
 describe('ganttHighlightTime', () => {
   const today = new Date('2026-03-11T00:00:00.000Z'); // a Wednesday
@@ -52,5 +60,61 @@ describe('buildStatusColorCss', () => {
     expect(rules).toHaveLength(2);
     expect(rules[0]).toContain('data-task-id=":a"');
     expect(rules[1]).toContain('data-task-id=":c"');
+  });
+});
+
+describe('formatCompactDate', () => {
+  it('formats as DD/MM, dropping the year', () => {
+    expect(formatCompactDate(new Date('2026-03-05T00:00:00.000Z'))).toBe('05/03');
+  });
+
+  it('pads single-digit day and month', () => {
+    expect(formatCompactDate(new Date('2026-01-09T00:00:00.000Z'))).toBe('09/01');
+  });
+
+  it('returns an empty string for an invalid value', () => {
+    expect(formatCompactDate('not-a-date')).toBe('');
+  });
+});
+
+describe('computeGridWidth', () => {
+  it('sums the width of every column', () => {
+    expect(computeGridWidth([{ id: 'a', width: 200 }, { id: 'b', width: 90 }])).toBe(290);
+  });
+
+  it('treats a missing width as 0', () => {
+    expect(computeGridWidth([{ id: 'a', width: 200 }, { id: 'b' }])).toBe(200);
+  });
+
+  it('returns 0 for no columns', () => {
+    expect(computeGridWidth([])).toBe(0);
+  });
+});
+
+describe('AssigneeIcons', () => {
+  it('shows a dash when there are no assignees', () => {
+    render(<AssigneeIcons assignees={[]} />);
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  it('renders one icon per assignee, up to 2, each labeled with their name', () => {
+    render(<AssigneeIcons assignees={[{ name: 'Nguyễn Văn A', character: 'fox' }]} />);
+    expect(screen.getByLabelText('Nguyễn Văn A')).toBeInTheDocument();
+  });
+
+  it('caps at 2 icons and shows a "+N" tail for the rest', () => {
+    render(
+      <AssigneeIcons
+        assignees={[
+          { name: 'A', character: 'fox' },
+          { name: 'B', character: 'otter' },
+          { name: 'C', character: 'panda' },
+        ]}
+      />,
+    );
+    expect(screen.getByLabelText('A')).toBeInTheDocument();
+    expect(screen.getByLabelText('B')).toBeInTheDocument();
+    expect(screen.queryByLabelText('C')).not.toBeInTheDocument();
+    expect(screen.getByText('+1')).toBeInTheDocument();
   });
 });

@@ -11,13 +11,15 @@ export interface SidebarProps {
   items: SidebarItem[];
   activeHref: string;
   /** Defaults to a native `<a>`; pass the host router's Link (e.g. next-intl's locale-aware Link) to integrate client-side navigation. */
-  LinkComponent?: ComponentType<{ href: string; className?: string; children: ReactNode }>;
+  LinkComponent?: ComponentType<{ href: string; className?: string; title?: string; children: ReactNode }>;
   className?: string;
+  /** Icon-only rail: the label stays in the DOM (`sr-only`, still announced to screen readers) and as a native `title` tooltip, just visually hidden. */
+  collapsed?: boolean;
 }
 
-export function Sidebar({ items, activeHref, LinkComponent, className }: SidebarProps) {
-  const LinkTag = LinkComponent ?? (({ href, className: c, children }) => (
-    <a href={href} className={c}>
+export function Sidebar({ items, activeHref, LinkComponent, className, collapsed }: SidebarProps) {
+  const LinkTag = LinkComponent ?? (({ href, className: c, title: t, children }) => (
+    <a href={href} className={c} title={t}>
       {children}
     </a>
   ));
@@ -30,8 +32,10 @@ export function Sidebar({ items, activeHref, LinkComponent, className }: Sidebar
           <LinkTag
             key={item.href}
             href={item.href}
+            title={collapsed ? item.label : undefined}
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              collapsed && 'justify-center px-2',
               active
                 ? 'bg-action-primary/15 text-ink-primary'
                 : 'text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary',
@@ -42,7 +46,7 @@ export function Sidebar({ items, activeHref, LinkComponent, className }: Sidebar
                 {item.icon}
               </span>
             )}
-            {item.label}
+            <span className={cn(collapsed && 'sr-only')}>{item.label}</span>
           </LinkTag>
         );
       })}
