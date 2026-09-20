@@ -49,3 +49,10 @@ export const updateUserPreferencesSchema = z.object({
   mascotCharacter: z.enum(MASCOT_CHARACTERS).optional(),
 });
 export type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSchema>;
+
+/** A mascot another member of one of my organizations already uses. */
+export const takenCharacterSchema = z.object({
+  character: z.enum(MASCOT_CHARACTERS),
+  takenBy: z.string(),
+});
+export type TakenCharacterDto = z.infer<typeof takenCharacterSchema>;

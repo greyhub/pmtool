@@ -92,6 +92,16 @@
         "tag": "Artifact",
         "title": "Trang HTML/CSS/JS tự viết",
         "description": "Xem trước trực tiếp trong khung cách ly an toàn — như tính năng Artifact của Claude."
+      },
+      "scopeWbs": {
+        "tag": "PMBOK",
+        "title": "Phạm vi, WBS & từ điển WBS",
+        "description": "Giai đoạn › Giao phẩm › Gói công việc › Hoạt động, mã WBS tự sinh, sơ đồ liên kết và kiểm tra độ phủ ngay trên dashboard."
+      },
+      "deliverables": {
+        "tag": "PMBOK",
+        "title": "Giao phẩm & mốc",
+        "description": "Vòng đời nộp → nghiệm thu/từ chối có lý do, gắn với mốc và công việc; ai duyệt, khi nào đều được lưu."
       }
     },
     "docs": {
@@ -192,7 +202,8 @@
       "milestones": "Mốc quan trọng",
       "deliverables": "Giao phẩm",
       "scope": "Phạm vi",
-      "wbs": "WBS"
+      "wbs": "WBS",
+      "viewerNotice": "Bạn chỉ có quyền xem trong dự án này. Liên hệ PM hoặc quản trị viên nếu cần chỉnh sửa."
     },
     "settings": {
       "title": "Cài đặt dự án",
@@ -640,7 +651,10 @@
         "toaster": "Robot lò nướng",
         "tv": "Robot tivi"
       },
-      "conflictError": "Không thể chọn nhân vật này. Vui lòng thử lại."
+      "conflictError": "Không thể chọn nhân vật này. Vui lòng thử lại.",
+      "current": "Đang dùng",
+      "taken": "Đã có người chọn",
+      "takenBy": "{name} đã chọn nhân vật này"
     }
   },
   "integrations": {

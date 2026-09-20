@@ -834,6 +834,479 @@ describe('WBS, scope statement and dictionary', () => {
   });
 });
 
+describe('Role-based access matrix', () => {
+  type Role = 'OWNER' | 'ADMIN' | 'PM' | 'MEMBER' | 'VIEWER';
+  const ALL: Role[] = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'];
+  const EDITORS: Role[] = ['OWNER', 'ADMIN', 'PM', 'MEMBER'];
+  const MANAGERS: Role[] = ['OWNER', 'ADMIN', 'PM'];
+  const SPONSORS: Role[] = ['OWNER', 'ADMIN'];
+
+  it('every role can do exactly what the permission table says, and an outsider can do nothing', async () => {
+    const owner = await registerUser('Matrix Owner');
+    const org = await createOrg(owner.accessToken, 'Matrix Org');
+    const tokens: Record<Role, string> = {
+      OWNER: owner.accessToken,
+      ADMIN: (
+        await inviteAndAccept(
+          owner.accessToken,
+          org.slug,
+          'ADMIN',
+          'Matrix Admin',
+        )
+      ).accessToken,
+      PM: (
+        await inviteAndAccept(owner.accessToken, org.slug, 'PM', 'Matrix PM')
+      ).accessToken,
+      MEMBER: (
+        await inviteAndAccept(
+          owner.accessToken,
+          org.slug,
+          'MEMBER',
+          'Matrix Member',
+        )
+      ).accessToken,
+      VIEWER: (
+        await inviteAndAccept(
+          owner.accessToken,
+          org.slug,
+          'VIEWER',
+          'Matrix Viewer',
+        )
+      ).accessToken,
+    };
+    const outsider = await registerUser('Matrix Outsider');
+    await createOrg(outsider.accessToken, 'Matrix Outsider Org');
+
+    const project = await createProject(owner.accessToken, org.slug, 'MTX');
+    const orgBase = `${API_PREFIX}/organizations/${org.slug}`;
+    const base = `${orgBase}/projects/${project.key}`;
+    const ownerAuth = { Authorization: `Bearer ${owner.accessToken}` };
+    const http = () => request(app.getHttpServer());
+
+    const task = (
+      await http()
+        .post(`${base}/tasks`)
+        .set(ownerAuth)
+        .send({ title: 'Seed' })
+        .expect(201)
+    ).body.data;
+    const deliverable = (
+      await http()
+        .post(`${base}/deliverables`)
+        .set(ownerAuth)
+        .send({ name: 'Seed' })
+        .expect(201)
+    ).body.data;
+    await http()
+      .put(`${base}/scope`)
+      .set(ownerAuth)
+      .send({ inScope: 'x' })
+      .expect(200);
+    await http()
+      .put(`${base}/charter`)
+      .set(ownerAuth)
+      .send({ purpose: 'x' })
+      .expect(200);
+
+    type Case = {
+      name: string;
+      method: 'get' | 'post' | 'put' | 'patch';
+      path: string;
+      body?: object;
+      allowed: Role[];
+    };
+    const cases: Case[] = [
+      // Reads: every member of the organization, viewers included.
+      {
+        name: 'read tasks',
+        method: 'get',
+        path: `${base}/tasks`,
+        allowed: ALL,
+      },
+      {
+        name: 'read scope',
+        method: 'get',
+        path: `${base}/scope`,
+        allowed: ALL,
+      },
+      {
+        name: 'read scope map',
+        method: 'get',
+        path: `${base}/scope-map`,
+        allowed: ALL,
+      },
+      {
+        name: 'read deliverables',
+        method: 'get',
+        path: `${base}/deliverables`,
+        allowed: ALL,
+      },
+      {
+        name: 'read activity feed',
+        method: 'get',
+        path: `${orgBase}/activity`,
+        allowed: ALL,
+      },
+      {
+        name: 'read members',
+        method: 'get',
+        path: `${orgBase}/members`,
+        allowed: ALL,
+      },
+      // Day-to-day work: everyone but viewers.
+      {
+        name: 'create task',
+        method: 'post',
+        path: `${base}/tasks`,
+        body: { title: 'x' },
+        allowed: EDITORS,
+      },
+      {
+        name: 'update task',
+        method: 'patch',
+        path: `${base}/tasks/${task.id}`,
+        body: { priority: 'HIGH' },
+        allowed: EDITORS,
+      },
+      {
+        name: 'comment',
+        method: 'post',
+        path: `${base}/tasks/${task.id}/comments`,
+        body: { body: 'hi' },
+        allowed: EDITORS,
+      },
+      {
+        name: 'log a risk',
+        method: 'post',
+        path: `${base}/risks`,
+        body: { type: 'RISK', title: 'r', probability: 2, impact: 2 },
+        allowed: EDITORS,
+      },
+      {
+        name: 'log a document',
+        method: 'post',
+        path: `${base}/documents`,
+        body: { title: 'd', url: 'https://example.test/d' },
+        allowed: EDITORS,
+      },
+      {
+        name: 'create deliverable',
+        method: 'post',
+        path: `${base}/deliverables`,
+        body: { name: 'x' },
+        allowed: EDITORS,
+      },
+      {
+        name: 'submit deliverable',
+        method: 'post',
+        path: `${base}/deliverables/${deliverable.id}/submit`,
+        allowed: EDITORS,
+      },
+      {
+        name: 'write WBS dictionary',
+        method: 'put',
+        path: `${base}/wbs/${task.id}/dictionary`,
+        body: { scopeDescription: 'x' },
+        allowed: EDITORS,
+      },
+      // Management artifacts: PM and above.
+      {
+        name: 'edit charter',
+        method: 'put',
+        path: `${base}/charter`,
+        body: { purpose: 'y' },
+        allowed: MANAGERS,
+      },
+      {
+        name: 'edit scope',
+        method: 'put',
+        path: `${base}/scope`,
+        body: { inScope: 'y' },
+        allowed: MANAGERS,
+      },
+      {
+        name: 'add stakeholder',
+        method: 'post',
+        path: `${base}/stakeholders`,
+        body: { fullName: 's' },
+        allowed: MANAGERS,
+      },
+      {
+        name: 'edit project',
+        method: 'patch',
+        path: base,
+        body: { description: 'z' },
+        allowed: MANAGERS,
+      },
+      {
+        name: 'create project',
+        method: 'post',
+        path: `${orgBase}/projects`,
+        body: { key: 'ZZ', name: 'Z' },
+        allowed: MANAGERS,
+      },
+      {
+        name: 'accept deliverable',
+        method: 'post',
+        path: `${base}/deliverables/${deliverable.id}/accept`,
+        allowed: MANAGERS,
+      },
+      // Sign-off and organization admin.
+      {
+        name: 'approve charter',
+        method: 'post',
+        path: `${base}/charter/approve`,
+        allowed: SPONSORS,
+      },
+      {
+        name: 'approve scope',
+        method: 'post',
+        path: `${base}/scope/approve`,
+        allowed: SPONSORS,
+      },
+      {
+        name: 'invite a member',
+        method: 'post',
+        path: `${orgBase}/invites`,
+        body: { email: 'x@example.test', role: 'VIEWER' },
+        allowed: SPONSORS,
+      },
+      {
+        name: 'rename organization',
+        method: 'patch',
+        path: orgBase,
+        body: { name: 'Matrix Org' },
+        allowed: SPONSORS,
+      },
+    ];
+
+    const failures: string[] = [];
+    for (const c of cases) {
+      for (const role of ALL) {
+        const res = await http()
+          [c.method](c.path)
+          .set('Authorization', `Bearer ${tokens[role]}`)
+          .send(c.body ?? {});
+        const denied = res.status === 403;
+        const allowed = c.allowed.includes(role);
+        // An allowed role must actually succeed (409 = a valid action in the wrong state).
+        const brokenAllowed =
+          allowed && res.status >= 400 && res.status !== 409;
+        if (allowed === denied || brokenAllowed) {
+          failures.push(
+            `${c.name} as ${role}: got ${res.status}, expected ${allowed ? 'success' : '403'}`,
+          );
+        }
+      }
+      const out = await http()
+        [c.method](c.path)
+        .set('Authorization', `Bearer ${outsider.accessToken}`)
+        .send(c.body ?? {});
+      if (out.status !== 403)
+        failures.push(`${c.name} as outsider: got ${out.status}, expected 403`);
+    }
+    expect(failures).toEqual([]);
+
+    // Deleting a deliverable erases its sign-off trail: reviewers only.
+    await http()
+      .delete(`${base}/deliverables/${deliverable.id}`)
+      .set('Authorization', `Bearer ${tokens.MEMBER}`)
+      .expect(403);
+    await http()
+      .delete(`${base}/deliverables/${deliverable.id}`)
+      .set('Authorization', `Bearer ${tokens.PM}`)
+      .expect(200);
+  });
+
+  it("a role held on one project cannot be used to reach another project's records", async () => {
+    const owner = await registerUser('Cross Owner');
+    const org = await createOrg(owner.accessToken, 'Cross Org');
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Cross Viewer',
+    );
+    const viewerId = await getUserId(viewer.email);
+    const projA = await createProject(owner.accessToken, org.slug, 'CRA');
+    const projB = await createProject(owner.accessToken, org.slug, 'CRB');
+    const http = () => request(app.getHttpServer());
+    const asOwner = { Authorization: `Bearer ${owner.accessToken}` };
+    const asViewer = { Authorization: `Bearer ${viewer.accessToken}` };
+    const url = (key: string, path: string) =>
+      `${API_PREFIX}/organizations/${org.slug}/projects/${key}/${path}`;
+
+    // The viewer is promoted to PM on project A only.
+    await http()
+      .post(url(projA.key, 'members'))
+      .set(asOwner)
+      .send({ userId: viewerId, role: 'PM' })
+      .expect(201);
+
+    const risk = (
+      await http()
+        .post(url(projB.key, 'risks'))
+        .set(asOwner)
+        .send({ type: 'RISK', title: 'B risk', probability: 2, impact: 2 })
+        .expect(201)
+    ).body.data;
+    const task = (
+      await http()
+        .post(url(projB.key, 'tasks'))
+        .set(asOwner)
+        .send({ title: 'B task' })
+        .expect(201)
+    ).body.data;
+    const doc = (
+      await http()
+        .post(url(projB.key, 'documents'))
+        .set(asOwner)
+        .send({ title: 'B doc', url: 'https://example.test/b' })
+        .expect(201)
+    ).body.data;
+
+    // Through project A's URL the viewer is PM — but B's records are not A's.
+    await http()
+      .patch(url(projA.key, `risks/${risk.id}`))
+      .set(asViewer)
+      .send({ title: 'hijack' })
+      .expect(404);
+    await http()
+      .delete(url(projA.key, `risks/${risk.id}`))
+      .set(asViewer)
+      .expect(404);
+    await http()
+      .patch(url(projA.key, `tasks/${task.id}`))
+      .set(asViewer)
+      .send({ title: 'hijack' })
+      .expect(404);
+    await http()
+      .delete(url(projA.key, `tasks/${task.id}`))
+      .set(asViewer)
+      .expect(404);
+    await http()
+      .patch(url(projA.key, `documents/${doc.id}`))
+      .set(asViewer)
+      .send({ name: 'hijack' })
+      .expect(404);
+    await http()
+      .get(url(projA.key, `tasks/${task.id}`))
+      .set(asViewer)
+      .expect(404);
+
+    // Through project B's own URL the viewer is still just a viewer.
+    await http()
+      .patch(url(projB.key, `risks/${risk.id}`))
+      .set(asViewer)
+      .send({ title: 'hijack' })
+      .expect(403);
+
+    // Nothing changed, and the owner still reaches them normally.
+    const after = await http()
+      .get(url(projB.key, `tasks/${task.id}`))
+      .set(asOwner)
+      .expect(200);
+    expect(after.body.data.title).toBe('B task');
+  });
+
+  it('an ADMIN cannot demote or remove the OWNER', async () => {
+    const owner = await registerUser('Escalation Owner');
+    const org = await createOrg(owner.accessToken, 'Escalation Org');
+    const admin = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'ADMIN',
+      'Escalation Admin',
+    );
+    const members = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/members`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    const list = members.body.data as {
+      id: string;
+      role: string;
+      user: { email: string };
+    }[];
+    const ownerRow = list.find((m) => m.user.email === owner.email)!;
+    const adminRow = list.find((m) => m.user.email === admin.email)!;
+    const url = (id: string) =>
+      `${API_PREFIX}/organizations/${org.slug}/members/${id}`;
+    const asAdmin = { Authorization: `Bearer ${admin.accessToken}` };
+
+    // OWNER can't be granted through the API at all (it is set when an org is created).
+    await request(app.getHttpServer())
+      .patch(url(adminRow.id))
+      .set(asAdmin)
+      .send({ role: 'OWNER' })
+      .expect(400);
+    await request(app.getHttpServer())
+      .patch(url(ownerRow.id))
+      .set(asAdmin)
+      .send({ role: 'MEMBER' })
+      .expect(403);
+    await request(app.getHttpServer())
+      .delete(url(ownerRow.id))
+      .set(asAdmin)
+      .expect(403);
+  });
+
+  it('refuses to assign work to, or name as owner, someone outside the organization', async () => {
+    const owner = await registerUser('Foreign Owner');
+    const org = await createOrg(owner.accessToken, 'Foreign Org');
+    const project = await createProject(owner.accessToken, org.slug, 'FRN');
+    const outsider = await registerUser('Foreign Outsider');
+    await createOrg(outsider.accessToken, 'Foreign Outsider Org');
+    const outsiderId = await getUserId(outsider.email);
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const http = () => request(app.getHttpServer());
+
+    await http()
+      .post(`${base}/tasks`)
+      .set(auth)
+      .send({ title: 'x', assigneeId: outsiderId })
+      .expect(400);
+    await http()
+      .post(`${base}/tasks`)
+      .set(auth)
+      .send({ title: 'x', supporterIds: [outsiderId] })
+      .expect(400);
+    const task = (
+      await http()
+        .post(`${base}/tasks`)
+        .set(auth)
+        .send({ title: 'ok' })
+        .expect(201)
+    ).body.data;
+    await http()
+      .patch(`${base}/tasks/${task.id}`)
+      .set(auth)
+      .send({ assigneeId: outsiderId })
+      .expect(400);
+    await http()
+      .post(`${base}/deliverables`)
+      .set(auth)
+      .send({ name: 'd', ownerId: outsiderId })
+      .expect(400);
+    await http()
+      .post(`${base}/risks`)
+      .set(auth)
+      .send({
+        type: 'RISK',
+        title: 'r',
+        probability: 1,
+        impact: 1,
+        ownerId: outsiderId,
+      })
+      .expect(400);
+    await http()
+      .put(`${base}/charter`)
+      .set(auth)
+      .send({ projectManagerId: outsiderId })
+      .expect(400);
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');
@@ -1010,8 +1483,23 @@ describe('User preferences', () => {
       .send({ mascotCharacter: 'panda' })
       .expect(409);
 
+    // The member sees the owner's character as taken (and not their own).
+    const taken = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/users/me/taken-characters`)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .expect(200);
+    expect(taken.body.data).toContainEqual({
+      character: 'panda',
+      takenBy: 'Character Owner',
+    });
+
     // A user with no shared org can freely pick the same character.
     const stranger = await registerUser('Character Stranger');
+    const strangerTaken = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/users/me/taken-characters`)
+      .set('Authorization', `Bearer ${stranger.accessToken}`)
+      .expect(200);
+    expect(strangerTaken.body.data).toEqual([]);
     await request(app.getHttpServer())
       .patch(`${API_PREFIX}/users/me/preferences`)
       .set('Authorization', `Bearer ${stranger.accessToken}`)

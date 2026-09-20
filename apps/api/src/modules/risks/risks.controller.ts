@@ -32,6 +32,8 @@ import {
 } from '../../common/decorators/current-org.decorator';
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toRiskIssueDto } from './risk-issue.mapper';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 
 const CAN_EDIT_RISKS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 
@@ -40,7 +42,7 @@ const CAN_EDIT_RISKS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey/risks',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard)
+@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectEntityGuard)
 export class RisksController {
   constructor(private readonly risksService: RisksService) {}
 
@@ -74,6 +76,7 @@ export class RisksController {
   }
 
   @Patch(':riskId')
+  @ProjectEntity('riskIssue', 'riskId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_RISKS)
   @LogActivity('RiskIssue', 'updated')
@@ -94,6 +97,7 @@ export class RisksController {
   }
 
   @Delete(':riskId')
+  @ProjectEntity('riskIssue', 'riskId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_RISKS)
   @LogActivity('RiskIssue', 'deleted', 'riskId')

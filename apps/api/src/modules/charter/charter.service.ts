@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProjectCharter } from '@prisma/client';
 import { UpsertCharterInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { assertOrgMembers } from '../../common/guards/org-members.util';
 import { toRichText } from '../tasks/rich-text.util';
 
 const RELATIONS_INCLUDE = {
@@ -28,6 +29,9 @@ export class CharterService {
     userId: string,
     input: UpsertCharterInput,
   ) {
+    await assertOrgMembers(this.prisma, organizationId, [
+      input.projectManagerId,
+    ]);
     const existing = await this.prisma.db.projectCharter.findUnique({
       where: { projectId },
     });

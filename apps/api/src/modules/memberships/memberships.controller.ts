@@ -102,6 +102,7 @@ export class MembershipsController {
       ctx.organization.id,
       membershipId,
       body.role,
+      ctx.role,
     );
     return { data: toMembershipDto(updated) };
   }
@@ -116,6 +117,7 @@ export class MembershipsController {
     await this.membershipsService.removeMember(
       ctx.organization.id,
       membershipId,
+      ctx.role,
     );
   }
 }

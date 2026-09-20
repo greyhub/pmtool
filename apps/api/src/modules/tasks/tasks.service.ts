@@ -13,6 +13,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { toRichText } from './rich-text.util';
 import { assertRetypeFits, placeChild } from './wbs-rules';
+import { assertOrgMembers } from '../../common/guards/org-members.util';
 import { addActivityMetadata } from '../../common/context/request-context';
 import { diffTask, TaskSnapshot } from './task-changes';
 import { GamificationService } from '../gamification/gamification.service';
@@ -115,6 +116,11 @@ export class TasksService {
     const initialAssignees = toAssigneeRows(
       input.assigneeId,
       input.supporterIds,
+    );
+    await assertOrgMembers(
+      this.prisma,
+      organizationId,
+      initialAssignees.map((a) => a.userId),
     );
 
     const task = await this.prisma.db.$transaction(async (tx) => {
@@ -242,6 +248,13 @@ export class TasksService {
                 .map((a) => a.userId),
           )
         : null;
+    if (nextAssignees) {
+      await assertOrgMembers(
+        this.prisma,
+        organizationId,
+        nextAssignees.map((a) => a.userId),
+      );
+    }
 
     // While a task is (or is becoming) a milestone, its start always follows its due date.
     const willBeMilestone = input.isMilestone ?? existing.isMilestone;

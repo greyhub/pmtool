@@ -31,6 +31,18 @@ export class MembershipsService {
     });
   }
 
+  /**
+   * Only an OWNER may create, keep, change or remove the OWNER role — an ADMIN
+   * must not be able to promote themselves (or a friend) or evict the owner.
+   */
+  private assertMayGrantOwner(actorRole: OrgRole) {
+    if (actorRole !== 'OWNER') {
+      throw new ForbiddenException(
+        'Chỉ Chủ sở hữu (Owner) mới được cấp, thu hồi hoặc thay đổi vai trò Owner',
+      );
+    }
+  }
+
   async createInvite(
     organizationId: string,
     invitedById: string,
@@ -163,11 +175,15 @@ export class MembershipsService {
     organizationId: string,
     membershipId: string,
     role: OrgRole,
+    actorRole: OrgRole,
   ): Promise<Membership> {
     const target = await this.getMembershipOrThrow(
       organizationId,
       membershipId,
     );
+    if (role === 'OWNER' || target.role === 'OWNER') {
+      this.assertMayGrantOwner(actorRole);
+    }
     if (target.role === 'OWNER' && role !== 'OWNER') {
       await this.assertNotLastOwner(organizationId, membershipId);
     }
@@ -180,12 +196,14 @@ export class MembershipsService {
   async removeMember(
     organizationId: string,
     membershipId: string,
+    actorRole: OrgRole,
   ): Promise<void> {
     const target = await this.getMembershipOrThrow(
       organizationId,
       membershipId,
     );
     if (target.role === 'OWNER') {
+      this.assertMayGrantOwner(actorRole);
       await this.assertNotLastOwner(organizationId, membershipId);
     }
     await this.prisma.db.$transaction(async (tx) => {

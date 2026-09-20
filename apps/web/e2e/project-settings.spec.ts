@@ -73,11 +73,10 @@ test('editing project fields, granting a project-scoped role override, and the o
 
   // ...but is still blocked on Project B, where they have no override and
   // remain a plain org VIEWER — proves the grant is scoped to Project A only.
+  // The UI reflects the role: no create button, and a read-only notice.
   await memberPage.goto(`/vi/${org.slug}/projects/${projectB.key}/tasks`);
-  await memberPage.getByRole('button', { name: 'Thêm công việc', exact: true }).click();
-  await memberPage.getByLabel('Tiêu đề').fill('Should be forbidden on project B');
-  await memberPage.getByRole('button', { name: 'Tạo công việc', exact: true }).click();
-  await expect(memberPage.getByText(/Requires one of roles/)).toBeVisible();
+  await expect(memberPage.getByText('Bạn chỉ có quyền xem trong dự án này.')).toBeVisible();
+  await expect(memberPage.getByRole('button', { name: 'Thêm công việc', exact: true })).toHaveCount(0);
 
   // Removing the override reverts them to their org role (VIEWER) on Project A too.
   // (The project creator/owner keeps their own auto-created OWNER row — this
@@ -89,10 +88,8 @@ test('editing project fields, granting a project-scoped role override, and the o
   await expect(page.locator('table').getByText(member.email)).toHaveCount(0);
 
   await memberPage.goto(`/vi/${org.slug}/projects/${projectA.key}/tasks`);
-  await memberPage.getByRole('button', { name: 'Thêm công việc', exact: true }).click();
-  await memberPage.getByLabel('Tiêu đề').fill('Should now be forbidden after removing override');
-  await memberPage.getByRole('button', { name: 'Tạo công việc', exact: true }).click();
-  await expect(memberPage.getByText(/Requires one of roles/)).toBeVisible();
+  await expect(memberPage.getByText('Bạn chỉ có quyền xem trong dự án này.')).toBeVisible();
+  await expect(memberPage.getByRole('button', { name: 'Thêm công việc', exact: true })).toHaveCount(0);
 
   await memberCtx.close();
 });

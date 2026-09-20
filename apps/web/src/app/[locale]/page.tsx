@@ -9,6 +9,8 @@ const FEATURE_KEYS = [
   'risks',
   'ai',
   'charter',
+  'scopeWbs',
+  'deliverables',
   'stakeholders',
   'documents',
   'artifacts',
@@ -69,9 +71,7 @@ export default function LandingPage() {
         <h1 className="max-w-2xl whitespace-pre-line text-4xl font-extrabold leading-tight tracking-tight text-ink-primary sm:text-5xl">
           {tLanding('heroTitle')}
         </h1>
-        <p className="max-w-xl text-base leading-relaxed text-ink-secondary">
-          {tLanding('heroDescription')}
-        </p>
+        <p className="max-w-xl text-base leading-relaxed text-ink-secondary">{tLanding('heroDescription')}</p>
         <div className="flex gap-3">
           <Link
             href="/login"

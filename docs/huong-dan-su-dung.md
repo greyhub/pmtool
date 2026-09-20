@@ -52,7 +52,24 @@ Mỗi thành viên trong một tổ chức có đúng một trong 5 vai trò (RB
 | **Member** | Thành viên thực thi: cập nhật công việc được giao, bình luận |
 | **Viewer** | Chỉ xem, không chỉnh sửa |
 
-Phân quyền được kiểm tra ở tầng API cho mọi thao tác ghi dữ liệu — ví dụ Member không thể tạo dự án mới, chỉ PM trở lên mới làm được.
+Phân quyền được kiểm tra ở tầng API cho mọi thao tác ghi dữ liệu — ví dụ Member không thể tạo dự án mới, chỉ PM trở lên mới làm được. Giao diện cũng **ẩn hoặc vô hiệu hoá** các nút bạn không có quyền dùng; người chỉ có quyền xem thấy thông báo "Bạn chỉ có quyền xem trong dự án này".
+
+**Bảng quyền chi tiết** (✓ = được, ✗ = không):
+
+| Hành động | Owner | Admin | PM | Member | Viewer |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Xem dự án, công việc, phạm vi, hoạt động, danh sách thành viên | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Tạo/sửa/xoá công việc, bình luận, phụ thuộc, cột Kanban | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Rủi ro/vấn đề, tài liệu, artifact | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Tạo/sửa/nộp giao phẩm, viết từ điển WBS, dùng trợ lý AI | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Sửa điều lệ, sửa phạm vi, quản lý bên liên quan | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Nghiệm thu, từ chối hoặc **xoá** giao phẩm | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Tạo và sửa dự án | ✓ | ✓ | ✓ | ✗ | ✗ |
+| **Phê duyệt** điều lệ và phạm vi | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Mời, đổi vai trò, xoá thành viên; đổi tên tổ chức | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Lưu trữ / khôi phục tổ chức | ✓ | ✗ | ✗ | ✗ | ✗ |
+
+Lưu ý: **Admin không thể hạ vai trò hoặc xoá Owner**; chỉ Owner mới làm được. Người chưa vào tổ chức không truy cập được bất cứ thứ gì của tổ chức. Bạn chỉ có thể chọn người **trong tổ chức** làm người phụ trách, người hỗ trợ, chủ giao phẩm, chủ rủi ro hay quản lý dự án.
 
 **Vai trò riêng theo từng dự án:** vai trò ở trên là vai trò *mặc định trong toàn tổ chức*, áp dụng cho mọi dự án trừ khi dự án đó gán riêng cho bạn một vai trò khác — xem [mục 5](#5-quản-lý-dự-án) để biết cách gán và ý nghĩa của vai trò riêng này.
 
@@ -212,7 +229,7 @@ Có thể **Ngắt kết nối** bất cứ lúc nào từ cùng trang Cài đ�
 
 Ở góc dưới bên trái mọi trang (khi đã đăng nhập), một nhân vật nhỏ theo dõi con trỏ chuột của bạn và phản ứng khi bạn bấm vào ("boop"). Vào **Cài đặt** để chọn nhân vật mình thích trong số 52 nhân vật có sẵn — lựa chọn được lưu theo tài khoản và hiển thị trên mọi trang, mọi tổ chức bạn tham gia. Nhân vật tự ẩn trên màn hình hẹp (điện thoại) và tự tắt hiệu ứng theo dõi con trỏ nếu thiết bị không có chuột, hoặc tắt hiệu ứng chuyển động nếu hệ điều hành đang bật chế độ giảm chuyển động (reduced motion).
 
-**Mỗi nhân vật chỉ thuộc về một người trong cùng tổ chức**: nếu một thành viên khác trong bất kỳ tổ chức nào bạn tham gia đã chọn nhân vật đó, hệ thống báo lỗi và giữ nguyên lựa chọn cũ của bạn — chọn nhân vật khác chưa ai dùng. Quy tắc này áp dụng theo từng tổ chức (không phải toàn hệ thống), nên nhân vật vẫn có thể trùng giữa hai người ở hai tổ chức khác nhau không liên quan.
+**Mỗi nhân vật chỉ thuộc về một người trong cùng tổ chức**: nhân vật của bạn có nhãn **✓ Đang dùng**; nhân vật đã có thành viên khác trong bất kỳ tổ chức nào bạn tham gia chọn thì bị làm mờ, không bấm được và ghi **Đã có người chọn** (rê chuột để xem ai đã chọn) — chọn một nhân vật chưa ai dùng. Nếu người khác vừa chọn trước bạn, hệ thống vẫn báo lỗi và giữ nguyên lựa chọn cũ. Quy tắc này áp dụng theo từng tổ chức (không phải toàn hệ thống), nên nhân vật vẫn có thể trùng giữa hai người ở hai tổ chức khác nhau không liên quan.
 
 ## 19. Mốc quan trọng (Milestone)
 
@@ -227,7 +244,7 @@ Tab **Mốc quan trọng** liệt kê các cột mốc của dự án theo ngày
 Tab **Giao phẩm** theo dõi các sản phẩm bàn giao của dự án và việc nghiệm thu chúng.
 
 - Mỗi giao phẩm có: **tên**, **tiêu chí nghiệm thu**, công việc/mốc liên quan (tuỳ chọn, phải thuộc cùng dự án), người phụ trách, hạn giao, đường dẫn tới sản phẩm thật, mô tả.
-- **Vòng đời**: Kế hoạch → Đang làm → **Đã nộp** → **Đã nghiệm thu** hoặc **Bị từ chối**. Thành viên (Member trở lên) tạo, sửa và bấm **Nộp**. Chỉ **PM/Admin/Owner** được **Nghiệm thu** hoặc **Từ chối** — từ chối bắt buộc nhập lý do, hiển thị ngay dưới tên giao phẩm. Bị từ chối thì làm lại rồi **Nộp** lại.
+- **Vòng đời**: Kế hoạch → Đang làm → **Đã nộp** → **Đã nghiệm thu** hoặc **Bị từ chối**. Thành viên (Member trở lên) tạo, sửa và bấm **Nộp**. Chỉ **PM/Admin/Owner** được **Nghiệm thu**, **Từ chối** hoặc **Xoá** (xoá làm mất dấu vết nghiệm thu) — từ chối bắt buộc nhập lý do, hiển thị ngay dưới tên giao phẩm. Bị từ chối thì làm lại rồi **Nộp** lại.
 - Hệ thống lưu ai nghiệm thu và khi nào. **Sửa nội dung** (tên, mô tả, tiêu chí, đường dẫn) của giao phẩm đã nộp/nghiệm thu/từ chối sẽ rút lại việc nộp và nghiệm thu, giao phẩm quay về "Đang làm" — vì bản nghiệm thu cũ không còn đúng với nội dung mới (giống cách Điều lệ dự án hoạt động). Đổi người phụ trách, hạn hay công việc liên quan thì không ảnh hưởng.
 - Mọi thay đổi được ghi vào dòng hoạt động của tổ chức.
 
@@ -248,7 +265,7 @@ PMTool áp dụng chuỗi quản lý phạm vi của PMBOK. Mỗi khái niệm c
 
 **Mã WBS** (1, 1.2, 1.2.3…) tự sinh theo thứ tự anh em, không lưu nên luôn đúng sau khi kéo thả sắp xếp lại.
 
-**Tab Phạm vi.** Giống Điều lệ: PM/Admin/Owner sửa và **Phê duyệt phạm vi**; sửa một bản đã duyệt sẽ đưa về Bản nháp (vì chữ ký cũ không còn đúng nội dung mới).
+**Tab Phạm vi.** Giống Điều lệ: PM trở lên soạn/sửa, còn **Phê duyệt phạm vi** chỉ Owner/Admin (người soạn và người duyệt tách nhau); sửa một bản đã duyệt sẽ đưa về Bản nháp (vì chữ ký cũ không còn đúng nội dung mới).
 
 **Tab WBS.** Cây có mã WBS và nhãn cấp; nút **+** ở mỗi dòng chỉ cho thêm các cấp hợp lệ bên dưới. Chọn một phần tử để viết/sửa từ điển WBS (thành viên trở lên được sửa).
 

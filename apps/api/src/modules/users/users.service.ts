@@ -34,6 +34,37 @@ export class UsersService {
   }
 
   /**
+   * Characters other members of any of my organizations already use — the
+   * settings page marks these as taken instead of letting the user click into a 409.
+   */
+  async takenCharacters(
+    userId: string,
+  ): Promise<{ character: string; takenBy: string }[]> {
+    const myOrgIds = (
+      await this.prisma.db.membership.findMany({
+        where: { userId },
+        select: { organizationId: true },
+      })
+    ).map((m) => m.organizationId);
+    if (myOrgIds.length === 0) return [];
+
+    const others = await this.prisma.db.membership.findMany({
+      where: { organizationId: { in: myOrgIds }, userId: { not: userId } },
+      select: { user: { select: { fullName: true, mascotCharacter: true } } },
+    });
+    const taken = new Map<string, string>();
+    for (const { user } of others) {
+      if (!taken.has(user.mascotCharacter)) {
+        taken.set(user.mascotCharacter, user.fullName);
+      }
+    }
+    return Array.from(taken, ([character, takenBy]) => ({
+      character,
+      takenBy,
+    }));
+  }
+
+  /**
    * Character uniqueness is scoped per-organization, not global — the
    * character field itself stays a single global-per-user value (moving it
    * to Membership would break the floating companion, which has no org

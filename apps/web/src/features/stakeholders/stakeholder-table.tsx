@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@pmtool/ui';
 import { StakeholderFormModal } from './stakeholder-form-modal';
+import { usePermissions } from '../projects/use-permissions';
 
 const LEVELS = ['HIGH', 'MEDIUM', 'LOW'] as const; // grid rows, top to bottom
 const COLUMNS = ['LOW', 'MEDIUM', 'HIGH'] as const; // grid columns, left to right
@@ -46,9 +47,7 @@ function PowerInterestGrid({ stakeholders }: { stakeholders: StakeholderDto[] })
           <div className="grid grid-cols-3 gap-1.5">
             {LEVELS.map((interest) =>
               COLUMNS.map((influence) => {
-                const cell = stakeholders.filter(
-                  (s) => s.interest === interest && s.influence === influence,
-                );
+                const cell = stakeholders.filter((s) => s.interest === interest && s.influence === influence);
                 return (
                   <div
                     key={`${interest}-${influence}`}
@@ -78,6 +77,7 @@ function PowerInterestGrid({ stakeholders }: { stakeholders: StakeholderDto[] })
 
 export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('stakeholders.list');
+  const { canManage } = usePermissions(orgSlug, projectKey);
   const tLevel = useTranslations('stakeholders.level');
   const tEngagement = useTranslations('stakeholders.engagement');
   const { data: stakeholders, isLoading } = useStakeholders(orgSlug, projectKey);
@@ -92,14 +92,16 @@ export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; pro
           <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setModalOpen(true);
-          }}
-        >
-          {t('create')}
-        </Button>
+        {canManage && (
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setModalOpen(true);
+            }}
+          >
+            {t('create')}
+          </Button>
+        )}
       </div>
 
       {!isLoading && stakeholders && stakeholders.length > 0 && (
@@ -132,9 +134,7 @@ export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; pro
                   </TableCell>
                   <TableCell>
                     <span className="text-ink-secondary">{s.role || '—'}</span>
-                    {s.organizationName && (
-                      <span className="block text-xs text-ink-muted">{s.organizationName}</span>
-                    )}
+                    {s.organizationName && <span className="block text-xs text-ink-muted">{s.organizationName}</span>}
                   </TableCell>
                   <TableCell>
                     <Badge variant={LEVEL_VARIANT[s.influence]}>{tLevel(s.influence)}</Badge>
@@ -147,23 +147,23 @@ export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; pro
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditing(s);
-                          setModalOpen(true);
-                        }}
-                      >
-                        {t('edit')}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteStakeholder.mutate(s.id)}
-                      >
-                        {t('delete')}
-                      </Button>
+                      {canManage && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditing(s);
+                              setModalOpen(true);
+                            }}
+                          >
+                            {t('edit')}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => deleteStakeholder.mutate(s.id)}>
+                            {t('delete')}
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

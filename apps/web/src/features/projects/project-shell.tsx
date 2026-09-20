@@ -5,6 +5,7 @@ import { useProject } from '@pmtool/api-client';
 import { Badge } from '@pmtool/ui';
 import { Link, usePathname } from '../../i18n/navigation';
 import { BackHomeLinksWidget } from '../shell/back-home-links-widget';
+import { usePermissions } from './use-permissions';
 
 const STATUS_VARIANT = {
   PLANNING: 'neutral',
@@ -27,6 +28,7 @@ export function ProjectShell({
   const tStatus = useTranslations('projects.status');
   const tTabs = useTranslations('projects.tabs');
   const pathname = usePathname();
+  const { role } = usePermissions(orgSlug, projectKey);
 
   const tabs = [
     { href: `/${orgSlug}/projects/${projectKey}/dashboard`, label: tTabs('dashboard') },
@@ -73,6 +75,11 @@ export function ProjectShell({
           );
         })}
       </div>
+      {role === 'VIEWER' && (
+        <p role="note" className="mb-4 rounded-md bg-info-bg px-3 py-2 text-sm text-info">
+          {tTabs('viewerNotice')}
+        </p>
+      )}
       {children}
     </div>
   );

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { Membership, MembershipInvite } from '@prisma/client';
@@ -91,7 +92,7 @@ describe('MembershipsService', () => {
       prisma.db.membership.count.mockResolvedValue(0);
 
       await expect(
-        service.updateRole('org_1', owner.id, 'MEMBER'),
+        service.updateRole('org_1', owner.id, 'MEMBER', 'OWNER'),
       ).rejects.toThrow(BadRequestException);
       expect(prisma.db.membership.update).not.toHaveBeenCalled();
     });
@@ -105,7 +106,12 @@ describe('MembershipsService', () => {
         role: 'ADMIN',
       });
 
-      const result = await service.updateRole('org_1', owner.id, 'ADMIN');
+      const result = await service.updateRole(
+        'org_1',
+        owner.id,
+        'ADMIN',
+        'OWNER',
+      );
 
       expect(result.role).toBe('ADMIN');
       expect(prisma.db.membership.update).toHaveBeenCalledWith({
@@ -119,7 +125,7 @@ describe('MembershipsService', () => {
       prisma.db.membership.findUnique.mockResolvedValue(membership);
 
       await expect(
-        service.updateRole('org_1', membership.id, 'ADMIN'),
+        service.updateRole('org_1', membership.id, 'ADMIN', 'OWNER'),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -130,9 +136,9 @@ describe('MembershipsService', () => {
       prisma.db.membership.findUnique.mockResolvedValue(owner);
       prisma.db.membership.count.mockResolvedValue(0);
 
-      await expect(service.removeMember('org_1', owner.id)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.removeMember('org_1', owner.id, 'OWNER'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.db.membership.delete).not.toHaveBeenCalled();
     });
 
@@ -141,7 +147,7 @@ describe('MembershipsService', () => {
       prisma.db.membership.findUnique.mockResolvedValue(member);
       prisma.db.membership.delete.mockResolvedValue(member);
 
-      await service.removeMember('org_1', member.id);
+      await service.removeMember('org_1', member.id, 'OWNER');
 
       expect(prisma.db.membership.delete).toHaveBeenCalledWith({
         where: { id: member.id },
@@ -153,7 +159,7 @@ describe('MembershipsService', () => {
       prisma.db.membership.findUnique.mockResolvedValue(member);
       prisma.db.membership.delete.mockResolvedValue(member);
 
-      await service.removeMember('org_1', member.id);
+      await service.removeMember('org_1', member.id, 'OWNER');
 
       expect(prisma.db.projectMember.deleteMany).toHaveBeenCalledWith({
         where: { organizationId: 'org_1', userId: member.userId },
@@ -242,6 +248,54 @@ describe('MembershipsService', () => {
       expect(prisma.db.membershipInvite.delete).toHaveBeenCalledWith({
         where: { id: 'inv_1' },
       });
+    });
+  });
+
+  describe('owner protection', () => {
+    const owner = {
+      id: 'm_owner',
+      organizationId: 'org_1',
+      userId: 'u1',
+      role: 'OWNER',
+    };
+    const admin = {
+      id: 'm_admin',
+      organizationId: 'org_1',
+      userId: 'u2',
+      role: 'ADMIN',
+    };
+
+    it('an ADMIN cannot promote anyone to OWNER', async () => {
+      prisma.db.membership.findUnique.mockResolvedValue(admin);
+      await expect(
+        service.updateRole('org_1', admin.id, 'OWNER', 'ADMIN'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.db.membership.update).not.toHaveBeenCalled();
+    });
+
+    it('an ADMIN cannot demote or remove an OWNER', async () => {
+      prisma.db.membership.findUnique.mockResolvedValue(owner);
+      await expect(
+        service.updateRole('org_1', owner.id, 'MEMBER', 'ADMIN'),
+      ).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.removeMember('org_1', owner.id, 'ADMIN'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('an OWNER may promote an ADMIN to OWNER', async () => {
+      prisma.db.membership.findUnique.mockResolvedValue(admin);
+      prisma.db.membership.update.mockResolvedValue({
+        ...admin,
+        role: 'OWNER',
+      });
+      const result = await service.updateRole(
+        'org_1',
+        admin.id,
+        'OWNER',
+        'OWNER',
+      );
+      expect(result.role).toBe('OWNER');
     });
   });
 });

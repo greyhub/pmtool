@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ApiError, useApproveScope, useProjectScope, useSaveScope } from '@pmtool/api-client';
 import { Badge, Button, Card, FormField } from '@pmtool/ui';
+import { usePermissions } from '../projects/use-permissions';
 
 const TEXTAREA_CLASS =
   'mt-0 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus';
@@ -23,6 +24,7 @@ export function ScopeView({ orgSlug, projectKey }: { orgSlug: string; projectKey
   const t = useTranslations('scope');
   const { data: scope, isLoading } = useProjectScope(orgSlug, projectKey);
   const save = useSaveScope(orgSlug, projectKey);
+  const { canManage, canSponsor } = usePermissions(orgSlug, projectKey);
   const approve = useApproveScope(orgSlug, projectKey);
   const [form, setForm] = useState<Record<FieldKey, string>>(EMPTY);
 
@@ -60,46 +62,50 @@ export function ScopeView({ orgSlug, projectKey }: { orgSlug: string; projectKey
         </Card>
       )}
 
-      <Card className="mt-6 flex flex-col gap-5 p-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField label={t('inScope')} htmlFor="scope-in" hint={t('inScopeHint')}>
-            <textarea id="scope-in" rows={5} className={TEXTAREA_CLASS} {...bind('inScope')} />
+      <Card className="mt-6 p-6">
+        <fieldset disabled={!canManage} className="flex min-w-0 flex-col gap-5 border-0 p-0">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField label={t('inScope')} htmlFor="scope-in" hint={t('inScopeHint')}>
+              <textarea id="scope-in" rows={5} className={TEXTAREA_CLASS} {...bind('inScope')} />
+            </FormField>
+            <FormField label={t('outOfScope')} htmlFor="scope-out" hint={t('outOfScopeHint')}>
+              <textarea id="scope-out" rows={5} className={TEXTAREA_CLASS} {...bind('outOfScope')} />
+            </FormField>
+          </div>
+          <FormField label={t('deliverablesSummary')} htmlFor="scope-deliverables" hint={t('deliverablesSummaryHint')}>
+            <textarea id="scope-deliverables" rows={4} className={TEXTAREA_CLASS} {...bind('deliverablesSummary')} />
           </FormField>
-          <FormField label={t('outOfScope')} htmlFor="scope-out" hint={t('outOfScopeHint')}>
-            <textarea id="scope-out" rows={5} className={TEXTAREA_CLASS} {...bind('outOfScope')} />
+          <FormField label={t('acceptanceCriteria')} htmlFor="scope-criteria">
+            <textarea id="scope-criteria" rows={4} className={TEXTAREA_CLASS} {...bind('acceptanceCriteria')} />
           </FormField>
-        </div>
-        <FormField label={t('deliverablesSummary')} htmlFor="scope-deliverables" hint={t('deliverablesSummaryHint')}>
-          <textarea id="scope-deliverables" rows={4} className={TEXTAREA_CLASS} {...bind('deliverablesSummary')} />
-        </FormField>
-        <FormField label={t('acceptanceCriteria')} htmlFor="scope-criteria">
-          <textarea id="scope-criteria" rows={4} className={TEXTAREA_CLASS} {...bind('acceptanceCriteria')} />
-        </FormField>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField label={t('assumptions')} htmlFor="scope-assumptions">
-            <textarea id="scope-assumptions" rows={3} className={TEXTAREA_CLASS} {...bind('assumptions')} />
-          </FormField>
-          <FormField label={t('constraints')} htmlFor="scope-constraints">
-            <textarea id="scope-constraints" rows={3} className={TEXTAREA_CLASS} {...bind('constraints')} />
-          </FormField>
-        </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField label={t('assumptions')} htmlFor="scope-assumptions">
+              <textarea id="scope-assumptions" rows={3} className={TEXTAREA_CLASS} {...bind('assumptions')} />
+            </FormField>
+            <FormField label={t('constraints')} htmlFor="scope-constraints">
+              <textarea id="scope-constraints" rows={3} className={TEXTAREA_CLASS} {...bind('constraints')} />
+            </FormField>
+          </div>
 
-        {error && (
-          <p role="alert" className="text-sm text-danger">
-            {error instanceof ApiError ? error.message : 'Có lỗi xảy ra'}
-          </p>
-        )}
-
-        <div className="flex justify-end gap-3">
-          {scope?.status === 'DRAFT' && (
-            <Button variant="outline" disabled={approve.isPending} onClick={() => approve.mutate()}>
-              {t('approve')}
-            </Button>
+          {error && (
+            <p role="alert" className="text-sm text-danger">
+              {error instanceof ApiError ? error.message : 'Có lỗi xảy ra'}
+            </p>
           )}
-          <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
-            {t('save')}
-          </Button>
-        </div>
+
+          {canManage && (
+            <div className="flex justify-end gap-3">
+              {canSponsor && scope?.status === 'DRAFT' && (
+                <Button variant="outline" disabled={approve.isPending} onClick={() => approve.mutate()}>
+                  {t('approve')}
+                </Button>
+              )}
+              <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
+                {t('save')}
+              </Button>
+            </div>
+          )}
+        </fieldset>
       </Card>
     </div>
   );

@@ -18,3 +18,4 @@ export * from './documents/schemas';
 export * from './artifacts/schemas';
 export * from './tasks/wbs';
 export * from './scope/schemas';
+export * from './common/permissions';

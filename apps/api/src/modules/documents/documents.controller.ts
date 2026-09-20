@@ -32,6 +32,8 @@ import {
 } from '../../common/decorators/current-org.decorator';
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toProjectDocumentDto } from './document.mapper';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 
 const CAN_EDIT_DOCUMENTS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 
@@ -40,7 +42,7 @@ const CAN_EDIT_DOCUMENTS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey/documents',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard)
+@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectEntityGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
@@ -77,6 +79,7 @@ export class DocumentsController {
   }
 
   @Patch(':documentId')
+  @ProjectEntity('projectDocument', 'documentId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_DOCUMENTS)
   @LogActivity('ProjectDocument', 'updated')
@@ -95,6 +98,7 @@ export class DocumentsController {
   }
 
   @Delete(':documentId')
+  @ProjectEntity('projectDocument', 'documentId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_DOCUMENTS)
   @LogActivity('ProjectDocument', 'deleted', 'documentId')

@@ -9,6 +9,7 @@ import { formatDate } from '../../lib/date-input';
 import { DeliverableFormModal } from '../deliverables/deliverable-form-modal';
 import { TaskStatusBadge } from '../tasks/task-badges';
 import { MilestoneFormModal } from './milestone-form-modal';
+import { usePermissions } from '../projects/use-permissions';
 
 function Bar({ percent }: { percent: number }) {
   return (
@@ -20,6 +21,7 @@ function Bar({ percent }: { percent: number }) {
 
 export function MilestoneList({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('milestones.list');
+  const { canEdit } = usePermissions(orgSlug, projectKey);
   const { data: milestones, isLoading } = useMilestones(orgSlug, projectKey);
   const [creating, setCreating] = useState(false);
   const [addingDeliverableTo, setAddingDeliverableTo] = useState<string | undefined>(undefined);
@@ -31,7 +33,7 @@ export function MilestoneList({ orgSlug, projectKey }: { orgSlug: string; projec
           <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => setCreating(true)}>{t('create')}</Button>
+        {canEdit && <Button onClick={() => setCreating(true)}>{t('create')}</Button>}
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
@@ -93,9 +95,11 @@ export function MilestoneList({ orgSlug, projectKey }: { orgSlug: string; projec
                           )}
                         </>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => setAddingDeliverableTo(m.id)}>
-                        {t('addDeliverable')}
-                      </Button>
+                      {canEdit && (
+                        <Button variant="ghost" size="sm" onClick={() => setAddingDeliverableTo(m.id)}>
+                          {t('addDeliverable')}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -109,7 +113,12 @@ export function MilestoneList({ orgSlug, projectKey }: { orgSlug: string; projec
         )}
       </div>
 
-      <MilestoneFormModal orgSlug={orgSlug} projectKey={projectKey} open={creating} onClose={() => setCreating(false)} />
+      <MilestoneFormModal
+        orgSlug={orgSlug}
+        projectKey={projectKey}
+        open={creating}
+        onClose={() => setCreating(false)}
+      />
       <DeliverableFormModal
         orgSlug={orgSlug}
         projectKey={projectKey}

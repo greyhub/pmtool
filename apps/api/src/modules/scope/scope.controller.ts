@@ -34,6 +34,8 @@ import {
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 
 const CAN_EDIT_SCOPE = ['OWNER', 'ADMIN', 'PM'] as const;
+// Same as the charter: the author (PM) proposes, the sponsor side (Owner/Admin) signs off.
+const CAN_APPROVE_SCOPE = ['OWNER', 'ADMIN'] as const;
 const CAN_EDIT_DICTIONARY = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 
 @ApiTags('scope')
@@ -74,7 +76,7 @@ export class ScopeController {
 
   @Post('scope/approve')
   @UseGuards(ProjectRolesGuard)
-  @Roles(...CAN_EDIT_SCOPE)
+  @Roles(...CAN_APPROVE_SCOPE)
   @LogActivity('ProjectScope', 'updated')
   async approveScope(
     @CurrentProject() project: Project,

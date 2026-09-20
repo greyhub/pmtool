@@ -30,6 +30,7 @@ describe('DeliverablesService', () => {
         create: ReturnType<typeof vi.fn>;
       };
       task: { findUnique: ReturnType<typeof vi.fn> };
+      membership: { count: ReturnType<typeof vi.fn> };
     };
   };
   let service: DeliverablesService;
@@ -43,6 +44,7 @@ describe('DeliverablesService', () => {
           create: vi.fn().mockResolvedValue({}),
         },
         task: { findUnique: vi.fn() },
+        membership: { count: vi.fn().mockResolvedValue(1) },
       },
     };
     service = new DeliverablesService(prisma as unknown as PrismaService);
@@ -130,6 +132,15 @@ describe('DeliverablesService', () => {
         });
       },
     );
+
+    it('rejects an owner who is not a member of the organization', async () => {
+      prisma.db.deliverable.findUnique.mockResolvedValue(row());
+      prisma.db.membership.count.mockResolvedValue(0);
+      await expect(
+        service.update('org_1', 'proj_1', 'd1', { ownerId: 'outsider' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.db.deliverable.update).not.toHaveBeenCalled();
+    });
 
     it('keeps an accepted deliverable accepted when only non-content fields change', async () => {
       prisma.db.deliverable.findUnique.mockResolvedValue(

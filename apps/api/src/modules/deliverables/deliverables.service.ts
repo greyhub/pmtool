@@ -10,6 +10,7 @@ import {
   UpdateDeliverableInput,
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { assertOrgMembers } from '../../common/guards/org-members.util';
 
 const PERSON_SELECT = { id: true, fullName: true, avatarUrl: true } as const;
 const INCLUDE = {
@@ -51,6 +52,7 @@ export class DeliverablesService {
     input: CreateDeliverableInput,
   ) {
     await this.assertTaskInProject(organizationId, projectId, input.taskId);
+    await assertOrgMembers(this.prisma, organizationId, [input.ownerId]);
     return this.prisma.db.deliverable.create({
       data: {
         organizationId,
@@ -82,6 +84,7 @@ export class DeliverablesService {
     if (input.taskId) {
       await this.assertTaskInProject(organizationId, projectId, input.taskId);
     }
+    await assertOrgMembers(this.prisma, organizationId, [input.ownerId]);
 
     const contentChanged =
       (input.name !== undefined && input.name !== existing.name) ||

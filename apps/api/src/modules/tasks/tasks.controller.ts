@@ -43,6 +43,8 @@ import {
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toTaskDto } from './task.mapper';
 import { toCommentDto } from './comment.mapper';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 
 const CAN_EDIT_TASKS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 
@@ -51,7 +53,7 @@ const CAN_EDIT_TASKS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey/tasks',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard)
+@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectEntityGuard)
 export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
@@ -95,6 +97,7 @@ export class TasksController {
   }
 
   @Get(':taskId')
+  @ProjectEntity('task', 'taskId')
   async getOne(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -107,6 +110,7 @@ export class TasksController {
   }
 
   @Patch(':taskId')
+  @ProjectEntity('task', 'taskId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'updated')
@@ -126,6 +130,7 @@ export class TasksController {
   }
 
   @Patch(':taskId/move')
+  @ProjectEntity('task', 'taskId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'moved')
@@ -147,6 +152,7 @@ export class TasksController {
   }
 
   @Delete(':taskId')
+  @ProjectEntity('task', 'taskId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Task', 'deleted', 'taskId')
@@ -158,6 +164,7 @@ export class TasksController {
   }
 
   @Get(':taskId/history')
+  @ProjectEntity('task', 'taskId')
   async history(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -172,6 +179,7 @@ export class TasksController {
   }
 
   @Get(':taskId/comments')
+  @ProjectEntity('task', 'taskId')
   async listComments(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -184,6 +192,7 @@ export class TasksController {
   }
 
   @Post(':taskId/comments')
+  @ProjectEntity('task', 'taskId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_TASKS)
   @LogActivity('Comment', 'created')

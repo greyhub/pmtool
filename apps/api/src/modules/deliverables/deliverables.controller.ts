@@ -39,6 +39,8 @@ import { toDeliverableDto } from './deliverable.mapper';
 const CAN_EDIT_DELIVERABLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 // Sign-off is a PM decision, like approving the charter.
 const CAN_REVIEW_DELIVERABLES = ['OWNER', 'ADMIN', 'PM'] as const;
+// Deleting removes the sign-off history, so it is a reviewer-level action.
+const CAN_DELETE_DELIVERABLES = CAN_REVIEW_DELIVERABLES;
 
 @ApiTags('deliverables')
 @Controller({
@@ -161,7 +163,7 @@ export class DeliverablesController {
 
   @Delete(':deliverableId')
   @UseGuards(ProjectRolesGuard)
-  @Roles(...CAN_EDIT_DELIVERABLES)
+  @Roles(...CAN_DELETE_DELIVERABLES)
   @LogActivity('Deliverable', 'deleted', 'deliverableId')
   async remove(
     @CurrentOrg() ctx: CurrentOrgContext,

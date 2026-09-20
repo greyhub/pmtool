@@ -92,6 +92,16 @@
         "tag": "Artifact",
         "title": "Self-authored HTML/CSS/JS pages",
         "description": "Live preview in a safely sandboxed frame — like Claude's own Artifacts feature."
+      },
+      "scopeWbs": {
+        "tag": "PMBOK",
+        "title": "Scope, WBS & WBS dictionary",
+        "description": "Phase › Deliverable › Work package › Activity, auto-generated WBS codes, a linkage map and coverage checks right on the dashboard."
+      },
+      "deliverables": {
+        "tag": "PMBOK",
+        "title": "Deliverables & milestones",
+        "description": "Submit → accept/reject-with-reason lifecycle tied to milestones and tasks; who signed off and when is always recorded."
       }
     },
     "docs": {
@@ -192,7 +202,8 @@
       "milestones": "Milestones",
       "deliverables": "Deliverables",
       "scope": "Scope",
-      "wbs": "WBS"
+      "wbs": "WBS",
+      "viewerNotice": "You have view-only access to this project. Ask a PM or admin if you need to edit."
     },
     "settings": {
       "title": "Project settings",
@@ -640,7 +651,10 @@
         "toaster": "Toaster",
         "tv": "TV"
       },
-      "conflictError": "Could not select this character. Please try again."
+      "conflictError": "Could not select this character. Please try again.",
+      "current": "In use",
+      "taken": "Taken",
+      "takenBy": "{name} already uses this character"
     }
   },
   "integrations": {

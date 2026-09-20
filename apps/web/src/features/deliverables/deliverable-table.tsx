@@ -27,6 +27,7 @@ import { Link } from '../../i18n/navigation';
 import { formatDate } from '../../lib/date-input';
 import { DeliverableFormModal } from './deliverable-form-modal';
 import { DeliverableStatusBadge } from './deliverable-badges';
+import { usePermissions } from '../projects/use-permissions';
 
 export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('deliverables.list');
@@ -35,6 +36,7 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
   const accept = useAcceptDeliverable(orgSlug, projectKey);
   const reject = useRejectDeliverable(orgSlug, projectKey);
   const remove = useDeleteDeliverable(orgSlug, projectKey);
+  const { canEdit, canManage } = usePermissions(orgSlug, projectKey);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<DeliverableDto | undefined>(undefined);
@@ -52,14 +54,16 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
           <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setModalOpen(true);
-          }}
-        >
-          {t('create')}
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setModalOpen(true);
+            }}
+          >
+            {t('create')}
+          </Button>
+        )}
       </div>
 
       {actionError && (
@@ -87,7 +91,12 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                   <TableCell>
                     <div className="font-medium text-ink-primary">
                       {d.url ? (
-                        <a href={d.url} target="_blank" rel="noreferrer" className="underline decoration-line-glass underline-offset-2 hover:text-action-primary">
+                        <a
+                          href={d.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline decoration-line-glass underline-offset-2 hover:text-action-primary"
+                        >
                           {d.name}
                         </a>
                       ) : (
@@ -139,12 +148,17 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                   <TableCell>{formatDate(d.dueDate)}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap justify-end gap-1">
-                      {(d.status === 'PLANNED' || d.status === 'IN_PROGRESS' || d.status === 'REJECTED') && (
-                        <Button variant="outline" size="sm" disabled={submit.isPending} onClick={() => submit.mutate(d.id)}>
+                      {canEdit && (d.status === 'PLANNED' || d.status === 'IN_PROGRESS' || d.status === 'REJECTED') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={submit.isPending}
+                          onClick={() => submit.mutate(d.id)}
+                        >
                           {t('submit')}
                         </Button>
                       )}
-                      {d.status === 'SUBMITTED' && (
+                      {canManage && d.status === 'SUBMITTED' && (
                         <>
                           <Button size="sm" disabled={accept.isPending} onClick={() => accept.mutate(d.id)}>
                             {t('accept')}
@@ -161,19 +175,23 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                           </Button>
                         </>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditing(d);
-                          setModalOpen(true);
-                        }}
-                      >
-                        {t('edit')}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => remove.mutate(d.id)}>
-                        {t('delete')}
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditing(d);
+                            setModalOpen(true);
+                          }}
+                        >
+                          {t('edit')}
+                        </Button>
+                      )}
+                      {canManage && (
+                        <Button variant="ghost" size="sm" onClick={() => remove.mutate(d.id)}>
+                          {t('delete')}
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

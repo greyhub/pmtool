@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@pmtool/ui';
 import { DocumentFormModal } from './document-form-modal';
+import { usePermissions } from '../projects/use-permissions';
 
 const STATUS_VARIANT = {
   DRAFT: 'neutral',
@@ -27,6 +28,7 @@ const STATUS_VARIANT = {
 
 export function DocumentTable({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('documents.list');
+  const { canEdit } = usePermissions(orgSlug, projectKey);
   const tCategory = useTranslations('documents.category');
   const tStatus = useTranslations('documents.status');
   const { data: documents, isLoading } = useProjectDocuments(orgSlug, projectKey);
@@ -41,14 +43,16 @@ export function DocumentTable({ orgSlug, projectKey }: { orgSlug: string; projec
           <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setModalOpen(true);
-          }}
-        >
-          {t('create')}
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setModalOpen(true);
+            }}
+          >
+            {t('create')}
+          </Button>
+        )}
       </div>
 
       <Card className="mt-6">
@@ -94,19 +98,23 @@ export function DocumentTable({ orgSlug, projectKey }: { orgSlug: string; projec
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditing(doc);
-                          setModalOpen(true);
-                        }}
-                      >
-                        {t('edit')}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteDocument.mutate(doc.id)}>
-                        {t('delete')}
-                      </Button>
+                      {canEdit && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditing(doc);
+                              setModalOpen(true);
+                            }}
+                          >
+                            {t('edit')}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => deleteDocument.mutate(doc.id)}>
+                            {t('delete')}
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -33,6 +33,8 @@ import {
 } from '../../common/decorators/current-org.decorator';
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toArtifactDetailDto, toArtifactSummaryDto } from './artifact.mapper';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 
 const CAN_EDIT_ARTIFACTS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 
@@ -41,7 +43,7 @@ const CAN_EDIT_ARTIFACTS = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey/artifacts',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard)
+@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectEntityGuard)
 export class ArtifactsController {
   constructor(private readonly artifactsService: ArtifactsService) {}
 
@@ -58,6 +60,7 @@ export class ArtifactsController {
   }
 
   @Get(':artifactId')
+  @ProjectEntity('artifact', 'artifactId')
   async get(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('artifactId') artifactId: string,
@@ -90,6 +93,7 @@ export class ArtifactsController {
   }
 
   @Patch(':artifactId')
+  @ProjectEntity('artifact', 'artifactId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_ARTIFACTS)
   @LogActivity('Artifact', 'updated')
@@ -108,6 +112,7 @@ export class ArtifactsController {
   }
 
   @Delete(':artifactId')
+  @ProjectEntity('artifact', 'artifactId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_ARTIFACTS)
   @LogActivity('Artifact', 'deleted', 'artifactId')

@@ -5,6 +5,7 @@ import {
   UpdateRiskIssueInput,
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { assertOrgMembers } from '../../common/guards/org-members.util';
 import { GamificationService } from '../gamification/gamification.service';
 
 const OWNER_SELECT = { id: true, fullName: true, avatarUrl: true } as const;
@@ -51,6 +52,7 @@ export class RisksService {
     userId: string,
     input: CreateRiskIssueInput,
   ) {
+    await assertOrgMembers(this.prisma, organizationId, [input.ownerId]);
     return this.prisma.db.riskIssue.create({
       data: {
         organizationId,
@@ -77,6 +79,7 @@ export class RisksService {
     actingUserId: string,
   ) {
     const existing = await this.findByIdOrThrow(organizationId, riskId);
+    await assertOrgMembers(this.prisma, organizationId, [input.ownerId]);
     const probability =
       input.probability !== undefined
         ? input.probability

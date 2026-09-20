@@ -29,6 +29,8 @@ import {
 } from '../../common/decorators/current-org.decorator';
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toBoardColumnDto } from './board-column.mapper';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 
 const CAN_EDIT_BOARD = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
 
@@ -37,7 +39,7 @@ const CAN_EDIT_BOARD = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey/board-columns',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard)
+@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectEntityGuard)
 export class BoardsController {
   constructor(private readonly boardsService: BoardsService) {}
 
@@ -71,6 +73,7 @@ export class BoardsController {
   }
 
   @Patch(':columnId')
+  @ProjectEntity('boardColumn', 'columnId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_BOARD)
   async update(
@@ -88,6 +91,7 @@ export class BoardsController {
   }
 
   @Delete(':columnId')
+  @ProjectEntity('boardColumn', 'columnId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_BOARD)
   async remove(

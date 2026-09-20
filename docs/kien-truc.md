@@ -2,7 +2,7 @@
 
 Tài liệu này mô tả kiến trúc tổng quan của PMTool ở 4 lớp: kiến trúc nghiệp vụ, kiến trúc hệ thống, tech stack, và các mối liên kết/luồng dữ liệu giữa các thành phần. Đối tượng đọc: kỹ sư tham gia dự án, hoặc người cần đánh giá kiến trúc kỹ thuật. Về cách dùng sản phẩm, xem [huong-dan-su-dung.md](huong-dan-su-dung.md); về cách chạy dự án, xem [README.md](../README.md).
 
-Trạng thái tại thời điểm viết (2026-09-17): Phase 1–3 và Phase 4a (Điều lệ dự án, Các bên liên quan, Danh mục tài liệu) đã triển khai và CI xanh trên nhánh `main`. Tài liệu phản ánh đúng những gì đã build, không phải kế hoạch.
+Trạng thái tại thời điểm cập nhật (2026-09-20): Phase 1–3, Phase 4a (Điều lệ dự án, Các bên liên quan, Danh mục tài liệu), Artifact, Quản lý Tổ chức/Dự án, nhiệm vụ ngày/tuần, giao phẩm & mốc, và **khung phạm vi PMBOK** (Phạm vi, WBS, từ điển WBS, sơ đồ liên kết) đã triển khai trên nhánh `main`. Tài liệu phản ánh đúng những gì đã build, không phải kế hoạch. Các phần mới nằm ở [1.4](#14-khung-phạm-vi-pmbok), [2.4.1](#241-ma-trận-phân-quyền-theo-vai-trò), [4.5](#45-chuỗi-phạm-vi-pmbok--sơ-đồ-liên-kết) và [5](#5-bảo-mật--các-quy-tắc-đã-siết).
 
 ## Mục lục
 
@@ -10,6 +10,7 @@ Trạng thái tại thời điểm viết (2026-09-17): Phase 1–3 và Phase 4a
 2. [Kiến trúc hệ thống](#2-kiến-trúc-hệ-thống)
 3. [Tech stack](#3-tech-stack)
 4. [Mối liên kết & luồng dữ liệu](#4-mối-liên-kết--luồng-dữ-liệu)
+5. [Bảo mật & các quy tắc đã siết](#5-bảo-mật--các-quy-tắc-đã-siết)
 
 ---
 
@@ -42,6 +43,13 @@ flowchart TD
         G2["Các bên liên quan<br/>(Power/Interest grid · engagement)"]
         G3["Danh mục tài liệu<br/>(catalog, không lưu file)"]
     end
+    subgraph SCOPE["Khung phạm vi PMBOK & bàn giao"]
+        direction TB
+        S1["Phạm vi dự án<br/>(scope statement · phê duyệt)"]
+        S2["WBS + từ điển WBS<br/>(Giai đoạn › Giao phẩm › Gói CV › Hoạt động)"]
+        S3["Giao phẩm & Mốc<br/>(nghiệm thu · công việc đánh dấu mốc)"]
+        S4["Sơ đồ liên kết + kiểm tra độ phủ<br/>(dashboard dự án)"]
+    end
     subgraph EMBED["Nội dung tương tác (Milestone Artifact)"]
         direction TB
         A1["Artifact<br/>(HTML/CSS/JS tự viết, sandbox iframe)"]
@@ -58,6 +66,10 @@ flowchart TD
     C2 --> G2
     C2 --> G3
     C2 --> A1
+    G1 --> S1
+    S1 --> S2
+    S2 --> S3
+    S2 & S3 --> S4
 ```
 
 Ba nhóm năng lực được xây theo 3 phase, nhưng đều đặt trên cùng một lõi nghiệp vụ: **Tổ chức → Dự án → Công việc**. Gamification, AI và Telegram không phải module độc lập — chúng phản ứng lại các sự kiện xảy ra ở lõi (tạo việc, hoàn thành việc, giao việc), không có nghiệp vụ riêng. Nhóm quản trị PMBOK (Phase 4a) và Artifact thì ngược lại — là dữ liệu độc lập gắn trực tiếp vào dự án (không phát sinh từ sự kiện công việc), nên chỉ nhận cạnh từ C2 chứ không có cạnh phản hồi ngược lại như E1/E2/N1.
@@ -87,18 +99,26 @@ erDiagram
     USER ||--o{ STAKEHOLDER : "liên kết (tuỳ chọn, có thể là bên ngoài)"
     PROJECT ||--o{ PROJECT_DOCUMENT : "danh mục tài liệu"
     PROJECT ||--o{ ARTIFACT : "trang HTML/CSS/JS tự viết"
+    PROJECT ||--o| PROJECT_SCOPE : "phạm vi (1 dự án - 1 bản)"
+    TASK ||--o| WBS_DICTIONARY_ENTRY : "từ điển WBS (1-1)"
+    PROJECT ||--o{ DELIVERABLE : "giao phẩm"
+    TASK ||--o{ DELIVERABLE : "gắn với công việc/mốc (tuỳ chọn)"
+    USER ||--o{ USER_QUEST_PROGRESS : "nhiệm vụ ngày/tuần"
 
     ORGANIZATION { string slug string status "ACTIVE|ARCHIVED" }
     USER { string email "telegramChatId?" }
     PROJECT { string key "WEB, PMT, ..." string status }
     PROJECT_MEMBER { string role "OrgRole — override, không phải bản sao" }
-    TASK { string humanKey "WEB-1" string status string priority date dueDate }
+    TASK { string humanKey "WEB-1" string status string priority date dueDate string nodeType "PHASE|DELIVERABLE|WORK_PACKAGE|ACTIVITY" bool isMilestone int percentComplete }
     RISK_ISSUE { int probability "1-5" int impact "1-5" int severity "= probability × impact" }
     USER_SCORE { int totalPoints int currentStreakDays }
     PROJECT_CHARTER { string status "DRAFT | APPROVED" string sponsorName }
     STAKEHOLDER { string fullName string influence "LOW|MEDIUM|HIGH" string interest "LOW|MEDIUM|HIGH" string currentEngagement string desiredEngagement }
     PROJECT_DOCUMENT { string category string version string status "DRAFT|IN_REVIEW|APPROVED|OBSOLETE" string url }
     ARTIFACT { string title string htmlContent "cap 200,000 chars" }
+    PROJECT_SCOPE { string status "DRAFT | APPROVED" json inScope json outOfScope }
+    WBS_DICTIONARY_ENTRY { json scopeDescription json acceptanceCriteria float costEstimate }
+    DELIVERABLE { string status "PLANNED|IN_PROGRESS|SUBMITTED|ACCEPTED|REJECTED" string rejectionReason }
 ```
 
 `Artifact.createdById` (như mọi `createdById` khác trong schema — `Project`, `Task`, `RiskIssue`, `ProjectCharter`, `Stakeholder`, `ProjectDocument`) là cột `String` thuần, không có quan hệ `@relation` — chỉ những trường mang ý nghĩa vai trò cụ thể (`ownerId`, `projectManagerId`, `approvedById`) mới có quan hệ thật tới `User`.
@@ -125,6 +145,20 @@ flowchart LR
     G -->|"chưa, đến hạn"| I["Telegram: nhắc hạn 8:00 ICT"]
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
+
+### 1.4 Khung phạm vi PMBOK
+
+| Khái niệm PMBOK | Lưu ở đâu | Ghi chú thiết kế |
+|---|---|---|
+| Phạm vi dự án (Scope Statement) | `ProjectScope` (1 dự án - 1 bản) | Sửa bản đã duyệt → về `DRAFT`, giống `ProjectCharter`. |
+| WBS | `Task` + `Task.nodeType` | Không có bảng WBS thứ hai: dùng chính cây `parentTaskId` để tái dùng Gantt, người phụ trách, phụ thuộc. |
+| Mã WBS (1.2.3) | **suy ra**, không lưu | `computeWbsCodes()` trong `packages/shared-types` — không bao giờ lỗi thời sau khi kéo thả. |
+| Từ điển WBS | `WbsDictionaryEntry` (1-1 với `Task`) | Mô tả phạm vi, tiêu chí nghiệm thu, giả định, ràng buộc, nguồn lực, chất lượng, chi phí. |
+| Hoạt động | `Task` với `nodeType = ACTIVITY` | Phụ thuộc dùng `TaskDependency` sẵn có. |
+| Giao phẩm | `Deliverable` (bản ghi nghiệm thu) gắn tuỳ chọn với 1 `Task` | Vòng đời PLANNED → IN_PROGRESS → SUBMITTED → ACCEPTED/REJECTED. |
+| Mốc | `Task.isMilestone` | Không phải thực thể riêng; bắt buộc có hạn, ngày bắt đầu = hạn. |
+
+Quy tắc thứ bậc (`apps/api/src/modules/tasks/wbs-rules.ts`): `PHASE > DELIVERABLE > WORK_PACKAGE > ACTIVITY`; mục con phải có cấp thấp hơn cha. Không chỉ định cấp thì mặc định `ACTIVITY`; thêm con vào một `ACTIVITY` sẽ nâng nó lên `WORK_PACKAGE` để các luồng "thêm việc con" cũ không bị chặn.
 
 ## 2. Kiến trúc hệ thống
 
@@ -230,6 +264,25 @@ flowchart LR
 - **Không phải là điều kiện hiển thị/truy cập dự án**: xoá một `ProjectMember` không ẩn dự án khỏi người đó — khả năng *nhìn thấy* dự án luôn dựa trên tư cách thành viên tổ chức (`OrgMembershipGuard`), không đổi. `ProjectMember` chỉ quyết định họ *làm được gì* trong dự án đó.
 - **Ngoại lệ tránh tự khoá bản thân**: quản lý chính danh sách `ProjectMember` của một dự án (`apps/api/src/modules/projects/project-members.controller.ts`) dùng `ProjectMemberManageGuard`, không phải `ProjectRolesGuard` — cho phép request khi **hoặc** vai trò tổ chức là OWNER/ADMIN, **hoặc** vai trò hiệu lực trên chính dự án đó là OWNER/ADMIN. Nếu chỉ dùng `ProjectRolesGuard` đơn thuần, một Owner/Admin tổ chức tự hạ vai trò riêng của mình trên một dự án sẽ tự khoá mình khỏi việc sửa lại chính danh sách đó.
 - **`MembershipsService.removeMember` dọn luôn `ProjectMember`**: xoá một người khỏi tổ chức xoá theo mọi `ProjectMember` của họ trong tổ chức đó (cùng transaction) — nếu không, một người bị mời lại sau ở vai trò thấp hơn sẽ vô tình "hồi sinh" vai trò riêng cũ trên các dự án họ từng có, do `Membership` và `ProjectMember` là hai bảng độc lập không tự động đồng bộ.
+
+#### 2.4.1 Ma trận phân quyền theo vai trò
+
+Vai trò hiệu lực (xem trên) so với các nhóm `@Roles(...)`. Bảng dưới được **kiểm chứng tự động** bởi test tích hợp "Role-based access matrix" (`apps/api/test/integration/api.integration.spec.ts`): mỗi hành động được gọi thật với cả 5 vai trò và một người ngoài tổ chức.
+
+| Hành động | Owner | Admin | PM | Member | Viewer |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Xem mọi thứ trong tổ chức (dự án, công việc, phạm vi, hoạt động, thành viên) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Tạo/sửa/xoá công việc, bình luận, phụ thuộc, cột Kanban | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Rủi ro/vấn đề, tài liệu, artifact | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Tạo/sửa giao phẩm, nộp giao phẩm, sửa từ điển WBS, dùng AI | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Sửa điều lệ, sửa phạm vi, bên liên quan | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Nghiệm thu / từ chối / **xoá** giao phẩm | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Tạo dự án, sửa dự án | ✓ | ✓ | ✓ | ✗ | ✗ |
+| **Phê duyệt** điều lệ và phạm vi | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Mời/đổi vai trò/xoá thành viên, đổi tên tổ chức | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Lưu trữ / khôi phục tổ chức | ✓ | ✗ | ✗ | ✗ | ✗ |
+
+Ghi chú: vai trò dự án (`ProjectMember`) thay thế vai trò tổ chức trong phạm vi dự án đó. Người ngoài tổ chức nhận `403` ở mọi route. Giao diện ẩn/vô hiệu hoá các nút mà vai trò hiện tại không làm được (`usePermissions`, `packages/shared-types/src/common/permissions.ts`), nhưng **API luôn là nơi quyết định** — ẩn nút chỉ là tiện lợi.
 
 ### 2.5 Đồ thị phụ thuộc module (backend)
 
@@ -398,3 +451,36 @@ flowchart LR
 ```
 
 Mỗi job chạy trên một checkout + `pnpm install` độc lập — package nào được build ở job trước **không** mang sang job sau; job nào cần `packages/shared-types` đã build (không qua `next build`/`nest build`, vốn tự cascade qua `turbo`) phải tự build nó trước.
+
+### 4.5 Chuỗi phạm vi PMBOK → sơ đồ liên kết
+
+```mermaid
+flowchart LR
+    CH["Điều lệ"] --> SC["Phạm vi"]
+    SC --> PH["Giai đoạn"]
+    PH --> DL["Giao phẩm<br/>(+ bản ghi nghiệm thu)"]
+    DL --> WP["Gói công việc<br/>(+ từ điển WBS)"]
+    WP --> AC["Hoạt động"]
+    PH --> MS["Mốc"]
+    AC -. "phụ thuộc" .-> AC
+```
+
+`GET /organizations/:org/projects/:key/scope-map` dựng đồ thị này ở server (`scope-map.builder.ts`, hàm thuần, có unit test) từ `Task`, `Deliverable`, `WbsDictionaryEntry`, `TaskDependency`, `ProjectCharter`, `ProjectScope`, và trả thêm **kiểm tra độ phủ**: gói công việc chưa có hoạt động/từ điển, giao phẩm chưa có tiêu chí hoặc bản ghi nghiệm thu, hoạt động không thuộc gói, mốc chưa gắn giao phẩm, mục cha chỉ có một con (quy tắc 100%). Frontend (`features/dashboard/scope-map*.tsx`) chỉ bố cục và vẽ SVG thuần (không thêm thư viện đồ thị); hoạt động được gộp thành bộ đếm cho đến khi mở ra. Khoá query của bản đồ nằm dưới tiền tố `tasks` nên mọi thay đổi công việc tự làm mới nó.
+
+## 5. Bảo mật & các quy tắc đã siết
+
+Kết quả rà soát phân quyền (2026-09-20) và các quy tắc đã đưa vào code + test:
+
+| Vấn đề tìm thấy | Rủi ro | Đã xử lý |
+|---|---|---|
+| Admin có thể **hạ vai trò hoặc xoá Owner** (chỉ chặn khi là Owner cuối cùng) | Admin loại chủ sở hữu khỏi tổ chức | Chỉ Owner mới được đổi/xoá vai trò Owner (`MembershipsService.assertMayGrantOwner`); có unit + integration test. Vai trò Owner không thể cấp qua API (schema loại trừ). |
+| Có thể gán **người ngoài tổ chức** làm người phụ trách/hỗ trợ, chủ giao phẩm, chủ rủi ro, quản lý điều lệ | Lộ tên/ảnh của người dùng tổ chức khác nếu đoán được id; dữ liệu sai | `assertOrgMembers()` (`common/guards/org-members.util.ts`) → `400`. |
+| Member xoá được giao phẩm đã nghiệm thu | Xoá dấu vết nghiệm thu | Xoá giao phẩm chỉ PM trở lên. |
+| Sửa/xoá bản ghi của dự án B qua URL dự án A (rủi ro, tài liệu, bên liên quan, artifact, cột Kanban, công việc, phụ thuộc) — lợi dụng vai trò riêng trên A | Người chỉ là Viewer ở B nhưng là PM ở A có thể sửa dữ liệu B | `ProjectEntityGuard` + `@ProjectEntity(model, param)`: thực thể phải thuộc dự án trong URL, nếu không `404`. Có integration test. |
+| Phạm vi do PM soạn cũng do PM phê duyệt | Không tách người soạn và người duyệt | Phê duyệt phạm vi chỉ Owner/Admin — giống điều lệ. |
+
+Các điểm đã biết, chưa xử lý (ghi nhận để quyết định trước GTM):
+- Mọi thành viên tổ chức (kể cả Viewer) **đọc được mọi dự án** trong tổ chức; chưa có dự án riêng tư.
+- Các route AI theo `taskId` (tóm tắt, gợi ý việc con) chưa ràng buộc công việc thuộc đúng dự án trong URL (chỉ đọc nội dung công việc cùng tổ chức, không ghi).
+- Member xoá được công việc của người khác (nhóm nhỏ chấp nhận được; cần soát nếu bán cho tổ chức lớn).
+- Không có giới hạn tốc độ (rate limit) cho đăng nhập/đăng ký và AI; chưa có xác thực 2 lớp, SSO, hay nhật ký kiểm toán xuất được.

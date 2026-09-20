@@ -79,11 +79,20 @@ export class DependenciesService {
     }
   }
 
-  async remove(organizationId: string, dependencyId: string): Promise<void> {
+  async remove(
+    organizationId: string,
+    dependencyId: string,
+    projectId: string,
+  ): Promise<void> {
     const dep = await this.prisma.db.taskDependency.findUnique({
       where: { id: dependencyId },
+      include: { predecessor: { select: { projectId: true } } },
     });
-    if (!dep || dep.organizationId !== organizationId) {
+    if (
+      !dep ||
+      dep.organizationId !== organizationId ||
+      dep.predecessor.projectId !== projectId
+    ) {
       throw new NotFoundException('Không tìm thấy phụ thuộc');
     }
     await this.prisma.db.taskDependency.delete({ where: { id: dependencyId } });

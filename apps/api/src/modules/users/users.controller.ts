@@ -1,8 +1,9 @@
-import { Body, Controller, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   UpdateUserPreferencesInput,
   updateUserPreferencesSchema,
+  TakenCharacterDto,
   UserDto,
 } from '@pmtool/shared-types';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -15,6 +16,14 @@ import { UsersService } from './users.service';
 @Controller({ path: 'users', version: '1' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('me/taken-characters')
+  async takenCharacters(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ data: TakenCharacterDto[] }> {
+    const taken = await this.usersService.takenCharacters(user.id);
+    return { data: taken as TakenCharacterDto[] };
+  }
 
   @Patch('me/preferences')
   async updatePreferences(

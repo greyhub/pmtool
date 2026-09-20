@@ -90,3 +90,31 @@ describe('UsersService.updatePreferences', () => {
     });
   });
 });
+
+describe('UsersService.takenCharacters', () => {
+  it('lists each character other members use once, with who has it', async () => {
+    const findMany = vi
+      .fn()
+      .mockResolvedValueOnce([{ organizationId: 'org_1' }])
+      .mockResolvedValueOnce([
+        { user: { fullName: 'An', mascotCharacter: 'cat' } },
+        { user: { fullName: 'Bình', mascotCharacter: 'cat' } },
+        { user: { fullName: 'Chi', mascotCharacter: 'bear' } },
+      ]);
+    const service = new UsersService({
+      db: { membership: { findMany } },
+    } as unknown as PrismaService);
+
+    expect(await service.takenCharacters('me')).toEqual([
+      { character: 'cat', takenBy: 'An' },
+      { character: 'bear', takenBy: 'Chi' },
+    ]);
+  });
+
+  it('is empty for a user with no organization', async () => {
+    const service = new UsersService({
+      db: { membership: { findMany: vi.fn().mockResolvedValue([]) } },
+    } as unknown as PrismaService);
+    expect(await service.takenCharacters('me')).toEqual([]);
+  });
+});

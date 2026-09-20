@@ -4,9 +4,22 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRiskIssues, useUpdateRiskIssue } from '@pmtool/api-client';
 import type { RiskIssueDto } from '@pmtool/shared-types';
-import { Avatar, Badge, Button, Card, Select, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from '@pmtool/ui';
 import { RiskTypeBadge, severityVariant } from './risk-badges';
 import { CreateRiskModal } from './create-risk-modal';
+import { usePermissions } from '../projects/use-permissions';
 
 const STATUS_OPTIONS = ['IDENTIFIED', 'ANALYZING', 'MITIGATING', 'RESOLVED', 'CLOSED'] as const;
 
@@ -19,7 +32,9 @@ function StatusSelect({ orgSlug, projectKey, risk }: { orgSlug: string; projectK
       aria-label={t(risk.status)}
       className="h-8 w-auto"
       value={risk.status}
-      onChange={(e) => updateRisk.mutate({ riskId: risk.id, input: { status: e.target.value as RiskIssueDto['status'] } })}
+      onChange={(e) =>
+        updateRisk.mutate({ riskId: risk.id, input: { status: e.target.value as RiskIssueDto['status'] } })
+      }
     >
       {STATUS_OPTIONS.map((s) => (
         <option key={s} value={s}>
@@ -32,6 +47,7 @@ function StatusSelect({ orgSlug, projectKey, risk }: { orgSlug: string; projectK
 
 export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('risks.list');
+  const { canEdit } = usePermissions(orgSlug, projectKey);
   const { data: risks, isLoading } = useRiskIssues(orgSlug, projectKey);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -42,7 +58,7 @@ export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey
           <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>{t('create')}</Button>
+        {canEdit && <Button onClick={() => setCreateOpen(true)}>{t('create')}</Button>}
       </div>
 
       <Card className="mt-6">
@@ -86,7 +102,11 @@ export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey
                     )}
                   </TableCell>
                   <TableCell>
-                    {risk.dueDate ? new Date(risk.dueDate).toLocaleDateString() : <span className="text-ink-muted">—</span>}
+                    {risk.dueDate ? (
+                      new Date(risk.dueDate).toLocaleDateString()
+                    ) : (
+                      <span className="text-ink-muted">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -97,7 +117,12 @@ export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey
         )}
       </Card>
 
-      <CreateRiskModal orgSlug={orgSlug} projectKey={projectKey} open={createOpen} onClose={() => setCreateOpen(false)} />
+      <CreateRiskModal
+        orgSlug={orgSlug}
+        projectKey={projectKey}
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+      />
     </div>
   );
 }

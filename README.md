@@ -2,9 +2,9 @@
 
 Ứng dụng quản lý dự án chuẩn PMP — multi-tenant SaaS, thiết kế tối giản/hiện đại (chủ đạo vàng, phụ xám), sáng/tối, song ngữ Việt/Anh.
 
-Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi), **Phase 2** (gamification + AI), **Phase 3** (tích hợp Telegram), **Phase 4a** (Điều lệ dự án, Các bên liên quan, Danh mục tài liệu — theo chuẩn PMBOK), **Artifact** (trang HTML/CSS/JS tự viết, render trực tiếp trong iframe cách ly) và **Quản lý Tổ chức & Dự án** (CRUD + lưu trữ, phân quyền hai lớp: vai trò tổ chức + vai trò riêng theo từng dự án). Google Calendar/Drive và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
+Đã hoàn thành **Phase 1** (nền tảng + quản lý dự án cốt lõi), **Phase 2** (gamification + AI), **Phase 3** (tích hợp Telegram), **Phase 4a** (Điều lệ dự án, Các bên liên quan, Danh mục tài liệu — theo chuẩn PMBOK), **Artifact** (trang HTML/CSS/JS tự viết, render trực tiếp trong iframe cách ly) và **Quản lý Tổ chức & Dự án** (CRUD + lưu trữ, phân quyền hai lớp: vai trò tổ chức + vai trò riêng theo từng dự án). Sau đó bổ sung **giao phẩm & mốc**, **khung phạm vi PMBOK** (Phạm vi, WBS, từ điển WBS, sơ đồ liên kết trên dashboard), nhiệm vụ ngày/tuần và rà soát phân quyền. Google Calendar/Drive và các hạng mục thương mại hoá (billing, SSO, ...) thuộc các phase sau — xem [Lộ trình](#lộ-trình) bên dưới.
 
-Tài liệu này dành cho phát triển/vận hành. Hướng dẫn sử dụng cho người dùng cuối (mô tả tính năng, cách thao tác) nằm ở [docs/huong-dan-su-dung.md](docs/huong-dan-su-dung.md); kiến trúc nghiệp vụ/hệ thống, tech stack và luồng dữ liệu chi tiết (kèm sơ đồ) nằm ở [docs/kien-truc.md](docs/kien-truc.md).
+Tài liệu này dành cho phát triển/vận hành. Hướng dẫn sử dụng cho người dùng cuối (mô tả tính năng, cách thao tác) nằm ở [docs/huong-dan-su-dung.md](docs/huong-dan-su-dung.md); kiến trúc nghiệp vụ/hệ thống, tech stack, ma trận phân quyền và luồng dữ liệu chi tiết (kèm sơ đồ) nằm ở [docs/kien-truc.md](docs/kien-truc.md). Ngoài ra: [hành trình người dùng](docs/hanh-trinh-nguoi-dung.md), [báo cáo kiểm thử](docs/kiem-thu.md) và [kế hoạch GTM](docs/gtm.md).
 
 ## Kiến trúc
 
@@ -69,6 +69,14 @@ infra/            docker-compose cho Postgres + Redis (dev)
 - **Tổ chức**: trang "Cài đặt tổ chức" — sửa tên, quản lý thành viên (đổi vai trò, xoá, luôn giữ ít nhất một Owner), mời thành viên (link chấp nhận lời mời dùng một lần, hạn 7 ngày, vì chưa có gửi email tự động), lưu trữ/bỏ lưu trữ tổ chức (chặn tạo dự án + mời thành viên mới, không khoá các thao tác khác)
 - **Dự án**: tab "Cài đặt" — sửa thông tin, lưu trữ qua trường trạng thái, và **vai trò riêng theo từng dự án**: gán cho một thành viên tổ chức một vai trò khác (cao hơn hoặc thấp hơn) so với vai trò tổ chức, chỉ áp dụng trong phạm vi một dự án cụ thể — ví dụ một Member tổ chức có thể là PM chỉ trên một dự án, hoặc một PM bị hạn xuống Viewer trên một dự án nhạy cảm
 - Cơ chế: `ProjectRolesGuard` tính "vai trò hiệu lực" cho mỗi request trong phạm vi dự án (ưu tiên `ProjectMember.role` nếu có, mặc định về vai trò tổ chức nếu không) — hành vi mặc định không đổi cho ai chưa từng được gán vai trò riêng. Chi tiết cơ chế + các quyết định thiết kế (tránh tự khoá bản thân, dọn vai trò riêng cũ khi xoá khỏi tổ chức): [docs/kien-truc.md §2.4](docs/kien-truc.md#24-hai-lớp-phân-quyền-tổ-chức-và-dự-án)
+
+**Giao phẩm, mốc & khung phạm vi PMBOK:**
+- **Giao phẩm (Deliverable)** với vòng đời nộp → nghiệm thu/từ chối có lý do (PM trở lên duyệt), gắn tuỳ chọn với công việc hoặc mốc; **Mốc** là công việc được đánh dấu (hạn bắt buộc, hiển thị hình thoi trên Gantt)
+- **Phạm vi dự án** (phê duyệt tách người soạn/người duyệt), **WBS** 4 cấp (Giai đoạn › Giao phẩm › Gói công việc › Hoạt động, mã WBS tự sinh, quy tắc thứ bậc), **từ điển WBS** cho từng phần tử
+- **Sơ đồ liên kết PMBOK** trên dashboard dự án (Điều lệ → Phạm vi → WBS → Giao phẩm → Gói công việc → Hoạt động → Mốc) kèm **kiểm tra độ phủ** chỉ ra khoảng trống
+- **Trải nghiệm công việc:** lọc/sắp xếp/nhóm, đổi trạng thái tại dòng, chuyển việc trước/sau (`j`/`k`), lịch sử thay đổi từng việc, một người phụ trách + nhiều người hỗ trợ, % hoàn thành trên Gantt
+- **Gắn kết:** nhiệm vụ ngày/tuần, nhân vật đồng hành (mỗi nhân vật một người trong tổ chức, nhân vật đã bị chọn bị làm mờ)
+- **Phân quyền đã rà soát:** ma trận vai trò được kiểm chứng tự động; chặn Admin hạ/xoá Owner; chỉ chọn được người trong tổ chức làm người phụ trách/chủ sở hữu; bản ghi của dự án khác không truy cập được qua URL dự án này ([docs/kien-truc.md §2.4.1, §5](docs/kien-truc.md#241-ma-trận-phân-quyền-theo-vai-trò))
 
 ## Yêu cầu môi trường
 
@@ -140,5 +148,5 @@ pnpm exec turbo run build lint typecheck test
 
 Chưa thiết kế/xây dựng, dự kiến ở các phase sau:
 
-- **Phase 4b** — Milestones/RACI thật (tận dụng Task/TaskAssignee thay vì nhập tay), Change Request Log, Lessons Learned Register, EVM/cost tracking, resource capacity planning, procurement.
+- **Phase 4b** — RACI, Change Request Log + baseline phạm vi, Lessons Learned Register, EVM/cost tracking, resource capacity planning, procurement.
 - **Phase 5** — Tích hợp Google Calendar, Google Drive (OAuth2 per-organization, mã hoá credential khi lưu trữ), billing/subscription (Stripe), giới hạn theo gói, SSO (SAML/OIDC), Postgres RLS (defense-in-depth), rate limiting, observability.

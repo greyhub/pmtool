@@ -32,6 +32,8 @@ import {
 } from '../../common/decorators/current-org.decorator';
 import { CurrentProject } from '../../common/decorators/current-project.decorator';
 import { toStakeholderDto } from './stakeholder.mapper';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 
 const CAN_EDIT_STAKEHOLDERS = ['OWNER', 'ADMIN', 'PM'] as const;
 
@@ -40,7 +42,7 @@ const CAN_EDIT_STAKEHOLDERS = ['OWNER', 'ADMIN', 'PM'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey/stakeholders',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard)
+@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectEntityGuard)
 export class StakeholdersController {
   constructor(private readonly stakeholdersService: StakeholdersService) {}
 
@@ -77,6 +79,7 @@ export class StakeholdersController {
   }
 
   @Patch(':stakeholderId')
+  @ProjectEntity('stakeholder', 'stakeholderId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_STAKEHOLDERS)
   @LogActivity('Stakeholder', 'updated')
@@ -95,6 +98,7 @@ export class StakeholdersController {
   }
 
   @Delete(':stakeholderId')
+  @ProjectEntity('stakeholder', 'stakeholderId')
   @UseGuards(ProjectRolesGuard)
   @Roles(...CAN_EDIT_STAKEHOLDERS)
   @LogActivity('Stakeholder', 'deleted', 'stakeholderId')

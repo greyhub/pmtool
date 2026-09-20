@@ -20,6 +20,7 @@ import {
 } from './task-filters';
 import { NlTaskModal } from '../ai/nl-task-modal';
 import { SuggestionsModal } from '../ai/suggestions-modal';
+import { usePermissions } from '../projects/use-permissions';
 
 export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('tasks.list');
@@ -27,6 +28,7 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
   const tAi = useTranslations('ai.nlCreate');
   const { data: tasks, isLoading } = useTasks(orgSlug, projectKey);
   const { data: me } = useMe();
+  const { canEdit } = usePermissions(orgSlug, projectKey);
   const [createOpen, setCreateOpen] = useState(false);
   const [nlCreateOpen, setNlCreateOpen] = useState(false);
   const [nlSuggestions, setNlSuggestions] = useState<TaskSuggestionDto[] | null>(null);
@@ -61,10 +63,14 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-ink-primary">{t('title')}</h2>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setNlCreateOpen(true)}>
-            {tAi('trigger')}
-          </Button>
-          <Button onClick={() => setCreateOpen(true)}>{t('create')}</Button>
+          {canEdit && (
+            <>
+              <Button variant="outline" onClick={() => setNlCreateOpen(true)}>
+                {tAi('trigger')}
+              </Button>
+              <Button onClick={() => setCreateOpen(true)}>{t('create')}</Button>
+            </>
+          )}
         </div>
       </div>
 

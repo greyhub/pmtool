@@ -70,8 +70,13 @@ export class DependenciesController {
   @Roles('OWNER', 'ADMIN', 'PM', 'MEMBER')
   async remove(
     @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentProject() project: Project,
     @Param('dependencyId') dependencyId: string,
   ): Promise<void> {
-    await this.dependenciesService.remove(ctx.organization.id, dependencyId);
+    await this.dependenciesService.remove(
+      ctx.organization.id,
+      dependencyId,
+      project.id,
+    );
   }
 }

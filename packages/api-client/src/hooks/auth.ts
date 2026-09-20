@@ -1,10 +1,18 @@
 import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import type { AuthTokens, LoginInput, RegisterInput, UpdateUserPreferencesInput, UserDto } from '@pmtool/shared-types';
+import type {
+  AuthTokens,
+  LoginInput,
+  RegisterInput,
+  TakenCharacterDto,
+  UpdateUserPreferencesInput,
+  UserDto,
+} from '@pmtool/shared-types';
 import { apiRequest, refreshSession } from '../http-client';
 import { setAccessToken } from '../access-token-store';
 
 export const authKeys = {
   me: ['auth', 'me'] as const,
+  takenCharacters: ['auth', 'taken-characters'] as const,
 };
 
 async function afterAuth(tokens: AuthTokens): Promise<AuthTokens> {
@@ -73,6 +81,14 @@ export function useUpdatePreferences() {
       apiRequest<UserDto>('/api/v1/users/me/preferences', { method: 'PATCH', body: input }),
     onSuccess: (user) => {
       queryClient.setQueryData(authKeys.me, user);
+      queryClient.invalidateQueries({ queryKey: authKeys.takenCharacters });
     },
+  });
+}
+
+export function useTakenCharacters() {
+  return useQuery({
+    queryKey: authKeys.takenCharacters,
+    queryFn: () => apiRequest<TakenCharacterDto[]>('/api/v1/users/me/taken-characters'),
   });
 }

@@ -1,9 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import {
-  canContain,
-  defaultChildType,
-  WbsNodeType,
-} from '@pmtool/shared-types';
+import { canContain, WbsNodeType } from '@pmtool/shared-types';
 
 const LABEL: Record<WbsNodeType, string> = {
   PHASE: 'Giai đoạn',

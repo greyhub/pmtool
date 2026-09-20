@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useApproveCharter, useCharter, useOrganizationMembers, useUpsertCharter, ApiError } from '@pmtool/api-client';
 import { Badge, Button, Card, FormField, Input, Select } from '@pmtool/ui';
+import { usePermissions } from '../projects/use-permissions';
 
 const TEXTAREA_CLASS =
   'mt-0 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus';
@@ -18,7 +19,7 @@ interface FormState {
   constraints: string;
   sponsorName: string;
   projectManagerId: string;
-};
+}
 
 const EMPTY_FORM: FormState = {
   purpose: '',
@@ -38,6 +39,7 @@ export function CharterView({ orgSlug, projectKey }: { orgSlug: string; projectK
   const { data: members } = useOrganizationMembers(orgSlug);
   const upsertCharter = useUpsertCharter(orgSlug, projectKey);
   const approveCharter = useApproveCharter(orgSlug, projectKey);
+  const { canManage, canSponsor } = usePermissions(orgSlug, projectKey);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   useEffect(() => {
@@ -104,71 +106,75 @@ export function CharterView({ orgSlug, projectKey }: { orgSlug: string; projectK
         </Card>
       )}
 
-      <Card className="mt-6 flex flex-col gap-5 p-6">
-        <FormField label={t('purpose')} htmlFor="charter-purpose" hint={t('purposeHint')}>
-          <textarea id="charter-purpose" rows={4} className={TEXTAREA_CLASS} {...field('purpose')} />
-        </FormField>
-
-        <FormField label={t('objectives')} htmlFor="charter-objectives" hint={t('objectivesHint')}>
-          <textarea id="charter-objectives" rows={4} className={TEXTAREA_CLASS} {...field('objectives')} />
-        </FormField>
-
-        <FormField label={t('scopeSummary')} htmlFor="charter-scope" hint={t('scopeSummaryHint')}>
-          <textarea id="charter-scope" rows={4} className={TEXTAREA_CLASS} {...field('scopeSummary')} />
-        </FormField>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label={t('milestonesSummary')} htmlFor="charter-milestones">
-            <textarea id="charter-milestones" rows={3} className={TEXTAREA_CLASS} {...field('milestonesSummary')} />
+      <Card className="mt-6 p-6">
+        <fieldset disabled={!canManage} className="flex min-w-0 flex-col gap-5 border-0 p-0">
+          <FormField label={t('purpose')} htmlFor="charter-purpose" hint={t('purposeHint')}>
+            <textarea id="charter-purpose" rows={4} className={TEXTAREA_CLASS} {...field('purpose')} />
           </FormField>
-          <FormField label={t('budgetSummary')} htmlFor="charter-budget">
-            <Input id="charter-budget" {...field('budgetSummary')} />
-          </FormField>
-        </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label={t('assumptions')} htmlFor="charter-assumptions">
-            <textarea id="charter-assumptions" rows={3} className={TEXTAREA_CLASS} {...field('assumptions')} />
+          <FormField label={t('objectives')} htmlFor="charter-objectives" hint={t('objectivesHint')}>
+            <textarea id="charter-objectives" rows={4} className={TEXTAREA_CLASS} {...field('objectives')} />
           </FormField>
-          <FormField label={t('constraints')} htmlFor="charter-constraints">
-            <textarea id="charter-constraints" rows={3} className={TEXTAREA_CLASS} {...field('constraints')} />
-          </FormField>
-        </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label={t('sponsorName')} htmlFor="charter-sponsor">
-            <Input id="charter-sponsor" {...field('sponsorName')} />
+          <FormField label={t('scopeSummary')} htmlFor="charter-scope" hint={t('scopeSummaryHint')}>
+            <textarea id="charter-scope" rows={4} className={TEXTAREA_CLASS} {...field('scopeSummary')} />
           </FormField>
-          <FormField label={t('projectManager')} htmlFor="charter-pm">
-            <Select id="charter-pm" {...field('projectManagerId')}>
-              <option value="">{t('projectManagerNone')}</option>
-              {(members ?? []).map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.user?.fullName}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-        </div>
 
-        {(upsertCharter.isError || approveCharter.isError) && (
-          <p role="alert" className="text-sm text-danger">
-            {(upsertCharter.error ?? approveCharter.error) instanceof ApiError
-              ? (upsertCharter.error ?? approveCharter.error)?.message
-              : 'Có lỗi xảy ra'}
-          </p>
-        )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label={t('milestonesSummary')} htmlFor="charter-milestones">
+              <textarea id="charter-milestones" rows={3} className={TEXTAREA_CLASS} {...field('milestonesSummary')} />
+            </FormField>
+            <FormField label={t('budgetSummary')} htmlFor="charter-budget">
+              <Input id="charter-budget" {...field('budgetSummary')} />
+            </FormField>
+          </div>
 
-        <div className="flex justify-end gap-3">
-          {charter?.status === 'DRAFT' && (
-            <Button variant="outline" disabled={approveCharter.isPending} onClick={() => approveCharter.mutate()}>
-              {t('approve')}
-            </Button>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label={t('assumptions')} htmlFor="charter-assumptions">
+              <textarea id="charter-assumptions" rows={3} className={TEXTAREA_CLASS} {...field('assumptions')} />
+            </FormField>
+            <FormField label={t('constraints')} htmlFor="charter-constraints">
+              <textarea id="charter-constraints" rows={3} className={TEXTAREA_CLASS} {...field('constraints')} />
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label={t('sponsorName')} htmlFor="charter-sponsor">
+              <Input id="charter-sponsor" {...field('sponsorName')} />
+            </FormField>
+            <FormField label={t('projectManager')} htmlFor="charter-pm">
+              <Select id="charter-pm" {...field('projectManagerId')}>
+                <option value="">{t('projectManagerNone')}</option>
+                {(members ?? []).map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.user?.fullName}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+          </div>
+
+          {(upsertCharter.isError || approveCharter.isError) && (
+            <p role="alert" className="text-sm text-danger">
+              {(upsertCharter.error ?? approveCharter.error) instanceof ApiError
+                ? (upsertCharter.error ?? approveCharter.error)?.message
+                : 'Có lỗi xảy ra'}
+            </p>
           )}
-          <Button disabled={upsertCharter.isPending} onClick={handleSave}>
-            {t('save')}
-          </Button>
-        </div>
+
+          {canManage && (
+            <div className="flex justify-end gap-3">
+              {canSponsor && charter?.status === 'DRAFT' && (
+                <Button variant="outline" disabled={approveCharter.isPending} onClick={() => approveCharter.mutate()}>
+                  {t('approve')}
+                </Button>
+              )}
+              <Button disabled={upsertCharter.isPending} onClick={handleSave}>
+                {t('save')}
+              </Button>
+            </div>
+          )}
+        </fieldset>
       </Card>
     </div>
   );

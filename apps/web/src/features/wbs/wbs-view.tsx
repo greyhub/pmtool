@@ -14,6 +14,7 @@ import {
 import { Button, Card, Input, Select } from '@pmtool/ui';
 import { NodeTypeBadge } from './node-type-badge';
 import { WbsDictionaryPanel } from './wbs-dictionary-panel';
+import { usePermissions } from '../projects/use-permissions';
 
 interface Row {
   task: TaskDto;
@@ -52,6 +53,7 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
   const tHelp = useTranslations('tasks.nodeTypeHelp');
   const { data: tasks, isLoading } = useTasks(orgSlug, projectKey);
   const createTask = useCreateTask(orgSlug, projectKey);
+  const { canEdit } = usePermissions(orgSlug, projectKey);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // `null` parent = adding a root; undefined = the add form is closed.
@@ -160,9 +162,11 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
           <Button variant="outline" size="sm" onClick={() => setExpanded(new Set())}>
             {t('collapseAll')}
           </Button>
-          <Button size="sm" onClick={() => startAdd(null)}>
-            {t('addRoot')}
-          </Button>
+          {canEdit && (
+            <Button size="sm" onClick={() => startAdd(null)}>
+              {t('addRoot')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -175,7 +179,7 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
               {addForm(null, 0)}
               {rows.map(({ task, code, depth, hasChildren }) => {
                 const isOpen = expanded.has(task.id);
-                const canAdd = legalChildTypes(task.nodeType).length > 0;
+                const canAdd = canEdit && legalChildTypes(task.nodeType).length > 0;
                 return (
                   <li key={task.id}>
                     <div
