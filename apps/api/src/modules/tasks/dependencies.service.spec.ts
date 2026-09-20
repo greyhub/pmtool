@@ -1,4 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { DependenciesService } from './dependencies.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -26,6 +27,28 @@ describe('DependenciesService.create', () => {
       },
     };
     service = new DependenciesService(prisma as unknown as PrismaService);
+  });
+
+  it('answers 409, not 500, when the same dependency already exists', async () => {
+    prisma.db.task.findUnique
+      .mockResolvedValueOnce(task('a'))
+      .mockResolvedValueOnce(task('b'));
+    prisma.db.taskDependency.findMany.mockResolvedValue([]);
+    prisma.db.taskDependency.create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+
+    await expect(
+      service.create('org_1', 'proj_1', {
+        predecessorId: 'a',
+        successorId: 'b',
+        type: 'FINISH_TO_START',
+        lagDays: 0,
+      }),
+    ).rejects.toThrow(ConflictException);
   });
 
   it('rejects a dependency where the predecessor belongs to a different project', async () => {

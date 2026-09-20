@@ -1,9 +1,10 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { TaskDependency } from '@prisma/client';
+import { Prisma, TaskDependency } from '@prisma/client';
 import { CreateDependencyInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -56,15 +57,26 @@ export class DependenciesService {
       );
     }
 
-    return this.prisma.db.taskDependency.create({
-      data: {
-        organizationId,
-        predecessorId: input.predecessorId,
-        successorId: input.successorId,
-        type: input.type,
-        lagDays: input.lagDays,
-      },
-    });
+    try {
+      return await this.prisma.db.taskDependency.create({
+        data: {
+          organizationId,
+          predecessorId: input.predecessorId,
+          successorId: input.successorId,
+          type: input.type,
+          lagDays: input.lagDays,
+        },
+      });
+    } catch (e) {
+      // Unique (predecessor, successor) pair already exists.
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new ConflictException('Phụ thuộc này đã tồn tại');
+      }
+      throw e;
+    }
   }
 
   async remove(organizationId: string, dependencyId: string): Promise<void> {
