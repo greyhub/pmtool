@@ -256,6 +256,7 @@
       "descriptionPlaceholder": "Add a detailed description for this task...",
       "status": "Status",
       "priority": "Priority",
+      "percentComplete": "% complete",
       "assignees": "Assignees",
       "noAssignees": "No assignees yet",
       "subtasks": "Subtasks",
@@ -374,6 +375,26 @@
       "TEAM_PLAYER": {
         "name": "Team player",
         "description": "Posted 20 comments"
+      }
+    },
+    "quests": {
+      "title": "My quests",
+      "completed": "Completed",
+      "DAILY_DUE_TASKS": {
+        "name": "Clear today's list",
+        "description": "Finish every task due today"
+      },
+      "WEEKLY_DUE_TASKS": {
+        "name": "Clear this week's list",
+        "description": "Finish every task due this week"
+      },
+      "DAILY_PROGRESS_UPDATE": {
+        "name": "Update progress",
+        "description": "Update the % complete on at least 1 task today"
+      },
+      "DAILY_LOGIN": {
+        "name": "Check in",
+        "description": "Log in today"
       }
     }
   },

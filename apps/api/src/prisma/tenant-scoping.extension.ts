@@ -20,6 +20,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'ActivityLog',
   'UserScore',
   'UserBadge',
+  'UserQuestProgress',
   'ProjectCharter',
   'Stakeholder',
   'ProjectDocument',

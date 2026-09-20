@@ -21,6 +21,7 @@ export const updateTaskSchema = z.object({
   startDate: z.string().datetime().nullable().optional(),
   dueDate: z.string().datetime().nullable().optional(),
   estimateHours: z.number().min(0).max(10_000).nullable().optional(),
+  percentComplete: z.number().int().min(0).max(100).optional(),
   assigneeIds: z.array(z.string()).optional(),
 });
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
@@ -52,6 +53,7 @@ export const taskSchema = z.object({
   startDate: z.string().nullable(),
   dueDate: z.string().nullable(),
   estimateHours: z.number().nullable(),
+  percentComplete: z.number(),
   orderIndex: z.number(),
   boardColumnId: z.string().nullable(),
   createdById: z.string(),

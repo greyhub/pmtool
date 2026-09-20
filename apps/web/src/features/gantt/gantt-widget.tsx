@@ -119,6 +119,7 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
         parent: task.parentTaskId ?? undefined,
         type,
         barColor: STATUS_BAR_COLOR[task.status],
+        progress: task.percentComplete,
         assignees: toAssignees(task),
       };
     });

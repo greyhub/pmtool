@@ -49,6 +49,7 @@ model User {
   activityLogs          ActivityLog[]
   userScores            UserScore[]
   userBadges            UserBadge[]
+  userQuestProgress     UserQuestProgress[]
   telegramLinkCodes     TelegramLinkCode[]
   managedCharters       ProjectCharter[]   @relation("CharterProjectManager")
   approvedCharters      ProjectCharter[]   @relation("CharterApprover")
@@ -79,6 +80,7 @@ model Organization {
   activityLogs     ActivityLog[]
   userScores       UserScore[]
   userBadges       UserBadge[]
+  userQuestProgress UserQuestProgress[]
   projectCharters  ProjectCharter[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
@@ -218,6 +220,7 @@ model Task {
   startDate              DateTime?
   dueDate                DateTime?
   estimateHours          Float?
+  percentComplete        Int          @default(0) // 0-100, manually set — not derived from status/subtasks
   orderIndex             Float // fractional index for drag-reorder within a WBS level/board column
   boardColumnId          String?
   createdById            String
@@ -577,6 +580,28 @@ model UserBadge {
 
   @@unique([organizationId, userId, badgeKey])
   @@map("user_badges")
+}
+
+/// Per-period (day/week) progress toward a fixed, code-defined quest — see
+/// QUEST_KEYS in shared-types. periodKey is a VN-calendar date key ("YYYY-MM-DD")
+/// for daily quests, or that same format for the Monday of the ISO week for
+/// weekly quests; a new row per period is the reset mechanism (no cron needed).
+model UserQuestProgress {
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String
+  questKey       String
+  periodKey      String
+  progressCount  Int       @default(0)
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, questKey, periodKey])
+  @@map("user_quest_progress")
 }
 
 /// Short-lived, hashed, single-use code linking a Telegram chat to a User —

@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { AuthTokens, LoginInput, RegisterInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { GamificationService } from '../gamification/gamification.service';
 import { EnvConfig } from '../../config/env.schema';
 import { AccessTokenPayload } from './token.types';
 import { generateRefreshToken, hashRefreshToken } from './refresh-token.util';
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<EnvConfig, true>,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async register(
@@ -63,6 +65,8 @@ export class AuthService {
     if (!passwordValid) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
+
+    await this.gamificationService.recordLogin(user.id);
 
     return this.issueSession(user.id, user.email, userAgent);
   }

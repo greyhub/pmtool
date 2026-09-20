@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { GamificationService } from '../gamification/gamification.service';
 import { hashRefreshToken } from './refresh-token.util';
 
 function makeConfigService(): ConfigService {
@@ -63,6 +64,7 @@ describe('AuthService.refresh', () => {
       prisma as unknown as PrismaService,
       jwtService,
       makeConfigService() as never,
+      { recordLogin: vi.fn() } as unknown as GamificationService,
     );
   });
 

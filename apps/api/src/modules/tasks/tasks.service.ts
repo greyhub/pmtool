@@ -188,6 +188,7 @@ export class TasksService {
           telegramReminderSentAt:
             input.dueDate === undefined ? undefined : null,
           estimateHours: input.estimateHours,
+          percentComplete: input.percentComplete,
         },
         include: TASK_INCLUDE,
       });
@@ -199,6 +200,16 @@ export class TasksService {
         actingUserId,
         10,
         'task_completed',
+      );
+    }
+
+    if (
+      input.percentComplete !== undefined &&
+      input.percentComplete !== existing.percentComplete
+    ) {
+      await this.gamificationService.recordProgressUpdate(
+        organizationId,
+        actingUserId,
       );
     }
 

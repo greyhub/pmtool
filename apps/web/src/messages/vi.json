@@ -256,6 +256,7 @@
       "descriptionPlaceholder": "Thêm mô tả chi tiết cho công việc này...",
       "status": "Trạng thái",
       "priority": "Độ ưu tiên",
+      "percentComplete": "% hoàn thành",
       "assignees": "Người phụ trách",
       "noAssignees": "Chưa có người phụ trách",
       "subtasks": "Công việc con",
@@ -374,6 +375,26 @@
       "TEAM_PLAYER": {
         "name": "Đồng đội tích cực",
         "description": "Viết 20 bình luận"
+      }
+    },
+    "quests": {
+      "title": "Nhiệm vụ của tôi",
+      "completed": "Đã hoàn thành",
+      "DAILY_DUE_TASKS": {
+        "name": "Xong việc hôm nay",
+        "description": "Hoàn thành mọi công việc đến hạn hôm nay"
+      },
+      "WEEKLY_DUE_TASKS": {
+        "name": "Xong việc tuần này",
+        "description": "Hoàn thành mọi công việc đến hạn trong tuần này"
+      },
+      "DAILY_PROGRESS_UPDATE": {
+        "name": "Cập nhật tiến độ",
+        "description": "Cập nhật % hoàn thành ít nhất 1 công việc hôm nay"
+      },
+      "DAILY_LOGIN": {
+        "name": "Điểm danh",
+        "description": "Đăng nhập hôm nay"
       }
     }
   },

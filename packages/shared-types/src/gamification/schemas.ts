@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BADGE_KEYS } from '../common/enums';
+import { BADGE_KEYS, QUEST_KEYS, QUEST_SCOPES } from '../common/enums';
 
 export const leaderboardEntrySchema = z.object({
   userId: z.string(),
@@ -24,3 +24,13 @@ export const myGamificationStatsSchema = z.object({
   badges: z.array(earnedBadgeSchema),
 });
 export type MyGamificationStatsDto = z.infer<typeof myGamificationStatsSchema>;
+
+export const questSchema = z.object({
+  questKey: z.enum(QUEST_KEYS),
+  scope: z.enum(QUEST_SCOPES),
+  progress: z.number(),
+  target: z.number(),
+  points: z.number(),
+  completed: z.boolean(),
+});
+export type QuestDto = z.infer<typeof questSchema>;

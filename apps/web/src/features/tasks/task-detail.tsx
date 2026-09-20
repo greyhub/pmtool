@@ -38,6 +38,7 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
   const suggestSubtasks = useSuggestSubtasks(orgSlug, projectKey);
 
   const [description, setDescription] = useState('');
+  const [percentComplete, setPercentComplete] = useState('0');
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [subtaskSuggestions, setSubtaskSuggestions] = useState<TaskSuggestionDto[] | null>(null);
@@ -45,6 +46,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
   useEffect(() => {
     setDescription(task?.description ?? '');
   }, [task?.description]);
+
+  useEffect(() => {
+    setPercentComplete(String(task?.percentComplete ?? 0));
+  }, [task?.percentComplete]);
 
   if (!task) return null;
 
@@ -193,6 +198,31 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
               </Select>
               <div className="mt-2">
                 <TaskPriorityBadge priority={task.priority} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-ink-secondary">{t('percentComplete')}</h3>
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={percentComplete}
+                  onChange={(e) => setPercentComplete(e.target.value)}
+                  onBlur={() => {
+                    const clamped = Math.min(100, Math.max(0, Math.round(Number(percentComplete) || 0)));
+                    if (clamped !== task.percentComplete) {
+                      updateTask.mutate({ percentComplete: clamped });
+                    }
+                    setPercentComplete(String(clamped));
+                  }}
+                  className="w-20 rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                />
+                <span className="text-sm text-ink-secondary">%</span>
+              </div>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-subtle">
+                <div className="h-full rounded-full bg-action-primary" style={{ width: `${task.percentComplete}%` }} />
               </div>
             </div>
 

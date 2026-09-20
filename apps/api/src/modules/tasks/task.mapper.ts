@@ -23,6 +23,7 @@ export function toTaskDto(task: TaskWithRelations): TaskDto {
     startDate: task.startDate?.toISOString() ?? null,
     dueDate: task.dueDate?.toISOString() ?? null,
     estimateHours: task.estimateHours,
+    percentComplete: task.percentComplete,
     orderIndex: task.orderIndex,
     boardColumnId: task.boardColumnId,
     createdById: task.createdById,

@@ -257,6 +257,128 @@ describe('Gamification', () => {
   });
 });
 
+describe('Quests', () => {
+  it('completes the due-today, due-this-week, and progress-update quests, then the login quest, awarding each bonus exactly once', async () => {
+    const owner = await registerUser('Quests Owner');
+    const org = await createOrg(owner.accessToken, 'Quests Org');
+    const project = await createProject(owner.accessToken, org.slug, 'QST');
+    const ownerId = await getUserId(owner.email);
+
+    const createTaskRes = await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      // Due "right now" so it always lands inside both today's and this
+      // week's VN-calendar window, regardless of what time this runs.
+      .send({
+        title: 'Due today task',
+        dueDate: new Date().toISOString(),
+        assigneeIds: [ownerId],
+      })
+      .expect(201);
+    const taskId = createTaskRes.body.data.id;
+
+    await request(app.getHttpServer())
+      .patch(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks/${taskId}`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ percentComplete: 50 })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data.percentComplete).toBe(50);
+      });
+
+    await request(app.getHttpServer())
+      .patch(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks/${taskId}`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ status: 'DONE' })
+      .expect(200);
+
+    const questsRes = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/quests`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    const byKey = (key: string) =>
+      questsRes.body.data.find((q: { questKey: string }) => q.questKey === key);
+    expect(byKey('DAILY_DUE_TASKS')).toMatchObject({
+      progress: 1,
+      target: 1,
+      completed: true,
+      points: 15,
+    });
+    expect(byKey('WEEKLY_DUE_TASKS')).toMatchObject({
+      progress: 1,
+      target: 1,
+      completed: true,
+      points: 30,
+    });
+    expect(byKey('DAILY_PROGRESS_UPDATE')).toMatchObject({
+      progress: 1,
+      target: 1,
+      completed: true,
+      points: 5,
+    });
+    expect(byKey('DAILY_LOGIN')).toMatchObject({ completed: false });
+
+    // 5 (task_created) + 5 (progress update) + 10 (task_completed) + 15 (daily due) + 30 (weekly due)
+    let leaderboard = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/leaderboard`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(leaderboard.body.data[0].totalPoints).toBe(65);
+
+    // Logging in (not registering — the account already exists) triggers the login quest.
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: owner.email, password: 'Password123' })
+      .expect(200);
+
+    leaderboard = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/leaderboard`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(leaderboard.body.data[0].totalPoints).toBe(70); // +5 DAILY_LOGIN
+
+    // A second login the same day, and a second quests read, must not double-award anything.
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: owner.email, password: 'Password123' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/quests`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    leaderboard = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/leaderboard`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(leaderboard.body.data[0].totalPoints).toBe(70);
+  });
+
+  it('omits the due-today quest when nothing is due today', async () => {
+    const owner = await registerUser('No Quests Owner');
+    const org = await createOrg(owner.accessToken, 'No Quests Org');
+
+    const res = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/quests`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    const keys = res.body.data.map((q: { questKey: string }) => q.questKey);
+    expect(keys).not.toContain('DAILY_DUE_TASKS');
+    expect(keys).not.toContain('WEEKLY_DUE_TASKS');
+    expect(keys).toEqual(
+      expect.arrayContaining(['DAILY_LOGIN', 'DAILY_PROGRESS_UPDATE']),
+    );
+  });
+});
+
 describe('User preferences', () => {
   it('defaults mascotCharacter to fox, and PATCH persists a new selection', async () => {
     const user = await registerUser('Preferences User');

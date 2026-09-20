@@ -158,6 +158,18 @@ PMTool thưởng điểm hoạt động để khuyến khích cập nhật tiế
 - **Huy hiệu:** Khởi đầu (công việc đầu tiên), Kiên trì 7 ngày, Bền bỉ 30 ngày, Người giải quyết rủi ro (5 rủi ro/vấn đề), Cỗ máy công việc (50 công việc hoàn thành), Đồng đội tích cực (20 bình luận).
 - **Bảng xếp hạng** (menu trái): xếp hạng thành viên trong tổ chức theo tổng điểm.
 
+**Nhiệm vụ ngày/tuần** — khối "Nhiệm vụ của tôi" ở đầu trang Bảng xếp hạng, mỗi nhiệm vụ hoàn thành được cộng điểm thưởng đúng một lần cho mỗi ngày/tuần (giờ Việt Nam; tuần tính từ Thứ Hai):
+
+| Nhiệm vụ | Điều kiện | Điểm |
+|---|---|---|
+| Xong việc hôm nay | Hoàn thành mọi công việc được giao có hạn chót hôm nay | +15 |
+| Xong việc tuần này | Hoàn thành mọi công việc được giao có hạn chót trong tuần này | +30 |
+| Cập nhật tiến độ | Cập nhật **% hoàn thành** của ít nhất 1 công việc hôm nay (ô "% hoàn thành" ở trang chi tiết công việc; thanh tiến độ cũng hiện trên biểu đồ Gantt) | +5 |
+| Điểm danh | Đăng nhập trong ngày | +5 |
+
+- Hai nhiệm vụ "Xong việc" chỉ hiện khi bạn có công việc đến hạn trong kỳ đó; điểm thưởng được ghi nhận khi bạn mở trang Bảng xếp hạng lần đầu sau khi đạt đủ điều kiện.
+- Đã hoàn thành trong kỳ thì giữ nguyên trạng thái hoàn thành dù sau đó bạn được giao thêm việc mới.
+
 ## 15. Trợ lý AI
 
 Trong trang chi tiết công việc, có 3 tính năng AI (dùng Anthropic Claude API):

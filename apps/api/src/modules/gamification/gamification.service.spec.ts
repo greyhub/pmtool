@@ -197,3 +197,205 @@ describe('GamificationService.awardPoints', () => {
     expect(prisma.db.userBadge.createMany).not.toHaveBeenCalled();
   });
 });
+
+function makeQuestRow(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: 'quest_1',
+    organizationId: 'org_1',
+    userId: 'user_1',
+    questKey: 'DAILY_LOGIN',
+    periodKey: '2026-03-10',
+    progressCount: 0,
+    completedAt: null,
+    ...overrides,
+  };
+}
+
+describe('GamificationService quests', () => {
+  let prisma: {
+    db: {
+      userScore: {
+        findUnique: ReturnType<typeof vi.fn>;
+        upsert: ReturnType<typeof vi.fn>;
+      };
+      userBadge: { createMany: ReturnType<typeof vi.fn> };
+      membership: { findMany: ReturnType<typeof vi.fn> };
+      userQuestProgress: {
+        upsert: ReturnType<typeof vi.fn>;
+        findUnique: ReturnType<typeof vi.fn>;
+        create: ReturnType<typeof vi.fn>;
+        update: ReturnType<typeof vi.fn>;
+      };
+      task: { findMany: ReturnType<typeof vi.fn> };
+    };
+  };
+  let service: GamificationService;
+
+  beforeEach(() => {
+    prisma = {
+      db: {
+        userScore: {
+          findUnique: vi.fn().mockResolvedValue(null),
+          upsert: vi.fn().mockResolvedValue(makeScore()),
+        },
+        userBadge: { createMany: vi.fn() },
+        membership: { findMany: vi.fn() },
+        userQuestProgress: {
+          upsert: vi.fn(),
+          findUnique: vi.fn().mockResolvedValue(null),
+          create: vi.fn(),
+          update: vi.fn(),
+        },
+        task: { findMany: vi.fn().mockResolvedValue([]) },
+      },
+    };
+    service = new GamificationService(prisma as unknown as PrismaService);
+  });
+
+  describe('recordLogin', () => {
+    it('tracks the DAILY_LOGIN quest for every org the user belongs to', async () => {
+      prisma.db.membership.findMany.mockResolvedValue([
+        { organizationId: 'org_1' },
+        { organizationId: 'org_2' },
+      ]);
+      prisma.db.userQuestProgress.upsert.mockResolvedValue(
+        makeQuestRow({ progressCount: 1 }),
+      );
+
+      await service.recordLogin('user_1');
+
+      expect(prisma.db.userQuestProgress.upsert).toHaveBeenCalledTimes(2);
+      expect(prisma.db.userQuestProgress.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            organizationId_userId_questKey_periodKey: expect.objectContaining({
+              organizationId: 'org_1',
+              questKey: 'DAILY_LOGIN',
+            }),
+          },
+        }),
+      );
+    });
+
+    it('awards a bonus the first time the daily target is reached', async () => {
+      prisma.db.membership.findMany.mockResolvedValue([
+        { organizationId: 'org_1' },
+      ]);
+      prisma.db.userQuestProgress.upsert.mockResolvedValue(
+        makeQuestRow({ progressCount: 1, completedAt: null }),
+      );
+
+      await service.recordLogin('user_1');
+
+      expect(prisma.db.userQuestProgress.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { completedAt: expect.any(Date) } }),
+      );
+      expect(prisma.db.userScore.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({ totalPoints: 5 }),
+        }),
+      );
+    });
+
+    it('does not re-award once already completed for the period', async () => {
+      prisma.db.membership.findMany.mockResolvedValue([
+        { organizationId: 'org_1' },
+      ]);
+      prisma.db.userQuestProgress.upsert.mockResolvedValue(
+        makeQuestRow({ progressCount: 2, completedAt: new Date() }),
+      );
+
+      await service.recordLogin('user_1');
+
+      expect(prisma.db.userQuestProgress.update).not.toHaveBeenCalled();
+      expect(prisma.db.userScore.upsert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getMyQuests', () => {
+    it('omits DAILY_DUE_TASKS/WEEKLY_DUE_TASKS when nothing is due', async () => {
+      prisma.db.task.findMany.mockResolvedValue([]);
+
+      const quests = await service.getMyQuests('org_1', 'user_1');
+
+      expect(quests.map((q) => q.questKey)).toEqual([
+        'DAILY_LOGIN',
+        'DAILY_PROGRESS_UPDATE',
+      ]);
+    });
+
+    it('includes DAILY_DUE_TASKS with live progress when tasks are due today, without awarding early', async () => {
+      prisma.db.task.findMany
+        .mockResolvedValueOnce([{ status: 'DONE' }, { status: 'TODO' }]) // due today
+        .mockResolvedValueOnce([]); // due this week
+      prisma.db.userQuestProgress.create.mockResolvedValue(
+        makeQuestRow({
+          questKey: 'DAILY_DUE_TASKS',
+          progressCount: 1,
+          completedAt: null,
+        }),
+      );
+
+      const quests = await service.getMyQuests('org_1', 'user_1');
+
+      const dueToday = quests.find((q) => q.questKey === 'DAILY_DUE_TASKS');
+      expect(dueToday).toEqual(
+        expect.objectContaining({ progress: 1, target: 2, completed: false }),
+      );
+      expect(prisma.db.userQuestProgress.update).not.toHaveBeenCalled();
+      expect(prisma.db.userScore.upsert).not.toHaveBeenCalled();
+    });
+
+    it('awards the bonus once every task due today is DONE, and marks it completed', async () => {
+      prisma.db.task.findMany
+        .mockResolvedValueOnce([{ status: 'DONE' }])
+        .mockResolvedValueOnce([]);
+      prisma.db.userQuestProgress.create.mockResolvedValue(
+        makeQuestRow({
+          questKey: 'DAILY_DUE_TASKS',
+          progressCount: 1,
+          completedAt: null,
+        }),
+      );
+      prisma.db.userQuestProgress.update.mockResolvedValue(
+        makeQuestRow({
+          questKey: 'DAILY_DUE_TASKS',
+          progressCount: 1,
+          completedAt: new Date(),
+        }),
+      );
+
+      const quests = await service.getMyQuests('org_1', 'user_1');
+
+      expect(prisma.db.userScore.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({ totalPoints: 15 }),
+        }),
+      );
+      const dueToday = quests.find((q) => q.questKey === 'DAILY_DUE_TASKS');
+      expect(dueToday?.completed).toBe(true);
+    });
+
+    it('does not re-evaluate or re-award a due-task quest already completed for the period', async () => {
+      prisma.db.task.findMany
+        .mockResolvedValueOnce([{ status: 'DONE' }])
+        .mockResolvedValueOnce([]);
+      prisma.db.userQuestProgress.findUnique.mockResolvedValue(
+        makeQuestRow({
+          questKey: 'DAILY_DUE_TASKS',
+          progressCount: 1,
+          completedAt: new Date(),
+        }),
+      );
+
+      const quests = await service.getMyQuests('org_1', 'user_1');
+
+      expect(prisma.db.userQuestProgress.create).not.toHaveBeenCalled();
+      expect(prisma.db.userQuestProgress.update).not.toHaveBeenCalled();
+      expect(prisma.db.userScore.upsert).not.toHaveBeenCalled();
+      expect(
+        quests.find((q) => q.questKey === 'DAILY_DUE_TASKS')?.completed,
+      ).toBe(true);
+    });
+  });
+});
