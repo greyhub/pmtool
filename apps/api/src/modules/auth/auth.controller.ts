@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UseGuards,
   Req,
   Res,
   UnauthorizedException,
@@ -28,6 +29,8 @@ import { AuthenticatedUser } from './strategies/jwt.strategy';
 import { EnvConfig } from '../../config/env.schema';
 import { UsersService } from '../users/users.service';
 import { toUserDto } from './user.mapper';
+import { RateLimit } from '../../common/rate-limit/rate-limit.decorator';
+import { RateLimitGuard } from '../../common/rate-limit/rate-limit.guard';
 
 const REFRESH_COOKIE_NAME = 'refresh_token';
 const REFRESH_COOKIE_PATH = '/api/v1/auth';
@@ -42,6 +45,8 @@ export class AuthController {
   ) {}
 
   @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'register', limit: 10, windowSec: 3600, by: 'ip' })
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(registerSchema)) body: RegisterInput,
@@ -57,6 +62,11 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit(
+    { name: 'login-account', limit: 10, windowSec: 900, by: 'ipEmail' },
+    { name: 'login-ip', limit: 60, windowSec: 900, by: 'ip' },
+  )
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -73,6 +83,8 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'refresh', limit: 120, windowSec: 60, by: 'ip' })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(

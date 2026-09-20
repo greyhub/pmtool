@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { timingSafeEqual } from 'node:crypto';
@@ -24,6 +25,8 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { EnvConfig } from '../../config/env.schema';
+import { RateLimit } from '../../common/rate-limit/rate-limit.decorator';
+import { RateLimitGuard } from '../../common/rate-limit/rate-limit.guard';
 
 @ApiTags('integrations')
 @Controller({ path: 'integrations/telegram', version: '1' })
@@ -66,6 +69,8 @@ export class TelegramController {
   }
 
   @Post('link-code')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'tg-link', limit: 10, windowSec: 600, by: 'user' })
   async generateLinkCode(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ data: TelegramLinkCodeDto }> {

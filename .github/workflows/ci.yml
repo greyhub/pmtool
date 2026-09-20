@@ -16,6 +16,8 @@ env:
   JWT_ACCESS_SECRET: ci-access-secret-placeholder-at-least-32-chars
   JWT_REFRESH_SECRET: ci-refresh-secret-placeholder-at-least-32-chars
   CORS_ORIGIN: http://localhost:3000
+  # E2E and integration tests register many users from one IP.
+  RATE_LIMIT_ENABLED: 'false'
 
 jobs:
   checks:

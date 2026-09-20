@@ -29,6 +29,8 @@ import {
   CurrentOrgContext,
 } from '../../common/decorators/current-org.decorator';
 import { toOrganizationDto } from './organization.mapper';
+import { RateLimit } from '../../common/rate-limit/rate-limit.decorator';
+import { RateLimitGuard } from '../../common/rate-limit/rate-limit.guard';
 
 @ApiTags('organizations')
 @Controller({ path: 'organizations', version: '1' })
@@ -36,6 +38,8 @@ export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
   @Post()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'org-create', limit: 10, windowSec: 3600, by: 'user' })
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(createOrganizationSchema))

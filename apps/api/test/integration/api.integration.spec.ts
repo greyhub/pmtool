@@ -9,6 +9,7 @@ import {
   StartedPostgreSqlContainer,
 } from '@testcontainers/postgresql';
 import { AppModule } from '../../src/app.module';
+import { AiQuotaService } from '../../src/modules/ai/ai-quota.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { hashLinkCode } from '../../src/modules/telegram/link-code.util';
 
@@ -1312,6 +1313,44 @@ describe('Role-based access matrix', () => {
       .set(auth)
       .send({ projectManagerId: outsiderId })
       .expect(400);
+  });
+});
+
+describe('Free-tier cost controls', () => {
+  it('caps AI calls per organization per day, and counts each organization separately', async () => {
+    const ownerA = await registerUser('Quota Owner A');
+    const orgA = await createOrg(ownerA.accessToken, 'Quota Org A');
+    const ownerB = await registerUser('Quota Owner B');
+    const orgB = await createOrg(ownerB.accessToken, 'Quota Org B');
+    const quota = app.get(AiQuotaService);
+    const idOf = async (slug: string) =>
+      (
+        await app
+          .get(PrismaService)
+          .db.organization.findUniqueOrThrow({ where: { slug } })
+      ).id;
+    const a = await idOf(orgA.slug);
+    const b = await idOf(orgB.slug);
+
+    // vitest.integration.config.mts sets AI_DAILY_LIMIT_PER_ORG=3.
+    for (let i = 1; i <= 3; i++) expect((await quota.consume(a)).used).toBe(i);
+    await expect(quota.consume(a)).rejects.toMatchObject({ status: 429 });
+    expect((await quota.consume(b)).used).toBe(1);
+
+    // A new Vietnam day starts a fresh allowance.
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    expect((await quota.consume(a, tomorrow)).used).toBe(1);
+  });
+
+  it('limits how many organizations one account may own', async () => {
+    const owner = await registerUser('Many Orgs Owner');
+    for (let i = 1; i <= 5; i++)
+      await createOrg(owner.accessToken, `Cap Org ${i}`);
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/organizations`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ name: 'Cap Org 6', slug: `cap-org-6-${Date.now()}` })
+      .expect(403);
   });
 });
 

@@ -27,6 +27,14 @@ export const envSchema = z.object({
   // localhost, which Telegram cannot actually reach — fine for local dev
   // where the webhook path is exercised directly in tests instead.
   API_PUBLIC_URL: z.string().default('http://localhost:3001'),
+  // Abuse controls for the free tier. RATE_LIMIT_ENABLED=false turns the
+  // per-route limits off (integration tests register dozens of users from one IP).
+  RATE_LIMIT_ENABLED: z.enum(['true', 'false']).default('true'),
+  // Number of reverse proxies in front of the API, so `req.ip` is the real client.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+  // Cost caps: AI calls per organization per (Vietnam) day, organizations one user may own.
+  AI_DAILY_LIMIT_PER_ORG: z.coerce.number().int().min(0).default(100),
+  MAX_ORGS_PER_USER: z.coerce.number().int().min(1).default(5),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

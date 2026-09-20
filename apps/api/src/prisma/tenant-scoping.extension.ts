@@ -27,6 +27,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'Deliverable',
   'ProjectScope',
   'WbsDictionaryEntry',
+  'AiUsageDaily',
   'Artifact',
 ]);
 

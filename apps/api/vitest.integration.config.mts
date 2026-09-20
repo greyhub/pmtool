@@ -11,5 +11,8 @@ export default defineConfig({
     testTimeout: 60_000,
     hookTimeout: 60_000,
     fileParallelism: false,
+    // Set before any module loads: ConfigModule validates env at import time, so a
+    // value assigned later in beforeAll would be ignored.
+    env: { RATE_LIMIT_ENABLED: 'false', AI_DAILY_LIMIT_PER_ORG: '3' },
   },
 });

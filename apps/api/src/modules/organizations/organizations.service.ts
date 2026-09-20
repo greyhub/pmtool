@@ -1,20 +1,36 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Organization } from '@prisma/client';
 import { CreateOrganizationInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EnvConfig } from '../../config/env.schema';
 
 @Injectable()
 export class OrganizationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService<EnvConfig, true>,
+  ) {}
 
   async create(
     userId: string,
     input: CreateOrganizationInput,
   ): Promise<Organization> {
+    // Free-tier guard against one account spinning up organizations in bulk.
+    const max = Number(this.config.get('MAX_ORGS_PER_USER', { infer: true }));
+    const owned = await this.prisma.db.membership.count({
+      where: { userId, role: 'OWNER' },
+    });
+    if (owned >= max) {
+      throw new ForbiddenException(
+        `Mỗi tài khoản được sở hữu tối đa ${max} tổ chức. Hãy dùng lại một tổ chức có sẵn hoặc liên hệ hỗ trợ nếu bạn cần thêm.`,
+      );
+    }
     const existing = await this.prisma.db.organization.findUnique({
       where: { slug: input.slug },
     });

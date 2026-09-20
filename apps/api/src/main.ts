@@ -11,6 +11,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService<EnvConfig, true>);
 
+  // Behind a reverse proxy req.ip would otherwise be the proxy's address for everyone.
+  const trustProxy = Number(configService.get('TRUST_PROXY', { infer: true }));
+  if (trustProxy > 0)
+    app.getHttpAdapter().getInstance().set('trust proxy', trustProxy);
+
   app.use(helmet());
   app.use(cookieParser());
   app.enableCors({
