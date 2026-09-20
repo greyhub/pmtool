@@ -100,3 +100,27 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw err;
   }
 }
+
+/** Fetches a non-JSON response (a CSV export) as text, with the same token refresh as `apiRequest`. */
+export async function apiRequestText(path: string): Promise<string> {
+  const attempt = async () =>
+    fetch(`${baseUrl}${path}`, {
+      credentials: 'include',
+      headers: getAccessToken() ? { Authorization: `Bearer ${getAccessToken()}` } : {},
+    });
+  let res = await attempt();
+  if (res.status === 401) {
+    try {
+      const refreshed = await refreshSession();
+      setAccessToken(refreshed.accessToken);
+      res = await attempt();
+    } catch {
+      notifyUnauthenticated();
+    }
+  }
+  if (!res.ok) {
+    const body = (await res.json().catch(() => undefined)) as ApiErrorBody | undefined;
+    throw new ApiError(res.status, body?.error.code ?? 'UNKNOWN_ERROR', body?.error.message ?? res.statusText);
+  }
+  return res.text();
+}

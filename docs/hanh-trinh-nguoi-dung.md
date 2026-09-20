@@ -82,7 +82,7 @@ flowchart TD
 - Mốc phải có ngày đến hạn; ngày bắt đầu = ngày đến hạn.
 
 **Ma sát/khoảng trống:**
-- Phải tự nhập tay từng phần tử WBS; **chưa có nhập/xuất** (CSV/Excel/MS Project) — rào cản lớn với PM đang có kế hoạch sẵn.
+- ~~Phải tự nhập tay từng phần tử WBS~~ → đã có **nhập/xuất CSV** (kiểm tra toàn bộ trước, lỗi theo dòng; nhận cột vi/en, dấu `,`/`;`). Chưa có nhập trực tiếp `.xlsx` hay MS Project.
 - Công việc cũ được xếp cấp tự động (phần lớn là "Hoạt động" dưới "Giai đoạn") nên báo nhiều cảnh báo độ phủ — cần công cụ **chuyển đổi hàng loạt** cấp WBS.
 - Chưa có **đường găng (critical path)**, lập lịch tự động theo phụ thuộc, hay **đường cơ sở (baseline)** + kiểm soát thay đổi phạm vi.
 - Chưa có Yêu cầu (requirements) và ma trận truy vết; chưa nối Rủi ro với phần tử WBS; chưa có chi phí cộng dồn (mới có ước tính trong từ điển).

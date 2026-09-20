@@ -318,7 +318,9 @@
       "sortPriority": "Độ ưu tiên",
       "groupLabel": "Nhóm",
       "groupNone": "Không nhóm",
-      "groupStatus": "Theo trạng thái"
+      "groupStatus": "Theo trạng thái",
+      "importCsv": "Nhập CSV",
+      "exportCsv": "Xuất CSV"
     },
     "create": {
       "title": "Tạo công việc mới",
@@ -421,6 +423,25 @@
       "DELIVERABLE": "Sản phẩm/kết quả kiểm chứng được mà dự án phải bàn giao.",
       "WORK_PACKAGE": "Mức thấp nhất của WBS: đơn vị để ước lượng chi phí, thời gian và giao trách nhiệm.",
       "ACTIVITY": "Công việc cụ thể, xếp lịch được, thuộc một gói công việc."
+    },
+    "import": {
+      "title": "Nhập công việc từ CSV",
+      "description": "Chọn tệp CSV (xuất từ PMTool hoặc từ Excel). Hệ thống kiểm tra toàn bộ trước; có lỗi ở bất kỳ dòng nào thì chưa tạo gì.",
+      "choose": "Chọn tệp CSV",
+      "noFile": "Chưa chọn tệp",
+      "sample": "Tải tệp mẫu",
+      "columns": "Cột: title (bắt buộc), ref, parent (mã cha trong tệp hoặc mã công việc có sẵn), type (Giai đoạn/Giao phẩm/Gói công việc/Hoạt động), status, priority, start, due (yyyy-mm-dd hoặc dd/mm/yyyy), percent, estimate_hours, milestone, assignee, supporters (email thành viên), description.",
+      "checking": "Đang kiểm tra…",
+      "summary": "{valid} công việc hợp lệ · {errors} lỗi",
+      "line": "Dòng {line}",
+      "moreErrors": "…và {count} lỗi nữa",
+      "colTitle": "Tên",
+      "colType": "Cấp",
+      "colParent": "Cha",
+      "cancel": "Huỷ",
+      "import": "Nhập",
+      "importN": "Nhập {count} công việc",
+      "error": "Không đọc được tệp."
     }
   },
   "risks": {

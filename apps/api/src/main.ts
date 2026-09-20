@@ -1,6 +1,7 @@
 import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -8,7 +9,9 @@ import { AppModule } from './app.module';
 import { EnvConfig } from './config/env.schema';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // CSV imports arrive as JSON text (up to ~1 MB); Express' 100 kB default would refuse them.
+  app.useBodyParser('json', { limit: '2mb' });
   const configService = app.get(ConfigService<EnvConfig, true>);
 
   // Behind a reverse proxy req.ip would otherwise be the proxy's address for everyone.

@@ -5,12 +5,14 @@ import type {
   CreateDependencyInput,
   CreateTaskInput,
   DependencyDto,
+  ImportTasksCsvInput,
+  ImportTasksResultDto,
   MoveTaskInput,
   TaskDto,
   TaskHistoryEntryDto,
   UpdateTaskInput,
 } from '@pmtool/shared-types';
-import { apiRequest } from '../http-client';
+import { apiRequest, apiRequestText } from '../http-client';
 
 function base(orgSlug: string, projectKey: string) {
   return `/api/v1/organizations/${orgSlug}/projects/${projectKey}`;
@@ -182,6 +184,27 @@ export function useDeleteDependency(orgSlug: string | undefined, projectKey: str
       apiRequest<void>(`${base(orgSlug!, projectKey!)}/dependencies/${dependencyId}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.dependencies(orgSlug ?? '', projectKey ?? '') });
+    },
+  });
+}
+
+export function useExportTasksCsv(orgSlug: string | undefined, projectKey: string | undefined) {
+  return useMutation({
+    mutationFn: () => apiRequestText(`${base(orgSlug!, projectKey!)}/task-csv/export`),
+  });
+}
+
+/** Validates (`dryRun`) or performs an import of tasks from CSV text. */
+export function useImportTasksCsv(orgSlug: string | undefined, projectKey: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ImportTasksCsvInput) =>
+      apiRequest<ImportTasksResultDto>(`${base(orgSlug!, projectKey!)}/task-csv/import`, {
+        method: 'POST',
+        body: input,
+      }),
+    onSuccess: (result) => {
+      if (result.committed) invalidateProjectTasks(queryClient, orgSlug ?? '', projectKey ?? '');
     },
   });
 }

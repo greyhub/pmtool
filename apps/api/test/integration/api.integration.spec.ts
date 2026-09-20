@@ -1855,6 +1855,175 @@ describe('Getting-started checklist', () => {
   });
 });
 
+describe('Task CSV import and export', () => {
+  it('round-trips a WBS through CSV into another project, keeping hierarchy, dates and people', async () => {
+    const owner = await registerUser('Csv Owner');
+    const org = await createOrg(owner.accessToken, 'Csv Org');
+    const helper = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Csv Helper',
+    );
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Csv Viewer',
+    );
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const projects = `${API_PREFIX}/organizations/${org.slug}/projects`;
+
+    await http()
+      .post(projects)
+      .set(auth)
+      .send({
+        key: 'SRC',
+        name: 'Source',
+        templateId: 'software',
+        locale: 'vi',
+        startDate: '2026-09-21T05:00:00.000Z',
+      })
+      .expect(201);
+    const srcTasks = (
+      await http().get(`${projects}/SRC/tasks`).set(auth).expect(200)
+    ).body.data as { id: string; title: string }[];
+    // Give one task people so they survive the trip.
+    await http()
+      .patch(`${projects}/SRC/tasks/${srcTasks[5]!.id}`)
+      .set(auth)
+      .send({
+        assigneeId: await getUserId(helper.email),
+        supporterIds: [await getUserId(owner.email)],
+        description: '=cmd|calc',
+      })
+      .expect(200);
+
+    const exported = await http()
+      .get(`${projects}/SRC/task-csv/export`)
+      .set(auth)
+      .expect(200);
+    expect(exported.headers['content-type']).toContain('text/csv');
+    expect(exported.headers['content-disposition']).toContain('SRC-wbs-');
+    const csv = exported.text;
+    expect(csv.charCodeAt(0)).toBe(0xfeff);
+    expect(csv).toContain(helper.email);
+    // A description that looks like a formula is defused for spreadsheets.
+    expect(csv).toContain("'=cmd|calc");
+
+    await http()
+      .post(projects)
+      .set(auth)
+      .send({ key: 'DST', name: 'Destination' })
+      .expect(201);
+    const importUrl = `${projects}/DST/task-csv/import`;
+
+    // A viewer may export but not import.
+    await http()
+      .get(`${projects}/SRC/task-csv/export`)
+      .set({ Authorization: `Bearer ${viewer.accessToken}` })
+      .expect(200);
+    await http()
+      .post(importUrl)
+      .set({ Authorization: `Bearer ${viewer.accessToken}` })
+      .send({ csv })
+      .expect(403);
+
+    const dry = (
+      await http()
+        .post(importUrl)
+        .set(auth)
+        .send({ csv, dryRun: true })
+        .expect(200)
+    ).body.data;
+    expect(dry.errors).toEqual([]);
+    expect(dry.committed).toBe(false);
+    expect(dry.valid).toBe(srcTasks.length);
+    expect(
+      (await http().get(`${projects}/DST/tasks`).set(auth).expect(200)).body
+        .data,
+    ).toHaveLength(0);
+
+    const done = (
+      await http().post(importUrl).set(auth).send({ csv }).expect(200)
+    ).body.data;
+    expect(done.committed).toBe(true);
+
+    const dstTasks = (
+      await http().get(`${projects}/DST/tasks`).set(auth).expect(200)
+    ).body.data as {
+      title: string;
+      humanKey: string;
+      nodeType: string;
+      parentTaskId: string | null;
+      dueDate: string | null;
+      assignees: { role: string; fullName: string }[];
+      description: string | null;
+    }[];
+    expect(dstTasks).toHaveLength(srcTasks.length);
+    expect(dstTasks.map((t) => t.humanKey).sort()).toEqual(
+      Array.from({ length: srcTasks.length }, (_, i) => `DST-${i + 1}`).sort(),
+    );
+    // Same shape: same titles per type, same number of roots, dates carried over.
+    const count = (list: { nodeType: string }[], type: string) =>
+      list.filter((t) => t.nodeType === type).length;
+    for (const type of ['PHASE', 'DELIVERABLE', 'WORK_PACKAGE', 'ACTIVITY']) {
+      expect(count(dstTasks, type)).toBe(
+        count(
+          (await http().get(`${projects}/SRC/tasks`).set(auth).expect(200)).body
+            .data,
+          type,
+        ),
+      );
+    }
+    expect(dstTasks.filter((t) => t.parentTaskId === null).length).toBe(3);
+    expect(dstTasks.every((t) => t.dueDate)).toBe(true);
+    const withPeople = dstTasks.find((t) => t.assignees.length === 2)!;
+    expect(
+      withPeople.assignees.find((a) => a.role === 'PRIMARY')!.fullName,
+    ).toBe('Csv Helper');
+    // The defused formula is restored to the original text.
+    expect(withPeople.description).toBe('=cmd|calc');
+  });
+
+  it('reports problems by line number and creates nothing when any line is bad', async () => {
+    const owner = await registerUser('Csv Errors');
+    const org = await createOrg(owner.accessToken, 'Csv Errors Org');
+    const outsider = await registerUser('Csv Outsider');
+    const project = await createProject(owner.accessToken, org.slug, 'CER');
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+
+    const csv = [
+      'title,due,assignee',
+      'Hợp lệ,2026-10-01,',
+      ',2026-10-02,',
+      `Người lạ,,${outsider.email}`,
+    ].join('\n');
+    const res = (
+      await http()
+        .post(`${base}/task-csv/import`)
+        .set(auth)
+        .send({ csv })
+        .expect(200)
+    ).body.data;
+    expect(res.committed).toBe(false);
+    expect(res.errors.map((e: { line: number }) => e.line)).toEqual([3, 4]);
+    expect(res.valid).toBe(1);
+    expect(
+      (await http().get(`${base}/tasks`).set(auth).expect(200)).body.data,
+    ).toHaveLength(0);
+
+    await http()
+      .post(`${base}/task-csv/import`)
+      .set(auth)
+      .send({ csv: '' })
+      .expect(400);
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');

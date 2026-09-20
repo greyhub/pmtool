@@ -135,3 +135,17 @@ export const taskHistoryEntrySchema = z.object({
   changes: z.array(taskChangeSchema),
 });
 export type TaskHistoryEntryDto = z.infer<typeof taskHistoryEntrySchema>;
+
+/** Import a spreadsheet of tasks: `dryRun` validates and previews without creating anything. */
+export const importTasksCsvSchema = z.object({
+  csv: z.string().min(1).max(1_500_000),
+  dryRun: z.boolean().optional(),
+});
+export type ImportTasksCsvInput = z.infer<typeof importTasksCsvSchema>;
+
+export interface ImportTasksResultDto {
+  committed: boolean;
+  valid: number;
+  errors: { line: number; message: string }[];
+  preview: { line: number; title: string; nodeType: string; parent: string | null }[];
+}

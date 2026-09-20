@@ -318,7 +318,9 @@
       "sortPriority": "Priority",
       "groupLabel": "Group",
       "groupNone": "No grouping",
-      "groupStatus": "By status"
+      "groupStatus": "By status",
+      "importCsv": "Import CSV",
+      "exportCsv": "Export CSV"
     },
     "create": {
       "title": "Create a new task",
@@ -421,6 +423,25 @@
       "DELIVERABLE": "A verifiable product or result the project must hand over.",
       "WORK_PACKAGE": "Lowest WBS level: the unit for estimating cost and time and assigning responsibility.",
       "ACTIVITY": "A concrete, schedulable piece of work that belongs to a work package."
+    },
+    "import": {
+      "title": "Import tasks from CSV",
+      "description": "Choose a CSV file (exported from PMTool or from Excel). Everything is checked first; if any line has a problem nothing is created.",
+      "choose": "Choose CSV file",
+      "noFile": "No file chosen",
+      "sample": "Download sample",
+      "columns": "Columns: title (required), ref, parent (a ref in the file or an existing task key), type (Phase/Deliverable/Work package/Activity), status, priority, start, due (yyyy-mm-dd or dd/mm/yyyy), percent, estimate_hours, milestone, assignee, supporters (member emails), description.",
+      "checking": "Checking…",
+      "summary": "{valid} valid tasks · {errors} errors",
+      "line": "Line {line}",
+      "moreErrors": "…and {count} more errors",
+      "colTitle": "Title",
+      "colType": "Level",
+      "colParent": "Parent",
+      "cancel": "Cancel",
+      "import": "Import",
+      "importN": "Import {count} tasks",
+      "error": "Could not read the file."
     }
   },
   "risks": {

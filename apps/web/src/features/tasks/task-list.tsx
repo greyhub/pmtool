@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useMe, useTasks } from '@pmtool/api-client';
+import { useExportTasksCsv, useMe, useTasks } from '@pmtool/api-client';
 import type { TaskSuggestionDto } from '@pmtool/shared-types';
 import { TASK_STATUSES } from '@pmtool/shared-types';
 import { Button, Card, Input, Select } from '@pmtool/ui';
 import { TaskTree, useCollapsedRows } from './task-tree';
 import { CreateTaskModal } from './create-task-modal';
+import { ImportTasksModal } from './import-tasks-modal';
+import { downloadFile } from '../../lib/download-json';
 import {
   filterTasks,
   groupByStatus,
@@ -30,6 +32,8 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
   const { data: me } = useMe();
   const { canEdit } = usePermissions(orgSlug, projectKey);
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const exportCsv = useExportTasksCsv(orgSlug, projectKey);
   const [nlCreateOpen, setNlCreateOpen] = useState(false);
   const [nlSuggestions, setNlSuggestions] = useState<TaskSuggestionDto[] | null>(null);
   const [filters, setFilters] = useState<TaskFilters>(NO_FILTERS);
@@ -63,6 +67,23 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-ink-primary">{t('title')}</h2>
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant="ghost"
+            disabled={exportCsv.isPending}
+            onClick={() =>
+              exportCsv.mutate(undefined, {
+                onSuccess: (text) =>
+                  downloadFile(`${projectKey}-wbs-${new Date().toISOString().slice(0, 10)}.csv`, text, 'text/csv'),
+              })
+            }
+          >
+            {t('exportCsv')}
+          </Button>
+          {canEdit && (
+            <Button variant="ghost" onClick={() => setImportOpen(true)}>
+              {t('importCsv')}
+            </Button>
+          )}
           {canEdit && (
             <>
               <Button variant="outline" onClick={() => setNlCreateOpen(true)}>
@@ -224,6 +245,13 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
         projectKey={projectKey}
         open={createOpen}
         onClose={() => setCreateOpen(false)}
+      />
+
+      <ImportTasksModal
+        orgSlug={orgSlug}
+        projectKey={projectKey}
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
       />
 
       <NlTaskModal

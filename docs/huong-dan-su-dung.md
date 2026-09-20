@@ -301,3 +301,12 @@ Trong **Cài đặt → Dữ liệu & quyền riêng tư** bạn có thể:
 Trang **Điều khoản sử dụng** (`/terms`) và **Chính sách quyền riêng tư** (`/privacy`) công khai, có bản tiếng Việt và tiếng Anh, được liên kết từ trang đăng ký và chân trang chủ.
 
 > **Dành cho người vận hành:** nội dung hai trang này là bản dự thảo tiêu chuẩn cho dịch vụ miễn phí; đặt `NEXT_PUBLIC_OPERATOR_NAME` và `NEXT_PUBLIC_CONTACT_EMAIL` cho web, và **nhờ tư vấn pháp lý rà soát** (đặc biệt phần dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP, chuyển dữ liệu ra nước ngoài, và điều khoản đồng ý) trước khi mở đăng ký công khai.
+
+## 23. Nhập / xuất công việc bằng CSV
+
+Ở tab **Công việc** có hai nút:
+
+- **Xuất CSV** (mọi vai trò): tải toàn bộ WBS của dự án ra một tệp CSV mở được bằng Excel (UTF-8, tiếng Việt không lỗi). Mỗi dòng là một công việc theo thứ tự mã WBS, gồm mã, mã cha, tên, cấp WBS, trạng thái, độ ưu tiên, ngày, % hoàn thành, giờ ước tính, mốc, người phụ trách/hỗ trợ (email) và mô tả. Văn bản bắt đầu bằng `=`, `+`, `-`, `@` được thêm dấu `'` phía trước để Excel không chạy nó như công thức.
+- **Nhập CSV** (Member trở lên): chọn tệp CSV — xuất từ PMTool hoặc tự soạn trong Excel/Google Sheets (dấu phẩy hoặc chấm phẩy đều được). Hệ thống **kiểm tra toàn bộ trước** và cho xem trước; nếu bất kỳ dòng nào lỗi thì **không tạo gì**, và mỗi lỗi ghi rõ số dòng. Khi hết lỗi bấm **Nhập N công việc**.
+
+Chỉ cột `title` là bắt buộc. Các cột khác (tên cột tiếng Việt hoặc tiếng Anh đều nhận): `ref` (mã tuỳ ý của dòng, để dòng khác trỏ tới), `parent` (`ref` của dòng cha trong tệp, hoặc mã công việc có sẵn như `PRJ-12`), `type` (Giai đoạn/Giao phẩm/Gói công việc/Hoạt động), `status`, `priority`, `start`/`due` (`yyyy-mm-dd` hoặc `dd/mm/yyyy`), `percent`, `estimate_hours`, `milestone`, `assignee` và `supporters` (email thành viên của tổ chức, nhiều người ngăn bằng `;`), `description`. Cha có thể nằm sau con trong tệp; quy tắc cấp WBS vẫn được áp dụng (một hoạt động nhận con sẽ thành gói công việc). Tối đa 2000 dòng / 1 MB mỗi lần; nhập không tính điểm thưởng và không gửi thông báo Telegram. Bạn có thể **Tải tệp mẫu** ngay trong hộp thoại nhập.
