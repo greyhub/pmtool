@@ -12,6 +12,7 @@ import {
 } from '@pmtool/api-client';
 import {
   GanttChart,
+  type GanttAssignee,
   type GanttLinkChange,
   type GanttLinkCreate,
   type GanttLinkInput,
@@ -52,12 +53,13 @@ function isSameCalendarDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function toAssignees(task: TaskDto): { name: string; character: string }[] {
-  return (task.assignees ?? []).map((a) => ({ name: a.fullName, character: a.mascotCharacter }));
+function toAssignees(task: TaskDto): GanttAssignee[] {
+  return (task.assignees ?? []).map((a) => ({ name: a.fullName, character: a.mascotCharacter, role: a.role }));
 }
 
 export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
   const t = useTranslations('gantt');
+  const tTask = useTranslations('tasks.roles');
   const router = useRouter();
 
   const { data: tasks, isLoading: tasksLoading, isError: tasksError } = useTasks(orgSlug, projectKey);
@@ -168,6 +170,7 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
         labels={{
           columnTask: t('columns.task'),
           columnAssignee: t('columns.assignee'),
+          roleLabels: { primary: tTask('assignee'), support: tTask('supporter') },
           zoomDay: t('zoom.day'),
           zoomWeek: t('zoom.week'),
           zoomMonth: t('zoom.month'),

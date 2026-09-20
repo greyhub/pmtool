@@ -156,7 +156,7 @@ describe('TelegramNotificationsService.sendDailyDigests', () => {
       expect.objectContaining({
         where: {
           status: { not: 'DONE' },
-          assignees: { some: { userId: 'user_1' } },
+          assignees: { some: { userId: 'user_1', role: 'PRIMARY' } },
         },
       }),
     );

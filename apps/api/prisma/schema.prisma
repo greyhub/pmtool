@@ -246,10 +246,19 @@ model Task {
   @@map("tasks")
 }
 
+/// PRIMARY = the one accountable person (at most one per task — enforced by a
+/// partial unique index in migration 20260920063000, which Prisma's schema
+/// language can't express); SUPPORT = anyone helping.
+enum TaskAssigneeRole {
+  PRIMARY
+  SUPPORT
+}
+
 model TaskAssignee {
   organizationId String
   taskId         String
   userId         String
+  role           TaskAssigneeRole @default(SUPPORT)
   assignedAt     DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

@@ -250,6 +250,10 @@
       "HIGH": "Cao",
       "CRITICAL": "Khẩn cấp"
     },
+    "roles": {
+      "assignee": "Phụ trách",
+      "supporter": "Hỗ trợ"
+    },
     "detail": {
       "backToList": "Quay lại danh sách",
       "description": "Mô tả",
@@ -257,8 +261,14 @@
       "status": "Trạng thái",
       "priority": "Độ ưu tiên",
       "percentComplete": "% hoàn thành",
-      "assignees": "Người phụ trách",
-      "noAssignees": "Chưa có người phụ trách",
+      "assignee": "Người phụ trách",
+      "noAssignee": "Chưa có người phụ trách",
+      "assignAssignee": "Chọn người phụ trách",
+      "changeAssignee": "Đổi người phụ trách",
+      "supporters": "Người hỗ trợ",
+      "noSupporters": "Chưa có người hỗ trợ",
+      "addSupporter": "Thêm người hỗ trợ",
+      "assigneeHint": "Mỗi công việc chỉ có 1 người phụ trách; những người còn lại là người hỗ trợ.",
       "subtasks": "Công việc con",
       "comments": "Bình luận",
       "addComment": "Viết bình luận...",

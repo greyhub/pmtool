@@ -250,6 +250,10 @@
       "HIGH": "High",
       "CRITICAL": "Critical"
     },
+    "roles": {
+      "assignee": "Owner",
+      "supporter": "Support"
+    },
     "detail": {
       "backToList": "Back to list",
       "description": "Description",
@@ -257,8 +261,14 @@
       "status": "Status",
       "priority": "Priority",
       "percentComplete": "% complete",
-      "assignees": "Assignees",
-      "noAssignees": "No assignees yet",
+      "assignee": "Assignee",
+      "noAssignee": "No assignee yet",
+      "assignAssignee": "Choose an assignee",
+      "changeAssignee": "Change assignee",
+      "supporters": "Supporters",
+      "noSupporters": "No supporters yet",
+      "addSupporter": "Add supporter",
+      "assigneeHint": "Each task has exactly one assignee; everyone else is a supporter.",
       "subtasks": "Subtasks",
       "comments": "Comments",
       "addComment": "Write a comment...",

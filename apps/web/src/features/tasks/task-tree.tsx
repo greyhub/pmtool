@@ -78,7 +78,13 @@ function TaskRow({
 
         <div className="flex shrink-0 -space-x-2">
           {task.assignees.map((a) => (
-            <Avatar key={a.id} name={a.fullName} src={a.avatarUrl} size="sm" className="ring-2 ring-surface" />
+            <Avatar
+              key={a.id}
+              name={a.fullName}
+              src={a.avatarUrl}
+              size="sm"
+              className={a.role === 'PRIMARY' ? 'ring-2 ring-action-primary' : 'opacity-60 ring-2 ring-surface'}
+            />
           ))}
         </div>
         <div className="shrink-0">

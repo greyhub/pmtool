@@ -69,7 +69,7 @@ Vào menu bên trái, chọn **Cài đặt tổ chức** (chỉ Owner/Admin thao
 - Từ menu bên trái, chọn **Dự án** để xem danh sách, bấm **Tạo dự án** — nhập **Tên dự án** và **Mã dự án** (chữ hoa + số, ví dụ `WEB`, dùng làm tiền tố cho mã công việc như `WEB-1`, `WEB-2`, ...).
 - Mỗi dự án có 10 tab: **Tổng quan** (dashboard), **Công việc** (danh sách WBS), **Bảng** (Kanban), **Tiến độ** (Gantt), **Rủi ro/Vấn đề**, **Điều lệ**, **Các bên liên quan**, **Tài liệu**, **Artifact**, **Cài đặt**.
 - Trong tab **Công việc**, bấm **Thêm công việc** để tạo việc mới với tiêu đề, mô tả, độ ưu tiên (Thấp/Trung bình/Cao/Khẩn cấp), ngày bắt đầu/kết thúc, người phụ trách.
-- Mở một công việc để xem chi tiết: có thể **thêm công việc con** (phân cấp cha/con không giới hạn độ sâu — đây là cấu trúc WBS thật sự), thêm **phụ thuộc** (predecessor/successor — hệ thống tự chặn vòng lặp phụ thuộc), gán **người phụ trách**, và **bình luận** trao đổi ngay trên công việc.
+- Mở một công việc để xem chi tiết: có thể **thêm công việc con** (phân cấp cha/con không giới hạn độ sâu — đây là cấu trúc WBS thật sự), thêm **phụ thuộc** (predecessor/successor — hệ thống tự chặn vòng lặp phụ thuộc), gán **người phụ trách** (đúng 1 người chịu trách nhiệm) cùng các **người hỗ trợ** (không giới hạn số lượng), và **bình luận** trao đổi ngay trên công việc.
 - Trạng thái công việc: Cần làm → Đang làm → Đang xem xét → Hoàn thành, hoặc Bị chặn.
 
 ## 5. Quản lý Dự án
@@ -94,8 +94,9 @@ Tab **Tiến độ** vẽ toàn bộ công việc của dự án theo ngày bắ
 - Đường kẻ dọc màu vàng nhạt đánh dấu **hôm nay**; các ngày cuối tuần được tô nền xám nhạt.
 - Bấm vào tên một công việc để mở trang chi tiết của nó. Kéo thả một thanh để đổi ngày bắt đầu/kết thúc — hệ thống tự lưu và báo "Đã lưu" ngay dưới thanh công cụ.
 - Chọn mức hiển thị **Ngày / Tuần / Tháng** ở góc trên bên phải để thu phóng trục thời gian.
+- **Người phụ trách và người hỗ trợ**: mỗi công việc có tối đa 1 người phụ trách — người chịu trách nhiệm chính; những người còn lại là người hỗ trợ. Chọn/đổi ở khối "Người phụ trách" và "Người hỗ trợ" trong trang chi tiết công việc (đổi người phụ trách thì người cũ được gỡ khỏi công việc, thêm lại ở mục hỗ trợ nếu vẫn cần). Nhiệm vụ ngày/tuần và các nhắc việc Telegram chỉ tính cho **người phụ trách**; người hỗ trợ không bị tính trách nhiệm. Công việc cũ có nhiều người được giao đã được chuyển tự động: người được giao sớm nhất thành người phụ trách, những người còn lại thành người hỗ trợ.
 - Bảng bên trái chỉ giữ hai cột **Công việc** và **Người phụ trách** — cố tình gọn để nhường chỗ cho biểu đồ; Trạng thái/Độ ưu tiên/Ngày đã có sẵn ngay trên chính thanh công việc (màu sắc, vị trí, độ dài) nên không lặp lại thành cột riêng. Trên màn hình hẹp, bảng tự thu gọn chỉ còn cột tên.
-- Cột **Người phụ trách** hiển thị icon nhân vật đồng hành của từng người (tối đa 2 icon, thêm "+N" nếu nhiều hơn) thay vì tên đầy đủ — di chuột vào icon để xem tên. Cách này nhận diện đúng từng người vì mỗi thành viên trong một tổ chức bắt buộc chọn một nhân vật khác nhau (xem mục 18).
+- Cột **Người phụ trách** hiển thị icon nhân vật đồng hành thay vì tên đầy đủ: người phụ trách là icon lớn có viền vàng, người hỗ trợ là icon nhỏ mờ hơn (tối đa 2 icon, thêm "+N" nếu nhiều hơn) — di chuột vào icon để xem tên và vai trò. Cách này nhận diện đúng từng người vì mỗi thành viên trong một tổ chức bắt buộc chọn một nhân vật khác nhau (xem mục 18).
 
 ## 8. Rủi ro & Vấn đề
 
@@ -162,8 +163,8 @@ PMTool thưởng điểm hoạt động để khuyến khích cập nhật tiế
 
 | Nhiệm vụ | Điều kiện | Điểm |
 |---|---|---|
-| Xong việc hôm nay | Hoàn thành mọi công việc được giao có hạn chót hôm nay | +15 |
-| Xong việc tuần này | Hoàn thành mọi công việc được giao có hạn chót trong tuần này | +30 |
+| Xong việc hôm nay | Hoàn thành mọi công việc bạn là người phụ trách có hạn chót hôm nay | +15 |
+| Xong việc tuần này | Hoàn thành mọi công việc bạn là người phụ trách có hạn chót trong tuần này | +30 |
 | Cập nhật tiến độ | Cập nhật **% hoàn thành** của ít nhất 1 công việc hôm nay (ô "% hoàn thành" ở trang chi tiết công việc; thanh tiến độ cũng hiện trên biểu đồ Gantt) | +5 |
 | Điểm danh | Đăng nhập trong ngày | +5 |
 
@@ -187,7 +188,7 @@ Vào **Cài đặt** (bấm avatar ở góc phải trên → Cài đặt) để 
 1. Bấm **Kết nối Telegram**, hệ thống tạo một liên kết `t.me/...` có hiệu lực 10 phút.
 2. Mở liên kết đó trên Telegram, bấm **Start** để hoàn tất liên kết.
 3. Sau khi liên kết, bạn sẽ nhận được:
-   - Thông báo ngay khi được giao một công việc.
+   - Thông báo ngay khi được giao làm **người phụ trách** một công việc.
    - Nhắc nhở hằng ngày lúc 8:00 sáng (giờ Việt Nam) cho các công việc đến hạn trong ngày.
    - **Nhắc cập nhật trạng thái công việc hàng ngày**: một tin nhắn tổng hợp mọi công việc bạn đang được giao mà chưa Hoàn thành, gửi vào giờ bạn tự chọn (mặc định 17:00, bật sẵn khi vừa liên kết). Bấm ô **Nhắc việc mỗi ngày** ngay dưới nút Ngắt kết nối để tắt/bật, và chọn lại giờ gửi ở ô **Gửi lúc**.
 

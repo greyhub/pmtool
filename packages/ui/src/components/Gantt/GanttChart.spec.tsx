@@ -123,3 +123,34 @@ describe('buildStatusColorCss progress wash', () => {
     expect(buildStatusColorCss([{ ...base, type: 'milestone', progress: 0 }])).not.toContain('linear-gradient');
   });
 });
+
+describe('AssigneeIcons roles', () => {
+  it('lists the primary first regardless of input order, and tags tooltips with the role', () => {
+    const { container } = render(
+      <AssigneeIcons
+        roleLabels={{ primary: 'Phụ trách', support: 'Hỗ trợ' }}
+        assignees={[
+          { name: 'Helper', character: 'otter', role: 'SUPPORT' },
+          { name: 'Boss', character: 'fox', role: 'PRIMARY' },
+        ]}
+      />,
+    );
+    const icons = container.querySelectorAll('[aria-label]');
+    expect(icons[0]).toHaveAttribute('aria-label', 'Boss — Phụ trách');
+    expect(icons[1]).toHaveAttribute('aria-label', 'Helper — Hỗ trợ');
+  });
+
+  it('never lets supporters push the primary out of the visible icons', () => {
+    render(
+      <AssigneeIcons
+        assignees={[
+          { name: 'S1', character: 'otter', role: 'SUPPORT' },
+          { name: 'S2', character: 'panda', role: 'SUPPORT' },
+          { name: 'Boss', character: 'fox', role: 'PRIMARY' },
+        ]}
+      />,
+    );
+    expect(screen.getByLabelText('Boss')).toBeInTheDocument();
+    expect(screen.getByText('+1')).toBeInTheDocument();
+  });
+});

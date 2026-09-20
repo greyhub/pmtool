@@ -102,6 +102,9 @@ export const BADGE_KEYS = [
 ] as const;
 export type BadgeKey = (typeof BADGE_KEYS)[number];
 
+export const TASK_ASSIGNEE_ROLES = ['PRIMARY', 'SUPPORT'] as const;
+export type TaskAssigneeRole = (typeof TASK_ASSIGNEE_ROLES)[number];
+
 export const QUEST_KEYS = [
   'DAILY_DUE_TASKS',
   'WEEKLY_DUE_TASKS',

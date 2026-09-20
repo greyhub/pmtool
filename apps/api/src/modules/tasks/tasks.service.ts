@@ -30,6 +30,28 @@ const TASK_INCLUDE = {
   _count: { select: { subtasks: true } },
 } as const;
 
+interface AssigneeRow {
+  userId: string;
+  role: 'PRIMARY' | 'SUPPORT';
+}
+
+/**
+ * One PRIMARY (the accountable person) plus any number of SUPPORT. A user
+ * can only appear once, so the primary wins if they're also listed as a
+ * supporter — the DB enforces one PRIMARY per task with a partial unique index.
+ */
+function toAssigneeRows(
+  primaryId: string | null | undefined,
+  supporterIds: string[] | undefined,
+): AssigneeRow[] {
+  const rows: AssigneeRow[] = [];
+  if (primaryId) rows.push({ userId: primaryId, role: 'PRIMARY' });
+  for (const userId of new Set(supporterIds ?? [])) {
+    if (userId !== primaryId) rows.push({ userId, role: 'SUPPORT' });
+  }
+  return rows;
+}
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -51,6 +73,11 @@ export class TasksService {
         projectId,
       );
     }
+
+    const initialAssignees = toAssigneeRows(
+      input.assigneeId,
+      input.supporterIds,
+    );
 
     const task = await this.prisma.db.$transaction(async (tx) => {
       const project = await tx.project.update({
@@ -81,12 +108,12 @@ export class TasksService {
           orderIndex: Date.now(),
           boardColumnId: firstColumn?.id,
           createdById,
-          assignees: input.assigneeIds?.length
+          assignees: initialAssignees.length
             ? {
                 createMany: {
-                  data: input.assigneeIds.map((userId) => ({
+                  data: initialAssignees.map((a) => ({
                     organizationId,
-                    userId,
+                    ...a,
                   })),
                 },
               }
@@ -102,11 +129,10 @@ export class TasksService {
       5,
       'task_created',
     );
-    if (input.assigneeIds?.length) {
-      await this.telegramNotifications.notifyTaskAssigned(
-        task,
-        input.assigneeIds,
-      );
+    if (input.assigneeId) {
+      await this.telegramNotifications.notifyTaskAssigned(task, [
+        input.assigneeId,
+      ]);
     }
     return task;
   }
@@ -146,16 +172,29 @@ export class TasksService {
   ) {
     const existing = await this.findByIdOrThrow(organizationId, taskId);
 
+    // Either field present means "rewrite the assignment"; whichever half
+    // wasn't sent keeps its current value.
+    const existingPrimaryId =
+      existing.assignees.find((a) => a.role === 'PRIMARY')?.userId ?? null;
+    const nextAssignees =
+      input.assigneeId !== undefined || input.supporterIds !== undefined
+        ? toAssigneeRows(
+            input.assigneeId !== undefined
+              ? input.assigneeId
+              : existingPrimaryId,
+            input.supporterIds ??
+              existing.assignees
+                .filter((a) => a.role === 'SUPPORT')
+                .map((a) => a.userId),
+          )
+        : null;
+
     const updated = await this.prisma.db.$transaction(async (tx) => {
-      if (input.assigneeIds) {
+      if (nextAssignees) {
         await tx.taskAssignee.deleteMany({ where: { taskId } });
-        if (input.assigneeIds.length > 0) {
+        if (nextAssignees.length > 0) {
           await tx.taskAssignee.createMany({
-            data: input.assigneeIds.map((userId) => ({
-              organizationId,
-              taskId,
-              userId,
-            })),
+            data: nextAssignees.map((a) => ({ organizationId, taskId, ...a })),
           });
         }
       }
@@ -213,17 +252,14 @@ export class TasksService {
       );
     }
 
-    if (input.assigneeIds) {
-      const oldAssigneeIds = new Set(existing.assignees.map((a) => a.userId));
-      const newlyAssigned = input.assigneeIds.filter(
-        (id) => !oldAssigneeIds.has(id),
-      );
-      if (newlyAssigned.length > 0) {
-        await this.telegramNotifications.notifyTaskAssigned(
-          updated,
-          newlyAssigned,
-        );
-      }
+    // Only the primary is told about a new assignment — supporters aren't
+    // being handed accountability.
+    const nextPrimaryId =
+      nextAssignees?.find((a) => a.role === 'PRIMARY')?.userId ?? null;
+    if (nextPrimaryId && nextPrimaryId !== existingPrimaryId) {
+      await this.telegramNotifications.notifyTaskAssigned(updated, [
+        nextPrimaryId,
+      ]);
     }
 
     return updated;

@@ -27,7 +27,7 @@ export interface GanttTaskInput {
    * identical technique), not text — relies on each org member having a
    * distinct `character` (enforced server-side) so the icon alone reliably
    * identifies who, without needing a name label in the narrow column. */
-  assignees?: { name: string; character: string }[];
+  assignees?: GanttAssignee[];
 }
 
 export interface GanttLinkInput {
@@ -64,6 +64,7 @@ export interface GanttLinkChange {
 export interface GanttLabels {
   columnTask: string;
   columnAssignee: string;
+  roleLabels?: { primary: string; support: string };
   zoomDay: string;
   zoomWeek: string;
   zoomMonth: string;
@@ -132,29 +133,72 @@ export function buildStatusColorCss(tasks: GanttTaskInput[]): string {
     .join('\n');
 }
 
-/** Up to 2 character-icon sprites plus a "+N" tail. Exported so the cell renderer used inside `columns` stays unit-testable. */
-export function AssigneeIcons({ assignees }: { assignees: { name: string; character: string }[] }) {
+export interface GanttAssignee {
+  name: string;
+  character: string;
+  /** PRIMARY = the one accountable person, SUPPORT = helping. Missing counts as SUPPORT. */
+  role?: 'PRIMARY' | 'SUPPORT';
+}
+
+function CharacterIcon({ a, title, primary }: { a: GanttAssignee; title: string; primary: boolean }) {
+  return (
+    <span
+      title={title}
+      aria-label={title}
+      className={cn(
+        'shrink-0 rounded-full bg-surface-subtle',
+        primary ? 'h-6 w-6 ring-2 ring-action-primary' : 'h-4 w-4 opacity-70',
+      )}
+      style={{
+        backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
+        backgroundSize: '300% 300%',
+        backgroundPosition: '50% 50%',
+        backgroundRepeat: 'no-repeat',
+      }}
+    />
+  );
+}
+
+/**
+ * The accountable person as a larger, ringed character icon, then supporters
+ * as smaller, dimmer ones — at most 2 icons in total plus a "+N" tail.
+ * `roleLabels` (optional) is appended to each icon's tooltip. Exported so the
+ * cell renderer used inside `columns` stays unit-testable.
+ */
+export function AssigneeIcons({
+  assignees,
+  roleLabels,
+}: {
+  assignees: GanttAssignee[];
+  roleLabels?: { primary: string; support: string };
+}) {
   if (assignees.length === 0) return <span className="text-ink-muted">—</span>;
-  const shown = assignees.slice(0, 2);
+  const ordered = [
+    ...assignees.filter((a) => a.role === 'PRIMARY'),
+    ...assignees.filter((a) => a.role !== 'PRIMARY'),
+  ];
+  const shown = ordered.slice(0, 2);
   return (
     <span className="flex items-center gap-1">
-      {shown.map((a, i) => (
-        <span
-          key={i}
-          title={a.name}
-          aria-label={a.name}
-          className="h-5 w-5 shrink-0 rounded-full bg-surface-subtle"
-          style={{
-            backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
-            backgroundSize: '300% 300%',
-            backgroundPosition: '50% 50%',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
-      ))}
-      {assignees.length > shown.length && (
-        <span className="text-xs text-ink-muted">+{assignees.length - shown.length}</span>
+      {shown.map((a, i) => {
+        const primary = a.role === 'PRIMARY';
+        const label = roleLabels ? roleLabels[primary ? 'primary' : 'support'] : '';
+        return <CharacterIcon key={i} a={a} primary={primary} title={label ? `${a.name} — ${label}` : a.name} />;
+      })}
+      {ordered.length > shown.length && (
+        <span className="text-xs text-ink-muted">+{ordered.length - shown.length}</span>
       )}
+    </span>
+  );
+}
+
+/** Bar label: the title plus the completion percentage on the right, e.g. "PRG-2 Task        40%". */
+function BarLabel({ data }: { data: { text?: string; progress?: number; type?: string } }) {
+  const pct = Math.round(data.progress ?? 0);
+  return (
+    <span className="flex w-full items-center justify-between gap-2 px-1">
+      <span className="truncate">{data.text}</span>
+      {data.type !== 'milestone' && pct > 0 && <span className="shrink-0 text-xs font-semibold opacity-80">{pct}%</span>}
     </span>
   );
 }
@@ -168,17 +212,6 @@ export function AssigneeIcons({ assignees }: { assignees: { name: string; charac
  * rendered at 491px against a 690px column-width sum). Passed as the
  * library's `gridWidth` prop to force it to match. Exported for unit testing.
  */
-/** Bar label: the title plus the completion percentage on the right, e.g. "PRG-2 Task        40%". */
-function BarLabel({ data }: { data: { text?: string; progress?: number; type?: string } }) {
-  const pct = Math.round(data.progress ?? 0);
-  return (
-    <span className="flex w-full items-center justify-between gap-2 px-1">
-      <span className="truncate">{data.text}</span>
-      {data.type !== 'milestone' && pct > 0 && <span className="shrink-0 text-xs font-semibold opacity-80">{pct}%</span>}
-    </span>
-  );
-}
-
 export function computeGridWidth(columns: IColumnConfig[]): number {
   return columns.reduce((sum, col) => sum + (col.width ?? 0), 0);
 }
@@ -290,7 +323,7 @@ export function GanttChart({
         id: 'assignee',
         header: { text: labels.columnAssignee, css: 'pm-gantt-header-nowrap' },
         width: 90,
-        cell: ({ row }) => <AssigneeIcons assignees={(row.assignees ?? []) as { name: string; character: string }[]} />,
+        cell: ({ row }) => <AssigneeIcons assignees={(row.assignees ?? []) as GanttAssignee[]} roleLabels={labels.roleLabels} />,
       },
     ];
   }, [labels, narrow]);

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DEPENDENCY_TYPES, MASCOT_CHARACTERS, TASK_PRIORITIES, TASK_STATUSES } from '../common/enums';
+import { DEPENDENCY_TYPES, MASCOT_CHARACTERS, TASK_ASSIGNEE_ROLES, TASK_PRIORITIES, TASK_STATUSES } from '../common/enums';
 
 export const createTaskSchema = z.object({
   title: z.string().min(1).max(300),
@@ -9,7 +9,9 @@ export const createTaskSchema = z.object({
   startDate: z.string().datetime().optional(),
   dueDate: z.string().datetime().optional(),
   estimateHours: z.number().min(0).max(10_000).optional(),
-  assigneeIds: z.array(z.string()).optional(),
+  /** The one accountable person; everyone else helping goes in supporterIds. */
+  assigneeId: z.string().optional(),
+  supporterIds: z.array(z.string()).optional(),
 });
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
@@ -22,7 +24,10 @@ export const updateTaskSchema = z.object({
   dueDate: z.string().datetime().nullable().optional(),
   estimateHours: z.number().min(0).max(10_000).nullable().optional(),
   percentComplete: z.number().int().min(0).max(100).optional(),
-  assigneeIds: z.array(z.string()).optional(),
+  /** null clears the primary assignee; omitted leaves it unchanged. */
+  assigneeId: z.string().nullable().optional(),
+  /** Replaces the supporter list when present. */
+  supporterIds: z.array(z.string()).optional(),
 });
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 
@@ -38,6 +43,7 @@ const taskAssigneeSchema = z.object({
   fullName: z.string(),
   avatarUrl: z.string().nullable(),
   mascotCharacter: z.enum(MASCOT_CHARACTERS),
+  role: z.enum(TASK_ASSIGNEE_ROLES),
 });
 
 export const taskSchema = z.object({

@@ -99,7 +99,10 @@ export class TelegramNotificationsService {
     });
 
     for (const task of tasks) {
-      const recipients = task.assignees.filter((a) => a.user.telegramChatId);
+      // Reminders go to whoever is accountable, not to supporters.
+      const recipients = task.assignees.filter(
+        (a) => a.role === 'PRIMARY' && a.user.telegramChatId,
+      );
       if (recipients.length > 0) {
         await Promise.all(
           recipients.map((a) =>
@@ -162,7 +165,7 @@ export class TelegramNotificationsService {
       const tasks = await this.prisma.db.task.findMany({
         where: {
           status: { not: 'DONE' },
-          assignees: { some: { userId: user.id } },
+          assignees: { some: { userId: user.id, role: 'PRIMARY' } },
         },
         select: { humanKey: true, title: true, dueDate: true },
         orderBy: [

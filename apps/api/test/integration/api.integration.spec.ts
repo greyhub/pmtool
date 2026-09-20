@@ -274,7 +274,7 @@ describe('Quests', () => {
       .send({
         title: 'Due today task',
         dueDate: new Date().toISOString(),
-        assigneeIds: [ownerId],
+        assigneeId: ownerId,
       })
       .expect(201);
     const taskId = createTaskRes.body.data.id;
@@ -381,6 +381,124 @@ describe('Quests', () => {
       target: 0,
       completed: false,
     });
+  });
+});
+
+describe('Task assignees', () => {
+  it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
+    const owner = await registerUser('Assignee Owner');
+    const org = await createOrg(owner.accessToken, 'Assignee Org');
+    const helper = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Assignee Helper',
+    );
+    const other = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Assignee Other',
+    );
+    const ownerId = await getUserId(owner.email);
+    const helperId = await getUserId(helper.email);
+    const otherId = await getUserId(other.email);
+    const project = await createProject(owner.accessToken, org.slug, 'ASG');
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`;
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+
+    const created = await request(app.getHttpServer())
+      .post(base)
+      .set(auth)
+      // The primary is also (wrongly) listed as a supporter — must collapse to one row.
+      .send({
+        title: 'Có người phụ trách',
+        assigneeId: ownerId,
+        supporterIds: [ownerId, helperId],
+      })
+      .expect(201);
+    const roles = (t: { assignees: { id: string; role: string }[] }) =>
+      Object.fromEntries(t.assignees.map((a) => [a.id, a.role]));
+    expect(roles(created.body.data)).toEqual({
+      [ownerId]: 'PRIMARY',
+      [helperId]: 'SUPPORT',
+    });
+    expect(created.body.data.assignees[0].role).toBe('PRIMARY');
+
+    // Changing only the primary keeps the supporters (and the old primary is dropped, not demoted).
+    const swapped = await request(app.getHttpServer())
+      .patch(`${base}/${created.body.data.id}`)
+      .set(auth)
+      .send({ assigneeId: otherId })
+      .expect(200);
+    expect(roles(swapped.body.data)).toEqual({
+      [otherId]: 'PRIMARY',
+      [helperId]: 'SUPPORT',
+    });
+
+    // Changing only the supporters keeps the primary.
+    const resupported = await request(app.getHttpServer())
+      .patch(`${base}/${created.body.data.id}`)
+      .set(auth)
+      .send({ supporterIds: [ownerId] })
+      .expect(200);
+    expect(roles(resupported.body.data)).toEqual({
+      [otherId]: 'PRIMARY',
+      [ownerId]: 'SUPPORT',
+    });
+
+    // null clears the primary without touching supporters.
+    const cleared = await request(app.getHttpServer())
+      .patch(`${base}/${created.body.data.id}`)
+      .set(auth)
+      .send({ assigneeId: null })
+      .expect(200);
+    expect(roles(cleared.body.data)).toEqual({ [ownerId]: 'SUPPORT' });
+
+    // The old array field is gone — a client still sending it must not silently succeed.
+    await request(app.getHttpServer())
+      .post(base)
+      .set(auth)
+      .send({ title: 'x', assigneeIds: [ownerId] })
+      .expect(201)
+      .expect((res) => expect(res.body.data.assignees).toHaveLength(0));
+  });
+
+  it('a supporter does not count toward the due-today quest, the primary does', async () => {
+    const owner = await registerUser('Quest Primary');
+    const org = await createOrg(owner.accessToken, 'Quest Primary Org');
+    const helper = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Quest Supporter',
+    );
+    const ownerId = await getUserId(owner.email);
+    const helperId = await getUserId(helper.email);
+    const project = await createProject(owner.accessToken, org.slug, 'QPR');
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({
+        title: 'Hôm nay',
+        dueDate: new Date().toISOString(),
+        assigneeId: ownerId,
+        supporterIds: [helperId],
+      })
+      .expect(201);
+    const target = async (token: string) => {
+      const res = await request(app.getHttpServer())
+        .get(`${API_PREFIX}/organizations/${org.slug}/gamification/quests`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      return res.body.data.find(
+        (q: { questKey: string }) => q.questKey === 'DAILY_DUE_TASKS',
+      ).target;
+    };
+    expect(await target(owner.accessToken)).toBe(1);
+    expect(await target(helper.accessToken)).toBe(0);
   });
 });
 

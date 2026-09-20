@@ -29,13 +29,19 @@ export function toTaskDto(task: TaskWithRelations): TaskDto {
     createdById: task.createdById,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
-    assignees: (task.assignees ?? []).map((a) => ({
-      id: a.user.id,
-      fullName: a.user.fullName,
-      avatarUrl: a.user.avatarUrl,
-      mascotCharacter: a.user
-        .mascotCharacter as TaskDto['assignees'][number]['mascotCharacter'],
-    })),
+    assignees: (task.assignees ?? [])
+      .map((a) => ({
+        id: a.user.id,
+        fullName: a.user.fullName,
+        avatarUrl: a.user.avatarUrl,
+        mascotCharacter: a.user
+          .mascotCharacter as TaskDto['assignees'][number]['mascotCharacter'],
+        role: a.role,
+      }))
+      // Primary first, so consumers can treat index 0 as "the" assignee.
+      .sort(
+        (x, y) => Number(y.role === 'PRIMARY') - Number(x.role === 'PRIMARY'),
+      ),
     subtaskCount: task._count?.subtasks,
   };
 }

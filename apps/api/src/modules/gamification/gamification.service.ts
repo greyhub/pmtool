@@ -338,7 +338,7 @@ export class GamificationService {
       this.prisma.db.task.findMany({
         where: {
           organizationId,
-          assignees: { some: { userId } },
+          assignees: { some: { userId, role: 'PRIMARY' } },
           dueDate: { gte: todayStart, lt: todayEnd },
         },
         select: { status: true },
@@ -346,7 +346,7 @@ export class GamificationService {
       this.prisma.db.task.findMany({
         where: {
           organizationId,
-          assignees: { some: { userId } },
+          assignees: { some: { userId, role: 'PRIMARY' } },
           dueDate: { gte: weekStartUtc, lt: weekEndUtc },
         },
         select: { status: true },

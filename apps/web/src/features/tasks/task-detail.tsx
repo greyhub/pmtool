@@ -226,7 +226,7 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
               </div>
             </div>
 
-            <AssigneesEditor orgSlug={orgSlug} task={task} onChange={(assigneeIds) => updateTask.mutate({ assigneeIds })} />
+            <AssigneesEditor orgSlug={orgSlug} task={task} onChange={(change) => updateTask.mutate(change)} />
           </Card>
 
           <Card className="p-6">
