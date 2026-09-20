@@ -10,6 +10,7 @@ import {
 } from '@testcontainers/postgresql';
 import { AppModule } from '../../src/app.module';
 import { AiQuotaService } from '../../src/modules/ai/ai-quota.service';
+import { MailService } from '../../src/modules/mail/mail.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { hashLinkCode } from '../../src/modules/telegram/link-code.util';
 
@@ -1351,6 +1352,148 @@ describe('Free-tier cost controls', () => {
       .set('Authorization', `Bearer ${owner.accessToken}`)
       .send({ name: 'Cap Org 6', slug: `cap-org-6-${Date.now()}` })
       .expect(403);
+  });
+});
+
+describe('Password reset and email verification', () => {
+  const http = () => request(app.getHttpServer());
+  const tokenFrom = (mail: { text: string }) =>
+    /token=([a-f0-9]+)/.exec(mail.text)![1]!;
+  const mailsTo = (to: string) =>
+    app.get(MailService).outbox.filter((m) => m.to === to);
+  // The sign-up email is sent after the response, so wait for it to land.
+  const waitForMail = async (to: string) => {
+    for (let i = 0; i < 50 && mailsTo(to).length === 0; i++)
+      await new Promise((r) => setTimeout(r, 50));
+    return mailsTo(to);
+  };
+
+  it('emails a verification link on sign-up and marks the account verified when it is followed', async () => {
+    const user = await registerUser('Verify Me');
+    const me = () =>
+      http()
+        .get(`${API_PREFIX}/auth/me`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(200);
+    expect((await me()).body.data.emailVerified).toBe(false);
+
+    const [mail] = await waitForMail(user.email);
+    expect(mail!.subject).toContain('Xác minh');
+    const token = tokenFrom(mail!);
+
+    await http()
+      .post(`${API_PREFIX}/auth/verify-email`)
+      .send({ token: 'nope' })
+      .expect(400);
+    await http()
+      .post(`${API_PREFIX}/auth/verify-email`)
+      .send({ token })
+      .expect(200);
+    expect((await me()).body.data.emailVerified).toBe(true);
+    // A link works once.
+    await http()
+      .post(`${API_PREFIX}/auth/verify-email`)
+      .send({ token })
+      .expect(400);
+    // Nothing more to send once verified.
+    const again = await http()
+      .post(`${API_PREFIX}/auth/resend-verification`)
+      .set('Authorization', `Bearer ${user.accessToken}`)
+      .expect(200);
+    expect(again.body.data.alreadyVerified).toBe(true);
+  });
+
+  it('resets a forgotten password once, ends old sessions, and never reveals whether an email has an account', async () => {
+    const user = await registerUser('Forgot Pass');
+    const before = mailsTo('nobody-here@example.test').length;
+
+    // Unknown email: same answer, no email.
+    await http()
+      .post(`${API_PREFIX}/auth/forgot-password`)
+      .send({ email: 'nobody-here@example.test' })
+      .expect(200);
+    expect(mailsTo('nobody-here@example.test').length).toBe(before);
+
+    await http()
+      .post(`${API_PREFIX}/auth/forgot-password`)
+      .send({ email: user.email })
+      .expect(200);
+    const resetMail = mailsTo(user.email).find((m) =>
+      m.subject.includes('Đặt lại'),
+    )!;
+    const token = tokenFrom(resetMail);
+
+    // The new password must satisfy the same rules as registration.
+    await http()
+      .post(`${API_PREFIX}/auth/reset-password`)
+      .send({ token, password: 'weak' })
+      .expect(400);
+    await http()
+      .post(`${API_PREFIX}/auth/reset-password`)
+      .send({ token, password: 'BrandNew123' })
+      .expect(200);
+
+    await http()
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: user.email, password: 'Password123' })
+      .expect(401);
+    await http()
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: user.email, password: 'BrandNew123' })
+      .expect(200);
+    // The link is single-use.
+    await http()
+      .post(`${API_PREFIX}/auth/reset-password`)
+      .send({ token, password: 'Another123' })
+      .expect(400);
+
+    // Following the emailed link also proves the address.
+    const login = await http()
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: user.email, password: 'BrandNew123' })
+      .expect(200);
+    expect(login.body.data.user.emailVerified).toBe(true);
+  });
+
+  it('a newer reset link voids the older one', async () => {
+    const user = await registerUser('Two Links');
+    await http()
+      .post(`${API_PREFIX}/auth/forgot-password`)
+      .send({ email: user.email })
+      .expect(200);
+    await http()
+      .post(`${API_PREFIX}/auth/forgot-password`)
+      .send({ email: user.email })
+      .expect(200);
+    const [first, second] = mailsTo(user.email).filter((m) =>
+      m.subject.includes('Đặt lại'),
+    );
+    await http()
+      .post(`${API_PREFIX}/auth/reset-password`)
+      .send({ token: tokenFrom(first!), password: 'Newer1234' })
+      .expect(400);
+    await http()
+      .post(`${API_PREFIX}/auth/reset-password`)
+      .send({ token: tokenFrom(second!), password: 'Newer1234' })
+      .expect(200);
+  });
+
+  it('emails an invitation while still returning the link', async () => {
+    const owner = await registerUser('Invite Mail Owner');
+    const org = await createOrg(owner.accessToken, 'Invite Mail Org');
+    const invitee = await registerUser('Invite Mail Guest');
+    const res = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: invitee.email, role: 'MEMBER' })
+      .expect(201);
+    expect(res.body.data.rawToken).toBeTruthy();
+    const mail = mailsTo(invitee.email).find(
+      (m) =>
+        m.subject.includes('Invite Mail Org') || m.subject.includes('Lời mời'),
+    )!;
+    expect(mail.text).toContain(`token=${res.body.data.rawToken}`);
+    expect(mail.text).toContain('Invite Mail Owner');
   });
 });
 

@@ -133,7 +133,8 @@
       "password": "Mật khẩu",
       "submit": "Đăng nhập",
       "noAccount": "Chưa có tài khoản?",
-      "registerLink": "Đăng ký ngay"
+      "registerLink": "Đăng ký ngay",
+      "forgotLink": "Quên mật khẩu?"
     },
     "register": {
       "title": "Tạo tài khoản",
@@ -144,6 +145,43 @@
       "submit": "Đăng ký",
       "hasAccount": "Đã có tài khoản?",
       "loginLink": "Đăng nhập"
+    },
+    "forgot": {
+      "title": "Quên mật khẩu",
+      "subtitle": "Nhập email tài khoản, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+      "email": "Email",
+      "submit": "Gửi liên kết",
+      "sent": "Nếu email này có tài khoản, chúng tôi đã gửi liên kết đặt lại mật khẩu. Hãy kiểm tra hộp thư (cả mục thư rác). Liên kết có hiệu lực 60 phút.",
+      "back": "Quay lại đăng nhập",
+      "error": "Không gửi được yêu cầu. Vui lòng thử lại."
+    },
+    "reset": {
+      "title": "Đặt mật khẩu mới",
+      "subtitle": "Chọn mật khẩu mới cho tài khoản của bạn.",
+      "password": "Mật khẩu mới",
+      "hint": "Ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.",
+      "confirm": "Nhập lại mật khẩu",
+      "submit": "Đặt mật khẩu",
+      "done": "Đã đổi mật khẩu. Mọi phiên đăng nhập cũ đã bị đăng xuất.",
+      "toLogin": "Đăng nhập",
+      "mismatch": "Hai mật khẩu chưa khớp",
+      "weak": "Mật khẩu chưa đủ mạnh",
+      "missing": "Liên kết thiếu mã. Hãy mở lại liên kết trong email hoặc yêu cầu liên kết mới.",
+      "error": "Không đặt lại được mật khẩu. Liên kết có thể đã hết hạn."
+    },
+    "verify": {
+      "title": "Xác minh email",
+      "working": "Đang xác minh…",
+      "done": "Email của bạn đã được xác minh. Cảm ơn bạn!",
+      "continue": "Tiếp tục vào PMTool",
+      "missing": "Liên kết thiếu mã xác minh.",
+      "error": "Không xác minh được. Liên kết có thể đã hết hạn — hãy gửi lại email xác minh từ trong ứng dụng."
+    },
+    "verifyBanner": {
+      "message": "Hãy xác minh email {email} để dùng đầy đủ tính năng và khôi phục tài khoản khi cần.",
+      "resend": "Gửi lại email",
+      "sent": "Đã gửi — kiểm tra hộp thư.",
+      "error": "Chưa gửi được, thử lại sau."
     }
   },
   "onboarding": {
@@ -835,12 +873,13 @@
         "role": "Vai trò",
         "send": "Gửi lời mời",
         "genericError": "Có lỗi xảy ra, vui lòng thử lại",
-        "linkHint": "Chưa có gửi email tự động — hãy sao chép liên kết dưới đây và gửi cho người được mời:",
+        "linkHint": "Chưa gửi được email tự động — hãy sao chép liên kết dưới đây và gửi cho người được mời:",
         "pendingTitle": "Lời mời đang chờ",
         "columnEmail": "Email",
         "columnRole": "Vai trò",
         "columnExpires": "Hết hạn",
-        "cancel": "Huỷ"
+        "cancel": "Huỷ",
+        "linkHintEmailed": "Đã gửi email mời tới người này. Bạn cũng có thể gửi thủ công liên kết dưới đây:"
       }
     }
   },

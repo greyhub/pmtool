@@ -78,6 +78,8 @@ infra/            docker-compose cho Postgres + Redis (dev)
 - **Gắn kết:** nhiệm vụ ngày/tuần, nhân vật đồng hành (mỗi nhân vật một người trong tổ chức, nhân vật đã bị chọn bị làm mờ)
 - **Phân quyền đã rà soát:** ma trận vai trò được kiểm chứng tự động; chặn Admin hạ/xoá Owner; chỉ chọn được người trong tổ chức làm người phụ trách/chủ sở hữu; bản ghi của dự án khác không truy cập được qua URL dự án này ([docs/kien-truc.md §2.4.1, §5](docs/kien-truc.md#241-ma-trận-phân-quyền-theo-vai-trò))
 
+**Hoàn thiện sản phẩm cho giai đoạn miễn phí:** giới hạn tốc độ + hạn mức AI/tổ chức, quên mật khẩu, xác minh email, email mời thành viên (SMTP tuỳ chọn) — xem [docs/gtm.md](docs/gtm.md#40-thứ-tự-thực-hiện-giai-đoạn-miễn-phí) cho thứ tự các hạng mục còn lại. Biến môi trường mới nằm trong `apps/api/.env.example` (mục *Free-tier abuse and cost controls* và SMTP).
+
 ## Yêu cầu môi trường
 
 - Node.js >= 20.18 (xem `.nvmrc`)

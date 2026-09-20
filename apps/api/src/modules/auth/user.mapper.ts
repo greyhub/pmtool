@@ -10,6 +10,7 @@ export function toUserDto(user: User): UserDto {
     locale: user.locale as UserDto['locale'],
     themePref: user.themePref as UserDto['themePref'],
     mascotCharacter: user.mascotCharacter as UserDto['mascotCharacter'],
+    emailVerified: user.emailVerifiedAt !== null,
     createdAt: user.createdAt.toISOString(),
   };
 }

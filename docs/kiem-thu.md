@@ -6,11 +6,11 @@ Cập nhật 2026-09-20. Mô tả chiến lược kiểm thử, kết quả lầ
 
 | Tầng | Công cụ | Số lượng | Kết quả |
 |---|---|---|---|
-| Unit — API | Vitest (Prisma mock) | 197 test / 28 file | ✅ đạt |
+| Unit — API | Vitest (Prisma mock) | 207 test / 32 file | ✅ đạt |
 | Unit — Web | Vitest + jsdom | 23 test | ✅ đạt |
 | Unit — UI (design system, Gantt) | Vitest + Testing Library | 52 test | ✅ đạt |
-| Tích hợp — API qua HTTP thật | Supertest + Postgres ephemeral (Testcontainers), toàn bộ guard/interceptor thật | 39 test | ✅ đạt |
-| End-to-end — trình duyệt thật | Playwright (Chromium), build dev thật của web + api | 27 test / 19 file | ✅ 26 đạt, 1 tự bỏ qua vì chưa cấu hình Telegram trong môi trường này, 1,8 phút |
+| Tích hợp — API qua HTTP thật | Supertest + Postgres ephemeral (Testcontainers), toàn bộ guard/interceptor thật | 45 test | ✅ đạt |
+| End-to-end — trình duyệt thật | Playwright (Chromium), build dev thật của web + api | 28 test / 20 file | ✅ 27 đạt, 1 tự bỏ qua vì chưa cấu hình Telegram trong môi trường này, 1,8 phút |
 | Tĩnh | ESLint, `tsc --noEmit`, `next build`, `nest build` (Turborepo 18 tác vụ) | 18 tác vụ | ✅ đạt, 0 cảnh báo |
 
 Đợt kiểm thử này **tìm ra và sửa** 5 lỗi bảo mật/phân quyền thật (mục 3) — đó là lý do có thêm test ma trận.

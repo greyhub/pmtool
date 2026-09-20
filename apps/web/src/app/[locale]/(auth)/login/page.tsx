@@ -12,9 +12,7 @@ function LoginPageContent() {
   const t = useTranslations('auth.login');
   const searchParams = useSearchParams();
   const redirectTarget = safeRedirectTarget(searchParams.get('redirect'));
-  const registerHref = redirectTarget
-    ? `/register?redirect=${encodeURIComponent(redirectTarget)}`
-    : '/register';
+  const registerHref = redirectTarget ? `/register?redirect=${encodeURIComponent(redirectTarget)}` : '/register';
 
   return (
     <CenteredCardPage

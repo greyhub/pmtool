@@ -27,6 +27,19 @@ export const envSchema = z.object({
   // localhost, which Telegram cannot actually reach — fine for local dev
   // where the webhook path is exercised directly in tests instead.
   API_PUBLIC_URL: z.string().default('http://localhost:3001'),
+  // Optional: outgoing email (password reset, verification, invitations).
+  // Without SMTP_HOST the API logs the message instead of sending it.
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_SECURE: z.enum(['true', 'false']).default('false'),
+  MAIL_FROM: z.string().default('PMTool <no-reply@localhost>'),
+  // Base URL of the web app, used to build the links inside emails.
+  WEB_PUBLIC_URL: z.string().default('http://localhost:3000'),
+  // When "true", unverified accounts cannot use the AI assistant or send
+  // invitations (the abuse/cost vectors). Enable once SMTP is configured.
+  EMAIL_VERIFICATION_REQUIRED: z.enum(['true', 'false']).default('false'),
   // Abuse controls for the free tier. RATE_LIMIT_ENABLED=false turns the
   // per-route limits off (integration tests register dozens of users from one IP).
   RATE_LIMIT_ENABLED: z.enum(['true', 'false']).default('true'),

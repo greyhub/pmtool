@@ -40,6 +40,12 @@ PMTool tổ chức dữ liệu theo 3 cấp: **Tổ chức** (Organization) → 
 
 Mời thêm thành viên vào tổ chức được thực hiện ở trang **Cài đặt tổ chức** — xem [mục 3](#3-quản-lý-tổ-chức).
 
+**Xác minh email.** Sau khi đăng ký, PMTool gửi một email chứa liên kết xác minh (hiệu lực 24 giờ). Trong lúc chưa xác minh bạn thấy một dải nhắc ở đầu trang kèm nút **Gửi lại email**. Khi quản trị hệ thống bật yêu cầu xác minh, tài khoản chưa xác minh sẽ chưa dùng được **trợ lý AI** và **mời thành viên** (hai tính năng dễ bị lạm dụng); mọi thứ khác vẫn dùng bình thường.
+
+**Quên mật khẩu.** Ở trang **Đăng nhập** bấm **Quên mật khẩu?**, nhập email. Hệ thống luôn trả lời giống nhau dù email có tài khoản hay không (để không lộ ai đã đăng ký) và, nếu có, gửi liên kết đặt lại có hiệu lực **60 phút, dùng được một lần**; yêu cầu mới sẽ vô hiệu liên kết cũ. Đặt mật khẩu mới xong, **mọi phiên đăng nhập cũ bị đăng xuất** và email của bạn được coi là đã xác minh.
+
+**Giới hạn để chống lạm dụng.** Đăng nhập sai quá 10 lần trong 15 phút (cùng email + cùng địa chỉ mạng) sẽ bị tạm khoá vài phút; đăng ký, tạo tổ chức, quên mật khẩu, dùng AI cũng có giới hạn tốc độ. Mỗi tài khoản sở hữu tối đa 5 tổ chức, và mỗi tổ chức có hạn mức lượt dùng AI mỗi ngày (mặc định 100, làm mới lúc 00:00 giờ Việt Nam).
+
 ## 2. Vai trò & phân quyền
 
 Mỗi thành viên trong một tổ chức có đúng một trong 5 vai trò (RBAC), theo thứ tự quyền giảm dần:
@@ -79,7 +85,7 @@ Vào menu bên trái, chọn **Cài đặt tổ chức** (chỉ Owner/Admin thao
 
 - **Thông tin chung**: sửa **Tên tổ chức**, bấm **Lưu**. Nút **Lưu trữ tổ chức** (chỉ Owner) đưa tổ chức vào trạng thái lưu trữ: tổ chức biến mất khỏi danh sách chuyển đổi tổ chức, không tạo được dự án mới hay mời thêm thành viên mới — các thao tác khác (sửa dự án, xoá thành viên, ...) vẫn hoạt động bình thường. Bấm **Bỏ lưu trữ** bất cứ lúc nào để khôi phục lại như cũ.
 - **Thành viên**: bảng liệt kê toàn bộ thành viên, đổi vai trò trực tiếp qua ô chọn hoặc **Xoá** khỏi tổ chức. Tổ chức luôn phải còn ít nhất một Owner — hệ thống chặn việc hạ vai trò hoặc xoá Owner cuối cùng.
-- **Mời thành viên**: nhập **Email** và chọn **Vai trò**, bấm **Gửi lời mời**. Vì PMTool chưa gửi email tự động, hệ thống hiển thị một **liên kết chấp nhận lời mời** để bạn sao chép và gửi thủ công cho người được mời (Slack, email cá nhân, ...) — liên kết có hiệu lực 7 ngày. Người nhận đăng nhập/đăng ký tài khoản rồi mở liên kết đó để tham gia tổ chức — nếu họ chưa đăng nhập, hệ thống tự đưa họ quay lại đúng liên kết mời sau khi đăng nhập/đăng ký xong, không cần mở lại link.
+- **Mời thành viên**: nhập **Email** và chọn **Vai trò**, bấm **Gửi lời mời**. PMTool **gửi email mời** tới người được mời (khi hệ thống đã cấu hình gửi email) và luôn hiển thị **liên kết chấp nhận lời mời** để bạn sao chép, gửi thủ công qua kênh khác nếu cần (Slack, Zalo, ...) — liên kết có hiệu lực 7 ngày. Người nhận đăng nhập/đăng ký tài khoản rồi mở liên kết đó để tham gia tổ chức — nếu họ chưa đăng nhập, hệ thống tự đưa họ quay lại đúng liên kết mời sau khi đăng nhập/đăng ký xong, không cần mở lại link.
   - Mời một email **đã là thành viên** sẽ báo lỗi rõ ràng thay vì tạo lời mời trùng — hãy đổi vai trò trực tiếp trong bảng Thành viên ở trên.
   - Mời lại **cùng một email** đang có lời mời chờ sẽ thay thế lời mời cũ (coi như gửi lại/đổi vai trò lời mời), không tạo thêm bản sao.
   - Bấm **Huỷ** trên một lời mời đang chờ để thu hồi — liên kết cũ ngay lập tức không dùng được nữa.

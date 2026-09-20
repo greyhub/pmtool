@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { loginSchema, LoginInput, OrganizationDto } from '@pmtool/shared-types';
 import { useLogin, ApiError, apiRequest } from '@pmtool/api-client';
 import { Button, FormField, Input } from '@pmtool/ui';
-import { useRouter } from '../../i18n/navigation';
+import { Link, useRouter } from '../../i18n/navigation';
 import { safeRedirectTarget } from '../../lib/post-auth-redirect';
 
 export function LoginForm() {
@@ -27,9 +27,7 @@ export function LoginForm() {
         // log in actually gets to finish. Read directly from window instead
         // of useSearchParams() so this component doesn't force a Suspense
         // boundary on every page that renders it.
-        const redirectTarget = safeRedirectTarget(
-          new URLSearchParams(window.location.search).get('redirect'),
-        );
+        const redirectTarget = safeRedirectTarget(new URLSearchParams(window.location.search).get('redirect'));
         if (redirectTarget) {
           router.push(redirectTarget);
           return;
@@ -63,6 +61,9 @@ export function LoginForm() {
           invalid={!!errors.password}
           {...register('password')}
         />
+        <Link href="/forgot-password" className="mt-1 inline-block text-xs text-ink-secondary hover:underline">
+          {t('forgotLink')}
+        </Link>
       </FormField>
 
       {login.isError && (

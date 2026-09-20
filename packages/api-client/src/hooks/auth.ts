@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import type {
   AuthTokens,
+  ForgotPasswordInput,
   LoginInput,
   RegisterInput,
+  ResetPasswordInput,
   TakenCharacterDto,
   UpdateUserPreferencesInput,
   UserDto,
+  VerifyEmailInput,
 } from '@pmtool/shared-types';
 import { apiRequest, refreshSession } from '../http-client';
 import { setAccessToken } from '../access-token-store';
@@ -90,5 +93,36 @@ export function useTakenCharacters() {
   return useQuery({
     queryKey: authKeys.takenCharacters,
     queryFn: () => apiRequest<TakenCharacterDto[]>('/api/v1/users/me/taken-characters'),
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (input: ForgotPasswordInput) =>
+      apiRequest<{ ok: true }>('/api/v1/auth/forgot-password', { method: 'POST', body: input }),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (input: ResetPasswordInput) =>
+      apiRequest<{ ok: true }>('/api/v1/auth/reset-password', { method: 'POST', body: input }),
+  });
+}
+
+export function useVerifyEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: VerifyEmailInput) =>
+      apiRequest<{ ok: true }>('/api/v1/auth/verify-email', { method: 'POST', body: input }),
+    // Someone verifying while signed in should see the banner disappear.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.me }),
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: () =>
+      apiRequest<{ alreadyVerified: boolean }>('/api/v1/auth/resend-verification', { method: 'POST' }),
   });
 }

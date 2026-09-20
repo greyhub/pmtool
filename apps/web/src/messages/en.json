@@ -133,7 +133,8 @@
       "password": "Password",
       "submit": "Sign in",
       "noAccount": "Don't have an account?",
-      "registerLink": "Sign up"
+      "registerLink": "Sign up",
+      "forgotLink": "Forgot password?"
     },
     "register": {
       "title": "Create your account",
@@ -144,6 +145,43 @@
       "submit": "Sign up",
       "hasAccount": "Already have an account?",
       "loginLink": "Sign in"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "Enter your account email and we will send you a reset link.",
+      "email": "Email",
+      "submit": "Send link",
+      "sent": "If that email has an account, we have sent a reset link. Check your inbox (and spam). The link is valid for 60 minutes.",
+      "back": "Back to sign in",
+      "error": "Could not send the request. Please try again."
+    },
+    "reset": {
+      "title": "Set a new password",
+      "subtitle": "Choose a new password for your account.",
+      "password": "New password",
+      "hint": "At least 8 characters with upper case, lower case and a number.",
+      "confirm": "Repeat password",
+      "submit": "Set password",
+      "done": "Password changed. All older sessions were signed out.",
+      "toLogin": "Sign in",
+      "mismatch": "The two passwords do not match",
+      "weak": "The password is not strong enough",
+      "missing": "The link has no token. Open the link from the email again or request a new one.",
+      "error": "Could not reset the password. The link may have expired."
+    },
+    "verify": {
+      "title": "Verify email",
+      "working": "Verifying…",
+      "done": "Your email is verified. Thank you!",
+      "continue": "Continue to PMTool",
+      "missing": "The link has no verification token.",
+      "error": "Could not verify. The link may have expired — resend the verification email from inside the app."
+    },
+    "verifyBanner": {
+      "message": "Verify {email} to use every feature and to be able to recover your account.",
+      "resend": "Resend email",
+      "sent": "Sent — check your inbox.",
+      "error": "Could not send, try again later."
     }
   },
   "onboarding": {
@@ -835,12 +873,13 @@
         "role": "Role",
         "send": "Send invite",
         "genericError": "Something went wrong, please try again",
-        "linkHint": "There's no automatic email yet — copy the link below and send it to the invitee:",
+        "linkHint": "The email could not be sent automatically — copy the link below and send it to the invitee:",
         "pendingTitle": "Pending invites",
         "columnEmail": "Email",
         "columnRole": "Role",
         "columnExpires": "Expires",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "linkHintEmailed": "An invitation email was sent. You can also send this link manually:"
       }
     }
   },

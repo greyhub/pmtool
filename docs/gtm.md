@@ -48,8 +48,8 @@ Miễn phí không có nghĩa là hạ chuẩn: người dùng vẫn giao dữ l
 
 | Bước | Hạng mục | Lý do ở chế độ miễn phí |
 |---|---|---|
-| 1 | **G5 Giới hạn tốc độ + hạn mức AI theo tổ chức** | Không có doanh thu bù chi phí AI/lạm dụng; chống dò mật khẩu và đăng ký hàng loạt |
-| 2 | **G1/G2 Quên mật khẩu, xác minh email, email giao dịch** (nhà cung cấp email cắm được; chưa cấu hình thì ghi log) | Không có mật khẩu = mất tài khoản; email chặn tài khoản rác |
+| 1 ✅ | **G5 Giới hạn tốc độ + hạn mức AI theo tổ chức** *(xong 2026-09-20)* | Không có doanh thu bù chi phí AI/lạm dụng; chống dò mật khẩu và đăng ký hàng loạt |
+| 2 ✅ | **G1/G2 Quên mật khẩu, xác minh email, email giao dịch** *(xong 2026-09-20; cần cấu hình SMTP thật ở production rồi bật `EMAIL_VERIFICATION_REQUIRED`)* (nhà cung cấp email cắm được; chưa cấu hình thì ghi log) | Không có mật khẩu = mất tài khoản; email chặn tài khoản rác |
 | 3 | **G4 Xuất dữ liệu + xoá tài khoản/tổ chức + trang điều khoản/quyền riêng tư** | Bắt buộc pháp lý khi thu dữ liệu cá nhân (Nghị định 13/2023), xây niềm tin để dùng miễn phí |
 | 4 | **G8 Dự án mẫu + checklist kích hoạt** | Rút ngắn thời gian tới "aha" — chỉ số quan trọng nhất khi không có doanh thu |
 | 5 | **G9 Nhập/xuất CSV** | Hạ rào chuyển đổi từ bảng tính; xuất cũng phục vụ G4 |

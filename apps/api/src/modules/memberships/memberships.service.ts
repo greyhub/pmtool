@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { Membership, OrgRole } from '@prisma/client';
 import { CreateInviteInput } from '@pmtool/shared-types';
@@ -12,12 +13,17 @@ import {
   generateRefreshToken,
   hashRefreshToken,
 } from '../auth/refresh-token.util';
+import { MailService } from '../mail/mail.service';
+import { inviteMail } from '../mail/mail-templates';
 
 const INVITE_TTL_DAYS = 7;
 
 @Injectable()
 export class MembershipsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly mail?: MailService,
+  ) {}
 
   async listMembers(organizationId: string): Promise<Membership[]> {
     return this.prisma.db.membership.findMany({
@@ -94,6 +100,33 @@ export class MembershipsService {
         expiresAt: invite.expiresAt,
       };
     });
+  }
+
+  /** Emails the invitation link; the link is still returned to the inviter as a fallback. */
+  async emailInvite(
+    invite: { email: string; role: OrgRole; rawToken: string },
+    organizationName: string,
+    inviterUserId: string,
+  ): Promise<boolean> {
+    if (!this.mail) return false;
+    const inviter = await this.prisma.db.user.findUnique({
+      where: { id: inviterUserId },
+      select: { fullName: true, locale: true },
+    });
+    const locale = inviter?.locale === 'en' ? 'en' : 'vi';
+    const url = this.mail.webUrl(
+      `/${locale}/invite/accept?token=${invite.rawToken}`,
+    );
+    return this.mail.send(
+      invite.email,
+      inviteMail(
+        locale,
+        url,
+        inviter?.fullName ?? 'PMTool',
+        organizationName,
+        invite.role,
+      ),
+    );
   }
 
   async cancelInvite(organizationId: string, inviteId: string): Promise<void> {

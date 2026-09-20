@@ -16,6 +16,8 @@ interface InviteDto {
   role: string;
   rawToken: string;
   expiresAt: string;
+  /** True when the invitation email was actually sent. */
+  emailed?: boolean;
 }
 
 interface PendingInviteDto {

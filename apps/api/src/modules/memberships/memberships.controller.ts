@@ -29,6 +29,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { toMembershipDto } from './membership.mapper';
+import { EmailVerifiedGuard } from '../../common/guards/email-verified.guard';
 
 @ApiTags('memberships')
 @Controller({ path: 'organizations/:orgSlug', version: '1' })
@@ -47,7 +48,7 @@ export class MembershipsController {
   }
 
   @Post('invites')
-  @UseGuards(RolesGuard)
+  @UseGuards(EmailVerifiedGuard, RolesGuard)
   @Roles('OWNER', 'ADMIN')
   async createInvite(
     @CurrentOrg() ctx: CurrentOrgContext,
@@ -59,13 +60,17 @@ export class MembershipsController {
         'Không thể mời thành viên mới vào tổ chức đã lưu trữ',
       );
     }
-    return {
-      data: await this.membershipsService.createInvite(
-        ctx.organization.id,
-        user.id,
-        body,
-      ),
-    };
+    const invite = await this.membershipsService.createInvite(
+      ctx.organization.id,
+      user.id,
+      body,
+    );
+    const emailed = await this.membershipsService.emailInvite(
+      invite,
+      ctx.organization.name,
+      user.id,
+    );
+    return { data: { ...invite, emailed } };
   }
 
   @Get('invites')

@@ -29,6 +29,8 @@ model User {
   locale         String   @default("vi")
   themePref      String   @default("system")
   mascotCharacter String  @default("fox")
+  // Set once the user proves they own the address (link in the verification email).
+  emailVerifiedAt DateTime?
   telegramChatId String?  @unique
   // Daily task-status digest via Telegram — distinct from the due-date
   // sweep (Task.telegramReminderSentAt). Enabled by default so anyone who
@@ -42,6 +44,7 @@ model User {
 
   memberships           Membership[]
   refreshTokens         RefreshToken[]
+  authTokens            AuthToken[]
   projectMembers        ProjectMember[]
   taskAssignments       TaskAssignee[]
   comments              Comment[]
@@ -759,4 +762,26 @@ model AiUsageDaily {
 
   @@unique([organizationId, day])
   @@map("ai_usage_daily")
+}
+
+enum AuthTokenType {
+  PASSWORD_RESET
+  EMAIL_VERIFY
+}
+
+/// One-time, hashed, expiring tokens emailed to a user (password reset, email
+/// verification). User-level like TelegramLinkCode — deliberately not tenant-scoped.
+model AuthToken {
+  id        String        @id @default(cuid())
+  userId    String
+  type      AuthTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("auth_tokens")
 }

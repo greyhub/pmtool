@@ -17,8 +17,14 @@ import {
   AuthTokens,
   LoginInput,
   loginSchema,
+  ForgotPasswordInput,
+  forgotPasswordSchema,
   RegisterInput,
   registerSchema,
+  ResetPasswordInput,
+  resetPasswordSchema,
+  VerifyEmailInput,
+  verifyEmailSchema,
   UserDto,
 } from '@pmtool/shared-types';
 import { AuthService, IssuedRefreshToken } from './auth.service';
@@ -31,6 +37,7 @@ import { UsersService } from '../users/users.service';
 import { toUserDto } from './user.mapper';
 import { RateLimit } from '../../common/rate-limit/rate-limit.decorator';
 import { RateLimitGuard } from '../../common/rate-limit/rate-limit.guard';
+import { AccountService } from './account.service';
 
 const REFRESH_COOKIE_NAME = 'refresh_token';
 const REFRESH_COOKIE_PATH = '/api/v1/auth';
@@ -40,6 +47,7 @@ const REFRESH_COOKIE_PATH = '/api/v1/auth';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly accountService: AccountService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService<EnvConfig, true>,
   ) {}
@@ -57,6 +65,10 @@ export class AuthController {
       body,
       req.headers['user-agent'],
     );
+    // Verification email goes out after the account exists; a mail outage must not fail sign-up.
+    void this.accountService
+      .sendVerification(tokens.user.id)
+      .catch(() => undefined);
     this.setRefreshCookie(res, refreshToken);
     return { data: tokens };
   }
@@ -125,6 +137,61 @@ export class AuthController {
   ): Promise<void> {
     await this.authService.logoutAll(user.id);
     res.clearCookie(REFRESH_COOKIE_NAME, { path: REFRESH_COOKIE_PATH });
+  }
+
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit(
+    { name: 'forgot-account', limit: 5, windowSec: 3600, by: 'ipEmail' },
+    { name: 'forgot-ip', limit: 30, windowSec: 3600, by: 'ip' },
+  )
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(
+    @Body(new ZodValidationPipe(forgotPasswordSchema))
+    body: ForgotPasswordInput,
+  ): Promise<{ data: { ok: true } }> {
+    await this.accountService.forgotPassword(body.email);
+    return { data: { ok: true } };
+  }
+
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'reset-password', limit: 20, windowSec: 3600, by: 'ip' })
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body(new ZodValidationPipe(resetPasswordSchema)) body: ResetPasswordInput,
+  ): Promise<{ data: { ok: true } }> {
+    await this.accountService.resetPassword(body.token, body.password);
+    return { data: { ok: true } };
+  }
+
+  @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'verify-email', limit: 30, windowSec: 3600, by: 'ip' })
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(
+    @Body(new ZodValidationPipe(verifyEmailSchema)) body: VerifyEmailInput,
+  ): Promise<{ data: { ok: true } }> {
+    await this.accountService.verifyEmail(body.token);
+    return { data: { ok: true } };
+  }
+
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    name: 'resend-verification',
+    limit: 5,
+    windowSec: 3600,
+    by: 'user',
+  })
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  async resendVerification(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ data: { alreadyVerified: boolean } }> {
+    return { data: await this.accountService.sendVerification(user.id) };
   }
 
   @Get('me')

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useMe } from '@pmtool/api-client';
 import { usePathname, useRouter } from '../../i18n/navigation';
 import { MascotCompanion } from '../shell/mascot-companion';
+import { EmailVerificationBanner } from './email-verification-banner';
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -31,6 +32,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <EmailVerificationBanner />
       {children}
       <MascotCompanion />
     </>

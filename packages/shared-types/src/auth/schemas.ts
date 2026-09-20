@@ -32,6 +32,7 @@ export const userSchema = z.object({
   locale: z.enum(LOCALES),
   themePref: z.enum(THEME_PREFERENCES),
   mascotCharacter: z.enum(MASCOT_CHARACTERS),
+  emailVerified: z.boolean(),
   createdAt: z.string(),
 });
 export type UserDto = z.infer<typeof userSchema>;
@@ -56,3 +57,15 @@ export const takenCharacterSchema = z.object({
   takenBy: z.string(),
 });
 export type TakenCharacterDto = z.infer<typeof takenCharacterSchema>;
+
+export const forgotPasswordSchema = z.object({ email: emailSchema });
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: passwordSchema,
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const verifyEmailSchema = z.object({ token: z.string().min(1) });
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

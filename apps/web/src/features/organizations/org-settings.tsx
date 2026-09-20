@@ -186,6 +186,7 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<(typeof INVITE_ROLES)[number]>('MEMBER');
   const [lastLink, setLastLink] = useState<string | null>(null);
+  const [emailed, setEmailed] = useState(false);
 
   function handleInvite() {
     createInvite.mutate(
@@ -195,6 +196,7 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
           setEmail('');
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
           setLastLink(`${origin}/invite/accept?token=${invite.rawToken}`);
+          setEmailed(Boolean(invite.emailed));
         },
       },
     );
@@ -206,12 +208,7 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <FormField label={t('email')} htmlFor="invite-email" className="flex-1">
-          <Input
-            id="invite-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </FormField>
         <FormField label={t('role')} htmlFor="invite-role">
           <Select
@@ -227,11 +224,7 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
             ))}
           </Select>
         </FormField>
-        <Button
-          type="button"
-          disabled={createInvite.isPending || email.trim().length === 0}
-          onClick={handleInvite}
-        >
+        <Button type="button" disabled={createInvite.isPending || email.trim().length === 0} onClick={handleInvite}>
           {t('send')}
         </Button>
       </div>
@@ -244,16 +237,14 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
 
       {lastLink && (
         <div className="rounded-md border border-line bg-surface-subtle p-3 text-xs">
-          <p className="mb-1 text-ink-secondary">{t('linkHint')}</p>
+          <p className="mb-1 text-ink-secondary">{emailed ? t('linkHintEmailed') : t('linkHint')}</p>
           <code className="break-all text-ink-primary">{lastLink}</code>
         </div>
       )}
 
       {invites && invites.length > 0 && (
         <div className="mt-2">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
-            {t('pendingTitle')}
-          </p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-muted">{t('pendingTitle')}</p>
           <Table>
             <TableHead>
               <TableRow>

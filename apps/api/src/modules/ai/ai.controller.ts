@@ -22,6 +22,7 @@ import { CurrentProject } from '../../common/decorators/current-project.decorato
 import { RateLimit } from '../../common/rate-limit/rate-limit.decorator';
 import { RateLimitGuard } from '../../common/rate-limit/rate-limit.guard';
 import { AiQuotaService } from './ai-quota.service';
+import { EmailVerifiedGuard } from '../../common/guards/email-verified.guard';
 
 // Matches task-creation permission, since accepting an AI suggestion results
 // in a task being created — redeclared locally rather than imported, same
@@ -33,7 +34,13 @@ const CAN_USE_AI = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   path: 'organizations/:orgSlug/projects/:projectKey',
   version: '1',
 })
-@UseGuards(OrgMembershipGuard, ProjectGuard, ProjectRolesGuard, RateLimitGuard)
+@UseGuards(
+  EmailVerifiedGuard,
+  OrgMembershipGuard,
+  ProjectGuard,
+  ProjectRolesGuard,
+  RateLimitGuard,
+)
 @Roles(...CAN_USE_AI)
 @RateLimit({ name: 'ai', limit: 20, windowSec: 60, by: 'user' })
 export class AiController {
