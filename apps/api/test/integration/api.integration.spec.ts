@@ -641,10 +641,18 @@ describe('Task history', () => {
       .send({ assigneeId: helperId, supporterIds: [ownerId] })
       .expect(200);
 
-    const res = await request(app.getHttpServer())
+    // Activity rows are written after the response is sent, so wait for all three.
+    let res = await request(app.getHttpServer())
       .get(`${base}/${id}/history`)
       .set(auth)
       .expect(200);
+    for (let i = 0; i < 40 && res.body.data.length < 3; i++) {
+      await new Promise((r) => setTimeout(r, 100));
+      res = await request(app.getHttpServer())
+        .get(`${base}/${id}/history`)
+        .set(auth)
+        .expect(200);
+    }
     const entries = res.body.data as {
       action: string;
       actor: { fullName: string };
