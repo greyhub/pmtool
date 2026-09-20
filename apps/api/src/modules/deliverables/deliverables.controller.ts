@@ -108,12 +108,14 @@ export class DeliverablesController {
   async submit(
     @CurrentOrg() ctx: CurrentOrgContext,
     @CurrentProject() project: Project,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('deliverableId') deliverableId: string,
   ): Promise<{ data: DeliverableDto }> {
     const row = await this.service.submit(
       ctx.organization.id,
       project.id,
       deliverableId,
+      user.id,
     );
     return { data: toDeliverableDto(row) };
   }

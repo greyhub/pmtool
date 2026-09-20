@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { Comment, User } from '@prisma/client';
 import { CreateCommentInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { toRichText } from './rich-text.util';
 import { GamificationService } from '../gamification/gamification.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const COMMENT_INCLUDE = {
   author: { select: { id: true, fullName: true, avatarUrl: true } },
@@ -14,6 +15,7 @@ export class CommentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gamificationService: GamificationService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   async list(
@@ -45,6 +47,30 @@ export class CommentsService {
       2,
       'comment_created',
     );
+    // Tell whoever works on the task (and its creator) that someone commented.
+    const task = await this.prisma.db.task.findUnique({
+      where: { id: taskId },
+      select: {
+        id: true,
+        title: true,
+        humanKey: true,
+        createdById: true,
+        assignees: { select: { userId: true } },
+      },
+    });
+    if (task) {
+      await this.notifications?.notify({
+        organizationId,
+        userIds: [...task.assignees.map((a) => a.userId), task.createdById],
+        type: 'TASK_COMMENT',
+        actorId: authorId,
+        entityKind: 'task',
+        entityId: task.id,
+        projectKey: task.humanKey.split('-')[0]!,
+        entityTitle: task.title,
+        detail: input.body,
+      });
+    }
     return comment;
   }
 }

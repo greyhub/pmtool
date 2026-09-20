@@ -96,7 +96,7 @@ flowchart TD
 | 3. Cộng tác | Bình luận (Ctrl+Enter), người hỗ trợ, phụ thuộc | Lịch sử thay đổi ghi ai đổi gì. |
 | 4. Hoàn thành | Đổi sang Hoàn thành | +điểm, cập nhật chuỗi ngày, huy hiệu; ghi nhật ký hoạt động. |
 
-**Ma sát:** thông báo chỉ có **Telegram** (không email, không thông báo trong app, không @mention); không có "việc của tôi" như một màn hình riêng xuyên dự án (chỉ lọc trong từng dự án); không có ứng dụng di động (web responsive).
+**Ma sát còn lại:** đã có **chuông thông báo trong app** và màn **Việc của tôi** xuyên dự án; chưa có email theo sự kiện, chưa có @mention, không có ứng dụng di động (web responsive).
 
 ### J5 — Giám sát và ra quyết định (PM/Owner)
 

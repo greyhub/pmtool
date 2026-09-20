@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.7 Thông báo trong ứng dụng
+
+`NotificationsService.notify()` (module toàn cục) ghi một dòng `Notification` cho mỗi người nhận, đã loại người gây ra hành động và trùng lặp, và **không bao giờ ném lỗi** ra ngoài (thông báo hỏng không được làm hỏng việc giao/bình luận/nộp). Bản ghi chỉ lưu `type`, tên người gây ra, loại/ID/khoá dự án của đối tượng và một đoạn trích; **câu chữ được dựng ở client** theo ngôn ngữ người đọc. Được gọi từ `TasksService` (giao việc khi tạo/sửa — chỉ người mới được thêm), `CommentsService`, `DeliverablesService` (nộp → người duyệt: PM+/Admin/Owner theo vai trò tổ chức hoặc vai trò dự án; duyệt/từ chối → chủ và người tạo). Các service nhận `NotificationsService` qua `@Optional()` nên unit test cũ không đổi. Mọi truy vấn khoá theo `userId` người gọi. `GET organizations/:org/my-tasks` trả việc của người gọi xuyên dự án. Chuông poll 60 giây (chưa có WebSocket).
+
 ### 1.6 Nhập/xuất công việc bằng CSV
 
 `TaskCsvService` (`modules/tasks`): `GET projects/:key/task-csv/export` và `POST …/task-csv/import {csv, dryRun}` (route riêng để không đụng `tasks/:taskId`). `csv.ts` là bộ đọc/ghi RFC 4180 tự viết (ngoặc kép, xuống dòng trong ô, BOM, tự nhận dấu `,`/`;`/tab); khi ghi, giá trị bắt đầu bằng `= + - @` được thêm `'` để chặn **CSV injection**, và khi đọc dấu `'` đó được gỡ ra nên dữ liệu khứ hồi không đổi. `task-import.ts` (hàm thuần, unit test) chuẩn hoá tên cột (không dấu, nhiều bí danh vi/en), giá trị enum (mã hoặc nhãn vi/en), ngày, người theo email trong tổ chức, sắp xếp cha trước con, phát hiện trùng `ref`/vòng lặp/cha không tồn tại, và áp quy tắc cấp WBS (giống `placeChild`). **Tất cả-hoặc-không**: `dryRun` trả xem trước + lỗi theo số dòng; ghi thật chỉ khi không có lỗi, trong một transaction, cấp `humanKey` liên tục bằng một lần tăng `taskSequence`. Nhập **không** đi qua `TasksService.create` nên không cộng điểm/không gửi Telegram. Giới hạn 2000 dòng, 1 MB; `main.ts` nâng giới hạn JSON body lên 2 MB.

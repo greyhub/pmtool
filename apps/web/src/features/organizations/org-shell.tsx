@@ -9,6 +9,7 @@ import { OrgSwitcherWidget } from '../shell/org-switcher-widget';
 import { LocaleSwitcherWidget } from '../shell/locale-switcher-widget';
 import { UserMenu } from '../shell/user-menu';
 import { Link, useRouter, usePathname } from '../../i18n/navigation';
+import { NotificationBell } from '../shell/notification-bell';
 
 function SidebarLink({
   href,
@@ -43,6 +44,14 @@ function DashboardIcon() {
       <rect x="13" y="4" width="7" height="7" rx="1" />
       <rect x="4" y="13" width="7" height="7" rx="1" />
       <rect x="13" y="13" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
+function MyTasksIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9" />
     </svg>
   );
 }
@@ -135,6 +144,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
 
   const sidebarItems = [
     { href: `/${orgSlug}/dashboard`, label: 'Dashboard', icon: <DashboardIcon /> },
+    { href: `/${orgSlug}/my-tasks`, label: tNav('myTasks'), icon: <MyTasksIcon /> },
     { href: `/${orgSlug}/projects`, label: tNav('projects'), icon: <ProjectsIcon /> },
     { href: `/${orgSlug}/leaderboard`, label: tNav('leaderboard'), icon: <LeaderboardIcon /> },
     { href: `/${orgSlug}/settings`, label: tNav('orgSettings'), icon: <SettingsIcon /> },
@@ -186,6 +196,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
           }
           right={
             <>
+              <NotificationBell orgSlug={orgSlug} />
               <div className="hidden sm:block">
                 <LocaleSwitcherWidget />
               </div>

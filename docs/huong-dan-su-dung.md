@@ -310,3 +310,15 @@ Trang **Điều khoản sử dụng** (`/terms`) và **Chính sách quyền riê
 - **Nhập CSV** (Member trở lên): chọn tệp CSV — xuất từ PMTool hoặc tự soạn trong Excel/Google Sheets (dấu phẩy hoặc chấm phẩy đều được). Hệ thống **kiểm tra toàn bộ trước** và cho xem trước; nếu bất kỳ dòng nào lỗi thì **không tạo gì**, và mỗi lỗi ghi rõ số dòng. Khi hết lỗi bấm **Nhập N công việc**.
 
 Chỉ cột `title` là bắt buộc. Các cột khác (tên cột tiếng Việt hoặc tiếng Anh đều nhận): `ref` (mã tuỳ ý của dòng, để dòng khác trỏ tới), `parent` (`ref` của dòng cha trong tệp, hoặc mã công việc có sẵn như `PRJ-12`), `type` (Giai đoạn/Giao phẩm/Gói công việc/Hoạt động), `status`, `priority`, `start`/`due` (`yyyy-mm-dd` hoặc `dd/mm/yyyy`), `percent`, `estimate_hours`, `milestone`, `assignee` và `supporters` (email thành viên của tổ chức, nhiều người ngăn bằng `;`), `description`. Cha có thể nằm sau con trong tệp; quy tắc cấp WBS vẫn được áp dụng (một hoạt động nhận con sẽ thành gói công việc). Tối đa 2000 dòng / 1 MB mỗi lần; nhập không tính điểm thưởng và không gửi thông báo Telegram. Bạn có thể **Tải tệp mẫu** ngay trong hộp thoại nhập.
+
+## 24. Thông báo trong ứng dụng và "Việc của tôi"
+
+**Chuông thông báo** ở thanh trên cùng (mọi trang của tổ chức) hiện số thông báo chưa đọc (cập nhật mỗi phút và khi bạn quay lại tab). Bạn được báo khi:
+
+- được **giao việc** (người phụ trách hoặc người hỗ trợ — chỉ khi bạn mới được thêm vào, không báo lại khi sửa việc khác);
+- có **bình luận** trong việc bạn phụ trách/hỗ trợ hoặc do bạn tạo (người viết không tự nhận thông báo);
+- một giao phẩm được **nộp chờ nghiệm thu** (gửi tới PM/Admin/Owner), hoặc được **nghiệm thu / từ chối** (gửi tới người phụ trách và người tạo giao phẩm, kèm lý do từ chối).
+
+Bấm một thông báo để mở đúng công việc/giao phẩm và tự đánh dấu đã đọc; **Đánh dấu đã đọc hết** ở đầu danh sách. Mỗi người chỉ thấy thông báo của chính mình. Thông báo Telegram (nếu đã liên kết) vẫn hoạt động song song.
+
+**Việc của tôi** (menu trái): mọi việc bạn phụ trách hoặc hỗ trợ, **xuyên mọi dự án** của tổ chức, gom theo hạn: *Trễ hạn*, *Hôm nay*, *7 ngày tới*, *Sau đó*, *Chưa có hạn*; mỗi dòng cho biết dự án, vai trò (Phụ trách/Hỗ trợ), trạng thái, % hoàn thành. Mặc định ẩn việc đã xong (có ô bật lên).

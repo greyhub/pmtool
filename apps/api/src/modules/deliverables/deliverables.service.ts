@@ -1,4 +1,5 @@
 import {
+  Optional,
   BadRequestException,
   ConflictException,
   Injectable,
@@ -11,6 +12,7 @@ import {
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { assertOrgMembers } from '../../common/guards/org-members.util';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const PERSON_SELECT = { id: true, fullName: true, avatarUrl: true } as const;
 const INCLUDE = {
@@ -32,7 +34,10 @@ const RESET_REVIEW = {
 
 @Injectable()
 export class DeliverablesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly notifications?: NotificationsService,
+  ) {}
 
   async list(organizationId: string, projectId: string) {
     return this.prisma.db.deliverable.findMany({
@@ -126,7 +131,12 @@ export class DeliverablesService {
     });
   }
 
-  async submit(organizationId: string, projectId: string, id: string) {
+  async submit(
+    organizationId: string,
+    projectId: string,
+    id: string,
+    actorId?: string,
+  ) {
     const existing = await this.findOrThrow(organizationId, projectId, id);
     if (existing.status === 'SUBMITTED' || existing.status === 'ACCEPTED') {
       throw new ConflictException(
@@ -135,7 +145,7 @@ export class DeliverablesService {
           : 'Giao phẩm đã được nộp và đang chờ nghiệm thu',
       );
     }
-    return this.prisma.db.deliverable.update({
+    const row = await this.prisma.db.deliverable.update({
       where: { id },
       data: {
         status: 'SUBMITTED',
@@ -146,6 +156,74 @@ export class DeliverablesService {
       },
       include: INCLUDE,
     });
+    await this.notifyReviewers(organizationId, projectId, row, actorId);
+    return row;
+  }
+
+  /** Whoever can sign off this deliverable is told it is waiting: org PM/Admin/Owner and project-level PM+. */
+  private async notifyReviewers(
+    organizationId: string,
+    projectId: string,
+    row: { id: string; name: string },
+    actorId?: string,
+  ) {
+    if (!this.notifications) return;
+    const reviewerRoles = ['OWNER', 'ADMIN', 'PM'] as const;
+    const [members, overrides, project] = await Promise.all([
+      this.prisma.db.membership.findMany({
+        where: { organizationId, role: { in: [...reviewerRoles] } },
+        select: { userId: true },
+      }),
+      this.prisma.db.projectMember.findMany({
+        where: { projectId, role: { in: [...reviewerRoles] } },
+        select: { userId: true },
+      }),
+      this.prisma.db.project.findUnique({
+        where: { id: projectId },
+        select: { key: true },
+      }),
+    ]);
+    await this.notifications.notify({
+      organizationId,
+      userIds: [...members, ...overrides].map((m) => m.userId),
+      type: 'DELIVERABLE_SUBMITTED',
+      actorId,
+      entityKind: 'deliverable',
+      entityId: row.id,
+      projectKey: project?.key ?? '',
+      entityTitle: row.name,
+    });
+  }
+
+  private async notifyOutcome(
+    organizationId: string,
+    projectId: string,
+    type: 'DELIVERABLE_ACCEPTED' | 'DELIVERABLE_REJECTED',
+    row: {
+      id: string;
+      name: string;
+      ownerId: string | null;
+      createdById: string;
+    },
+    reviewerId: string,
+    detail?: string,
+  ) {
+    if (!this.notifications) return;
+    const project = await this.prisma.db.project.findUnique({
+      where: { id: projectId },
+      select: { key: true },
+    });
+    await this.notifications.notify({
+      organizationId,
+      userIds: [row.ownerId, row.createdById],
+      type,
+      actorId: reviewerId,
+      entityKind: 'deliverable',
+      entityId: row.id,
+      projectKey: project?.key ?? '',
+      entityTitle: row.name,
+      detail,
+    });
   }
 
   async accept(
@@ -155,7 +233,7 @@ export class DeliverablesService {
     reviewerId: string,
   ) {
     await this.assertSubmitted(organizationId, projectId, id);
-    return this.prisma.db.deliverable.update({
+    const row = await this.prisma.db.deliverable.update({
       where: { id },
       data: {
         status: 'ACCEPTED',
@@ -165,6 +243,14 @@ export class DeliverablesService {
       },
       include: INCLUDE,
     });
+    await this.notifyOutcome(
+      organizationId,
+      projectId,
+      'DELIVERABLE_ACCEPTED',
+      row,
+      reviewerId,
+    );
+    return row;
   }
 
   async reject(
@@ -175,7 +261,7 @@ export class DeliverablesService {
     reason: string,
   ) {
     await this.assertSubmitted(organizationId, projectId, id);
-    return this.prisma.db.deliverable.update({
+    const row = await this.prisma.db.deliverable.update({
       where: { id },
       data: {
         status: 'REJECTED',
@@ -185,6 +271,15 @@ export class DeliverablesService {
       },
       include: INCLUDE,
     });
+    await this.notifyOutcome(
+      organizationId,
+      projectId,
+      'DELIVERABLE_REJECTED',
+      row,
+      reviewerId,
+      reason,
+    );
+    return row;
   }
 
   async remove(organizationId: string, projectId: string, id: string) {

@@ -45,6 +45,7 @@ model User {
   memberships           Membership[]
   refreshTokens         RefreshToken[]
   authTokens            AuthToken[]
+  notifications         Notification[]         @relation("NotificationRecipient")
   projectMembers        ProjectMember[]
   taskAssignments       TaskAssignee[]
   comments              Comment[]
@@ -92,6 +93,7 @@ model Organization {
   projectScopes    ProjectScope[]
   wbsDictionary    WbsDictionaryEntry[]
   aiUsage          AiUsageDaily[]
+  notifications    Notification[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
   artifacts        Artifact[]
@@ -784,4 +786,28 @@ model AuthToken {
 
   @@index([userId, type])
   @@map("auth_tokens")
+}
+
+/// In-app notification for one person. The text is rendered on the client from
+/// `type` + `entityTitle` + `detail`, so it follows the reader's language.
+model Notification {
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String // recipient
+  type           String // see NOTIFICATION_TYPES in shared-types
+  actorId        String? // who caused it (never the recipient)
+  actorName      String?
+  entityKind     String // "task" | "deliverable"
+  entityId       String
+  projectKey     String
+  entityTitle    String
+  detail         String? // e.g. a rejection reason or a comment excerpt
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, organizationId, readAt, createdAt])
+  @@map("notifications")
 }

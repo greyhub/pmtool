@@ -207,7 +207,8 @@
     "orgSettings": "Cài đặt tổ chức",
     "archivedBanner": "Tổ chức này đã được lưu trữ — không thể tạo dự án hoặc mời thành viên mới.",
     "collapseSidebar": "Thu gọn",
-    "expandSidebar": "Mở rộng"
+    "expandSidebar": "Mở rộng",
+    "myTasks": "Việc của tôi"
   },
   "projects": {
     "list": {
@@ -1129,5 +1130,37 @@
     "updated": "Cập nhật: {date}",
     "terms": "Điều khoản sử dụng",
     "privacy": "Chính sách quyền riêng tư"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "bell": "Thông báo",
+    "bellUnread": "Thông báo, {count} chưa đọc",
+    "markAll": "Đánh dấu đã đọc hết",
+    "empty": "Chưa có thông báo nào.",
+    "someone": "Ai đó",
+    "types": {
+      "TASK_ASSIGNED": "{actor} giao cho bạn: {title}",
+      "TASK_COMMENT": "{actor} bình luận trong: {title}",
+      "DELIVERABLE_SUBMITTED": "{actor} nộp giao phẩm chờ nghiệm thu: {title}",
+      "DELIVERABLE_ACCEPTED": "{actor} đã nghiệm thu giao phẩm: {title}",
+      "DELIVERABLE_REJECTED": "{actor} từ chối giao phẩm: {title}"
+    }
+  },
+  "myTasks": {
+    "title": "Việc của tôi",
+    "subtitle": "Mọi công việc bạn phụ trách hoặc hỗ trợ, trong tất cả dự án.",
+    "showDone": "Hiện cả việc đã xong",
+    "empty": "Bạn chưa được giao việc nào. Khi có người giao, việc sẽ hiện ở đây.",
+    "buckets": {
+      "overdue": "Trễ hạn",
+      "today": "Hôm nay",
+      "week": "7 ngày tới",
+      "later": "Sau đó",
+      "none": "Chưa có hạn"
+    },
+    "roles": {
+      "PRIMARY": "Phụ trách",
+      "SUPPORT": "Hỗ trợ"
+    }
   }
 }

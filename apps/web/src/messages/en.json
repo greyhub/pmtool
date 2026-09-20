@@ -207,7 +207,8 @@
     "orgSettings": "Organization settings",
     "archivedBanner": "This organization is archived — new projects and invites are disabled.",
     "collapseSidebar": "Collapse",
-    "expandSidebar": "Expand"
+    "expandSidebar": "Expand",
+    "myTasks": "My tasks"
   },
   "projects": {
     "list": {
@@ -1129,5 +1130,37 @@
     "updated": "Updated: {date}",
     "terms": "Terms of use",
     "privacy": "Privacy policy"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": "Notifications",
+    "bellUnread": "Notifications, {count} unread",
+    "markAll": "Mark all as read",
+    "empty": "No notifications yet.",
+    "someone": "Someone",
+    "types": {
+      "TASK_ASSIGNED": "{actor} assigned you: {title}",
+      "TASK_COMMENT": "{actor} commented on: {title}",
+      "DELIVERABLE_SUBMITTED": "{actor} submitted a deliverable for sign-off: {title}",
+      "DELIVERABLE_ACCEPTED": "{actor} accepted the deliverable: {title}",
+      "DELIVERABLE_REJECTED": "{actor} rejected the deliverable: {title}"
+    }
+  },
+  "myTasks": {
+    "title": "My tasks",
+    "subtitle": "Everything you own or support, across all projects.",
+    "showDone": "Show completed too",
+    "empty": "Nothing is assigned to you yet. When someone assigns you work it will show up here.",
+    "buckets": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "week": "Next 7 days",
+      "later": "Later",
+      "none": "No due date"
+    },
+    "roles": {
+      "PRIMARY": "Owner",
+      "SUPPORT": "Support"
+    }
   }
 }

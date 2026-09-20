@@ -2024,6 +2024,184 @@ describe('Task CSV import and export', () => {
   });
 });
 
+describe('Notifications and my tasks', () => {
+  it('tells people about assignments, comments and sign-off, privately, and lists their tasks across projects', async () => {
+    const owner = await registerUser('Notify Owner');
+    const org = await createOrg(owner.accessToken, 'Notify Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Notify Member',
+    );
+    const memberId = await getUserId(member.email);
+    const http = () => request(app.getHttpServer());
+    const asOwner = { Authorization: `Bearer ${owner.accessToken}` };
+    const asMember = { Authorization: `Bearer ${member.accessToken}` };
+    const orgUrl = `${API_PREFIX}/organizations/${org.slug}`;
+    const feed = async (who: typeof asOwner) =>
+      (await http().get(`${orgUrl}/notifications`).set(who).expect(200)).body
+        .data as {
+        items: {
+          id: string;
+          type: string;
+          actorName: string;
+          entityTitle: string;
+          detail: string | null;
+          read: boolean;
+          projectKey: string;
+        }[];
+        unreadCount: number;
+      };
+
+    const a = await createProject(owner.accessToken, org.slug, 'NTA');
+    const b = await createProject(owner.accessToken, org.slug, 'NTB');
+    const taskA = (
+      await http()
+        .post(`${orgUrl}/projects/${a.key}/tasks`)
+        .set(asOwner)
+        .send({
+          title: 'Việc ở A',
+          assigneeId: memberId,
+          dueDate: '2026-11-02T05:00:00.000Z',
+        })
+        .expect(201)
+    ).body.data;
+    await http()
+      .post(`${orgUrl}/projects/${b.key}/tasks`)
+      .set(asOwner)
+      .send({
+        title: 'Việc ở B',
+        supporterIds: [memberId],
+        dueDate: '2026-10-02T05:00:00.000Z',
+      })
+      .expect(201);
+    await http()
+      .post(`${orgUrl}/projects/${b.key}/tasks`)
+      .set(asOwner)
+      .send({ title: 'Không liên quan' })
+      .expect(201);
+
+    // The assignee is told once per task, naming who did it; the actor is not told about their own action.
+    let mine = await feed(asMember);
+    expect(
+      mine.items
+        .filter((n) => n.type === 'TASK_ASSIGNED')
+        .map((n) => n.entityTitle)
+        .sort(),
+    ).toEqual(['Việc ở A', 'Việc ở B']);
+    expect(mine.items[0]!.actorName).toBe('Notify Owner');
+    expect(mine.unreadCount).toBe(2);
+    expect((await feed(asOwner)).items).toHaveLength(0);
+
+    // A comment reaches the assignee and the task's creator, but not its author.
+    await http()
+      .post(`${orgUrl}/projects/${a.key}/tasks/${taskA.id}/comments`)
+      .set(asOwner)
+      .send({ body: 'Nhớ nộp trước thứ Sáu' })
+      .expect(201);
+    mine = await feed(asMember);
+    const comment = mine.items.find((n) => n.type === 'TASK_COMMENT')!;
+    expect(comment.detail).toBe('Nhớ nộp trước thứ Sáu');
+    await http()
+      .post(`${orgUrl}/projects/${a.key}/tasks/${taskA.id}/comments`)
+      .set(asMember)
+      .send({ body: 'Đã rõ' })
+      .expect(201);
+    expect((await feed(asOwner)).items.map((n) => n.type)).toEqual([
+      'TASK_COMMENT',
+    ]);
+
+    // Reassigning notifies only the newly added person.
+    await http()
+      .patch(`${orgUrl}/projects/${a.key}/tasks/${taskA.id}`)
+      .set(asOwner)
+      .send({
+        supporterIds: [await getUserId(owner.email)],
+        assigneeId: memberId,
+      })
+      .expect(200);
+    expect(
+      (await feed(asMember)).items.filter((n) => n.type === 'TASK_ASSIGNED'),
+    ).toHaveLength(2);
+
+    // Sign-off: submitting tells the reviewers; deciding tells the deliverable's people.
+    const del = (
+      await http()
+        .post(`${orgUrl}/projects/${a.key}/deliverables`)
+        .set(asMember)
+        .send({ name: 'Báo cáo A' })
+        .expect(201)
+    ).body.data;
+    await http()
+      .post(`${orgUrl}/projects/${a.key}/deliverables/${del.id}/submit`)
+      .set(asMember)
+      .expect(200);
+    expect(
+      (await feed(asOwner)).items.some(
+        (n) =>
+          n.type === 'DELIVERABLE_SUBMITTED' && n.entityTitle === 'Báo cáo A',
+      ),
+    ).toBe(true);
+    await http()
+      .post(`${orgUrl}/projects/${a.key}/deliverables/${del.id}/reject`)
+      .set(asOwner)
+      .send({ reason: 'Thiếu phụ lục' })
+      .expect(200);
+    const rejected = (await feed(asMember)).items.find(
+      (n) => n.type === 'DELIVERABLE_REJECTED',
+    )!;
+    expect(rejected.detail).toBe('Thiếu phụ lục');
+    expect(rejected.projectKey).toBe(a.key);
+
+    // Read state is per person and can be flipped one at a time or all at once.
+    const before = (await feed(asMember)).unreadCount;
+    await http()
+      .post(`${orgUrl}/notifications/${rejected.id}/read`)
+      .set(asMember)
+      .expect(204);
+    expect((await feed(asMember)).unreadCount).toBe(before - 1);
+    await http()
+      .post(`${orgUrl}/notifications/${rejected.id}/read`)
+      .set(asOwner)
+      .expect(204); // someone else's: no effect
+    expect((await feed(asMember)).unreadCount).toBe(before - 1);
+    await http()
+      .post(`${orgUrl}/notifications/read-all`)
+      .set(asMember)
+      .expect(204);
+    expect((await feed(asMember)).unreadCount).toBe(0);
+
+    // My tasks: both projects, nearest deadline first, only mine, roles included.
+    const list = (
+      await http().get(`${orgUrl}/my-tasks`).set(asMember).expect(200)
+    ).body.data as { title: string; role: string; projectKey: string }[];
+    expect(list.map((t) => [t.title, t.role, t.projectKey])).toEqual([
+      ['Việc ở B', 'SUPPORT', 'NTB'],
+      ['Việc ở A', 'PRIMARY', 'NTA'],
+    ]);
+    // The owner only supports task A (added in the reassignment above).
+    const ownerList = (
+      await http().get(`${orgUrl}/my-tasks`).set(asOwner).expect(200)
+    ).body.data as { title: string; role: string }[];
+    expect(ownerList.map((t) => [t.title, t.role])).toEqual([
+      ['Việc ở A', 'SUPPORT'],
+    ]);
+
+    // Another organization cannot read any of it.
+    const stranger = await registerUser('Notify Stranger');
+    await createOrg(stranger.accessToken, 'Notify Stranger Org');
+    await http()
+      .get(`${orgUrl}/notifications`)
+      .set({ Authorization: `Bearer ${stranger.accessToken}` })
+      .expect(403);
+    await http()
+      .get(`${orgUrl}/my-tasks`)
+      .set({ Authorization: `Bearer ${stranger.accessToken}` })
+      .expect(403);
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');

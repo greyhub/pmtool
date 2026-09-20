@@ -14,6 +14,7 @@ export * from './hooks/integrations';
 export * from './hooks/charter';
 export * from './hooks/scope';
 export * from './hooks/privacy';
+export * from './hooks/notifications';
 export * from './hooks/stakeholders';
 export * from './hooks/documents';
 export * from './hooks/artifacts';

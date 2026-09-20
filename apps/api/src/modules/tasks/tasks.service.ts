@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { Prisma, Task } from '@prisma/client';
 import {
@@ -18,6 +19,7 @@ import { addActivityMetadata } from '../../common/context/request-context';
 import { diffTask, TaskSnapshot } from './task-changes';
 import { GamificationService } from '../gamification/gamification.service';
 import { TelegramNotificationsService } from '../telegram/telegram-notifications.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 type TaskWithAssignees = Awaited<ReturnType<TasksService['findByIdOrThrow']>>;
 
@@ -83,6 +85,7 @@ export class TasksService {
     private readonly prisma: PrismaService,
     private readonly gamificationService: GamificationService,
     private readonly telegramNotifications: TelegramNotificationsService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   async create(
@@ -194,6 +197,16 @@ export class TasksService {
         input.assigneeId,
       ]);
     }
+    await this.notifications?.notify({
+      organizationId,
+      userIds: initialAssignees.map((a) => a.userId),
+      type: 'TASK_ASSIGNED',
+      actorId: createdById,
+      entityKind: 'task',
+      entityId: task.id,
+      projectKey: task.humanKey.split('-')[0]!,
+      entityTitle: task.title,
+    });
     return task;
   }
 
@@ -366,6 +379,22 @@ export class TasksService {
       await this.telegramNotifications.notifyTaskAssigned(updated, [
         nextPrimaryId,
       ]);
+    }
+    if (nextAssignees) {
+      // In-app: everyone newly put on the task, primary or supporter.
+      const before = new Set(existing.assignees.map((a) => a.userId));
+      await this.notifications?.notify({
+        organizationId,
+        userIds: nextAssignees
+          .filter((a) => !before.has(a.userId))
+          .map((a) => a.userId),
+        type: 'TASK_ASSIGNED',
+        actorId: actingUserId,
+        entityKind: 'task',
+        entityId: updated.id,
+        projectKey: updated.humanKey.split('-')[0]!,
+        entityTitle: updated.title,
+      });
     }
 
     return updated;
