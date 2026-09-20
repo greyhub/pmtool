@@ -107,12 +107,19 @@ describe('AssigneeIcons', () => {
 describe('buildStatusColorCss progress wash', () => {
   const base: GanttTaskInput = { id: 't1', text: 'T', start: new Date(), end: new Date(), barColor: 'red' };
 
-  it('paints the completed share as a gradient on the bar itself', () => {
-    expect(buildStatusColorCss([{ ...base, progress: 40 }])).toContain('linear-gradient(to right, rgba(255,255,255,0.4) 40%, transparent 40%)');
+  it('fades only the unfinished remainder, keeping the done part solid', () => {
+    expect(buildStatusColorCss([{ ...base, progress: 40 }])).toContain(
+      'linear-gradient(to right, transparent 40%, rgba(255,255,255,0.55) 40%)',
+    );
   });
 
-  it('adds no gradient at 0% and clamps above 100%', () => {
-    expect(buildStatusColorCss([{ ...base, progress: 0 }])).not.toContain('linear-gradient');
-    expect(buildStatusColorCss([{ ...base, progress: 250 }])).toContain('100%');
+  it('fades the whole bar at 0%, nothing at 100%, and clamps out-of-range values', () => {
+    expect(buildStatusColorCss([{ ...base, progress: 0 }])).toContain('transparent 0%, rgba(255,255,255,0.55) 0%');
+    expect(buildStatusColorCss([{ ...base, progress: 100 }])).not.toContain('linear-gradient');
+    expect(buildStatusColorCss([{ ...base, progress: 250 }])).not.toContain('linear-gradient');
+  });
+
+  it('leaves milestones untouched', () => {
+    expect(buildStatusColorCss([{ ...base, type: 'milestone', progress: 0 }])).not.toContain('linear-gradient');
   });
 });

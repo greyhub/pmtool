@@ -108,15 +108,17 @@ const SCALE_PRESETS: Record<ZoomLevel, ScalePreset[]> = {
 // are cuid strings (alphanumeric only), so no CSS-selector escaping beyond
 // the colon prefix is needed.
 /**
- * The completed part of a bar, drawn as a translucent white wash over the
- * status color via the bar's own background-image. The library's built-in
- * progress fill is disabled (transparent) because it gets painted over the
- * bar label and fades the title; a background is always beneath the text.
+ * Fades the NOT-yet-done part of a bar: a translucent white wash over the
+ * remainder, so the finished part keeps the full status color. Drawn as the
+ * bar's own background-image because the library's built-in progress fill
+ * gets painted over the label and fades the title; a background is always
+ * beneath the text. Milestones have no duration to fill, so are left alone.
  */
-function progressWash(progress: number | undefined): string {
+function progressWash(progress: number | undefined, type: GanttTaskInput['type']): string {
+  if (type === 'milestone') return '';
   const pct = Math.min(100, Math.max(0, Math.round(progress ?? 0)));
-  if (pct === 0) return '';
-  return `background-image:linear-gradient(to right, rgba(255,255,255,0.4) ${pct}%, transparent ${pct}%);`;
+  if (pct === 100) return '';
+  return `background-image:linear-gradient(to right, transparent ${pct}%, rgba(255,255,255,0.55) ${pct}%);`;
 }
 
 /** Exported for unit testing. */
@@ -125,7 +127,7 @@ export function buildStatusColorCss(tasks: GanttTaskInput[]): string {
     .filter((t) => t.barColor)
     .map(
       (t) =>
-        `.wx-bar[data-task-id=":${t.id}"]{--wx-gantt-task-color:${t.barColor};--wx-gantt-task-fill-color:transparent;--wx-gantt-summary-color:${t.barColor};--wx-gantt-summary-fill-color:transparent;--wx-gantt-milestone-color:${t.barColor};${progressWash(t.progress)}}`,
+        `.wx-bar[data-task-id=":${t.id}"]{--wx-gantt-task-color:${t.barColor};--wx-gantt-task-fill-color:transparent;--wx-gantt-summary-color:${t.barColor};--wx-gantt-summary-fill-color:transparent;--wx-gantt-milestone-color:${t.barColor};${progressWash(t.progress, t.type)}}`,
     )
     .join('\n');
 }
