@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import {
   AssigneeIcons,
   buildStatusColorCss,
+  aimCell,
   computeGridWidth,
   ganttHighlightTime,
   type GanttTaskInput,
@@ -152,5 +153,29 @@ describe('AssigneeIcons roles', () => {
     );
     expect(screen.getByLabelText('Boss')).toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
+  });
+});
+
+describe('aimCell', () => {
+  it('looks straight ahead (center cell) when the cursor is on top of the icon', () => {
+    expect(aimCell(0, 0)).toBe(4);
+    expect(aimCell(5, -5)).toBe(4);
+  });
+
+  it('maps each of the 8 directions to its cell in the 3x3 sheet', () => {
+    const far = 100;
+    expect(aimCell(far, 0)).toBe(5); // right
+    expect(aimCell(far, far)).toBe(8); // down-right
+    expect(aimCell(0, far)).toBe(7); // down
+    expect(aimCell(-far, far)).toBe(6); // down-left
+    expect(aimCell(-far, 0)).toBe(3); // left
+    expect(aimCell(-far, -far)).toBe(0); // up-left
+    expect(aimCell(0, -far)).toBe(1); // up
+    expect(aimCell(far, -far)).toBe(2); // up-right
+  });
+
+  it('treats a cursor just left of the icon as left, not wrapping to right (atan2 seam)', () => {
+    expect(aimCell(-100, -1)).toBe(3);
+    expect(aimCell(-100, 1)).toBe(3);
   });
 });
