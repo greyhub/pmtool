@@ -107,13 +107,25 @@ const SCALE_PRESETS: Record<ZoomLevel, ScalePreset[]> = {
 // makes it cascade into milestone diamonds and summary bars too. Task ids
 // are cuid strings (alphanumeric only), so no CSS-selector escaping beyond
 // the colon prefix is needed.
+/**
+ * The completed part of a bar, drawn as a translucent white wash over the
+ * status color via the bar's own background-image. The library's built-in
+ * progress fill is disabled (transparent) because it gets painted over the
+ * bar label and fades the title; a background is always beneath the text.
+ */
+function progressWash(progress: number | undefined): string {
+  const pct = Math.min(100, Math.max(0, Math.round(progress ?? 0)));
+  if (pct === 0) return '';
+  return `background-image:linear-gradient(to right, rgba(255,255,255,0.4) ${pct}%, transparent ${pct}%);`;
+}
+
 /** Exported for unit testing. */
 export function buildStatusColorCss(tasks: GanttTaskInput[]): string {
   return tasks
     .filter((t) => t.barColor)
     .map(
       (t) =>
-        `.wx-bar[data-task-id=":${t.id}"]{--wx-gantt-task-color:${t.barColor};--wx-gantt-task-fill-color:${t.barColor};--wx-gantt-summary-color:${t.barColor};--wx-gantt-summary-fill-color:${t.barColor};--wx-gantt-milestone-color:${t.barColor};}`,
+        `.wx-bar[data-task-id=":${t.id}"]{--wx-gantt-task-color:${t.barColor};--wx-gantt-task-fill-color:transparent;--wx-gantt-summary-color:${t.barColor};--wx-gantt-summary-fill-color:transparent;--wx-gantt-milestone-color:${t.barColor};${progressWash(t.progress)}}`,
     )
     .join('\n');
 }
@@ -154,6 +166,17 @@ export function AssigneeIcons({ assignees }: { assignees: { name: string; charac
  * rendered at 491px against a 690px column-width sum). Passed as the
  * library's `gridWidth` prop to force it to match. Exported for unit testing.
  */
+/** Bar label: the title plus the completion percentage on the right, e.g. "PRG-2 Task        40%". */
+function BarLabel({ data }: { data: { text?: string; progress?: number; type?: string } }) {
+  const pct = Math.round(data.progress ?? 0);
+  return (
+    <span className="flex w-full items-center justify-between gap-2 px-1">
+      <span className="truncate">{data.text}</span>
+      {data.type !== 'milestone' && pct > 0 && <span className="shrink-0 text-xs font-semibold opacity-80">{pct}%</span>}
+    </span>
+  );
+}
+
 export function computeGridWidth(columns: IColumnConfig[]): number {
   return columns.reduce((sum, col) => sum + (col.width ?? 0), 0);
 }
@@ -361,6 +384,7 @@ export function GanttChart({
                 scales={SCALE_PRESETS[zoom]}
                 columns={columns}
                 gridWidth={gridWidth}
+                taskTemplate={BarLabel}
                 highlightTime={ganttHighlightTime}
                 init={handleInit}
               />

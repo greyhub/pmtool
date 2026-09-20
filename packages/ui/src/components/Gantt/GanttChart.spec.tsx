@@ -103,3 +103,16 @@ describe('AssigneeIcons', () => {
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 });
+
+describe('buildStatusColorCss progress wash', () => {
+  const base: GanttTaskInput = { id: 't1', text: 'T', start: new Date(), end: new Date(), barColor: 'red' };
+
+  it('paints the completed share as a gradient on the bar itself', () => {
+    expect(buildStatusColorCss([{ ...base, progress: 40 }])).toContain('linear-gradient(to right, rgba(255,255,255,0.4) 40%, transparent 40%)');
+  });
+
+  it('adds no gradient at 0% and clamps above 100%', () => {
+    expect(buildStatusColorCss([{ ...base, progress: 0 }])).not.toContain('linear-gradient');
+    expect(buildStatusColorCss([{ ...base, progress: 250 }])).toContain('100%');
+  });
+});

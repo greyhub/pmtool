@@ -40,3 +40,9 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Progress is edited on the task detail page. The library's drag handle for it
+   would change nothing server-side, so don't offer it. */
+.wx-progress-marker {
+  display: none !important;
+}
