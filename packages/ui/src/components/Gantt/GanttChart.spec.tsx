@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import {
   AssigneeIcons,
   buildStatusColorCss,
@@ -177,5 +177,27 @@ describe('aimCell', () => {
   it('treats a cursor just left of the icon as left, not wrapping to right (atan2 seam)', () => {
     expect(aimCell(-100, -1)).toBe(3);
     expect(aimCell(-100, 1)).toBe(3);
+  });
+});
+
+describe('AssigneeIcons tooltip', () => {
+  const assignees = [{ name: 'Nguyễn A', character: 'fox', role: 'PRIMARY' as const }];
+
+  it('shows the person\'s name immediately on hover and hides it on leave', () => {
+    render(<AssigneeIcons assignees={assignees} roleLabels={{ primary: 'Phụ trách', support: 'Hỗ trợ' }} />);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+    const icon = screen.getByLabelText('Nguyễn A — Phụ trách');
+    fireEvent.pointerEnter(icon);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Nguyễn A — Phụ trách');
+
+    fireEvent.pointerLeave(icon);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('also shows on keyboard focus', () => {
+    render(<AssigneeIcons assignees={assignees} />);
+    fireEvent.focus(screen.getByLabelText('Nguyễn A'));
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Nguyễn A');
   });
 });

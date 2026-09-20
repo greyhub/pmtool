@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Gantt, Willow, WillowDark } from '@svar-ui/react-gantt';
 import type { IApi, IColumnConfig } from '@svar-ui/react-gantt';
 import { useTheme } from 'next-themes';
@@ -187,13 +188,31 @@ function subscribePointer(fn: (x: number, y: number) => void): () => void {
   };
 }
 
-function CharacterIcon({ a, title, primary }: { a: GanttAssignee; title: string; primary: boolean }) {
+function CharacterIcon({
+  a,
+  title,
+  primary,
+}: {
+  a: GanttAssignee;
+  title: string;
+  primary: boolean;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   const [cell, setCell] = useState(4);
+  // Viewport position of the icon while hovered/focused; null = tooltip hidden.
+  const [tip, setTip] = useState<{ x: number; y: number } | null>(null);
+
+  const showTip = () => {
+    const box = ref.current?.getBoundingClientRect();
+    if (box) setTip({ x: box.left + box.width / 2, y: box.top });
+  };
 
   useEffect(() => {
     // Touch-only devices have no cursor to follow.
-    if (typeof window.matchMedia !== 'function' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    if (
+      typeof window.matchMedia !== 'function' ||
+      !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    ) {
       return;
     }
     return subscribePointer((x, y) => {
@@ -204,22 +223,40 @@ function CharacterIcon({ a, title, primary }: { a: GanttAssignee; title: string;
   }, []);
 
   return (
-    <span
-      ref={ref}
-      title={title}
-      aria-label={title}
-      className={cn(
-        'shrink-0 rounded-full bg-surface-subtle',
-        primary ? 'h-6 w-6 ring-2 ring-action-primary' : 'h-4 w-4 opacity-70',
-      )}
-      style={{
-        backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
-        backgroundSize: '300% 300%',
-        // background-size 300% makes each sprite cell a clean 0/50/100% step on both axes.
-        backgroundPosition: `${(cell % 3) * 50}% ${Math.floor(cell / 3) * 50}%`,
-        backgroundRepeat: 'no-repeat',
-      }}
-    />
+    <>
+      <span
+        ref={ref}
+        aria-label={title}
+        tabIndex={0}
+        onPointerEnter={showTip}
+        onPointerLeave={() => setTip(null)}
+        onFocus={showTip}
+        onBlur={() => setTip(null)}
+        className={cn(
+          'shrink-0 rounded-full bg-surface-subtle',
+          primary ? 'h-6 w-6 ring-2 ring-action-primary' : 'h-4 w-4 opacity-70',
+        )}
+        style={{
+          backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
+          backgroundSize: '300% 300%',
+          // background-size 300% makes each sprite cell a clean 0/50/100% step on both axes.
+          backgroundPosition: `${(cell % 3) * 50}% ${Math.floor(cell / 3) * 50}%`,
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      {tip &&
+        // Portaled: the grid cell clips overflow, which would cut the tooltip off.
+        createPortal(
+          <span
+            role="tooltip"
+            className="pointer-events-none fixed z-[100] -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-ink-primary px-2 py-1 text-xs font-medium text-surface shadow-lg"
+            style={{ left: tip.x, top: tip.y - 6 }}
+          >
+            {title}
+          </span>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -247,7 +284,14 @@ export function AssigneeIcons({
       {shown.map((a, i) => {
         const primary = a.role === 'PRIMARY';
         const label = roleLabels ? roleLabels[primary ? 'primary' : 'support'] : '';
-        return <CharacterIcon key={i} a={a} primary={primary} title={label ? `${a.name} — ${label}` : a.name} />;
+        return (
+          <CharacterIcon
+            key={i}
+            a={a}
+            primary={primary}
+            title={label ? `${a.name} — ${label}` : a.name}
+          />
+        );
       })}
       {ordered.length > shown.length && (
         <span className="text-xs text-ink-muted">+{ordered.length - shown.length}</span>
@@ -262,7 +306,9 @@ function BarLabel({ data }: { data: { text?: string; progress?: number; type?: s
   return (
     <span className="flex w-full items-center justify-between gap-2 px-1">
       <span className="truncate">{data.text}</span>
-      {data.type !== 'milestone' && pct > 0 && <span className="shrink-0 text-xs font-semibold opacity-80">{pct}%</span>}
+      {data.type !== 'milestone' && pct > 0 && (
+        <span className="shrink-0 text-xs font-semibold opacity-80">{pct}%</span>
+      )}
     </span>
   );
 }
@@ -281,11 +327,19 @@ export function computeGridWidth(columns: IColumnConfig[]): number {
 }
 
 function isSameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 /** Exported for unit testing. `markers` (the documented "today line" API) is PRO-only and hard-disabled in the installed free build, so `highlightTime` is the real mechanism for both the today line and weekend shading. */
-export function ganttHighlightTime(date: Date, unit: 'day' | 'hour', now: Date = new Date()): string {
+export function ganttHighlightTime(
+  date: Date,
+  unit: 'day' | 'hour',
+  now: Date = new Date(),
+): string {
   if (unit !== 'day') return '';
   if (isSameDay(date, now)) return 'pm-gantt-today';
   const day = date.getDay();
@@ -387,7 +441,12 @@ export function GanttChart({
         id: 'assignee',
         header: { text: labels.columnAssignee, css: 'pm-gantt-header-nowrap' },
         width: 90,
-        cell: ({ row }) => <AssigneeIcons assignees={(row.assignees ?? []) as GanttAssignee[]} roleLabels={labels.roleLabels} />,
+        cell: ({ row }) => (
+          <AssigneeIcons
+            assignees={(row.assignees ?? []) as GanttAssignee[]}
+            roleLabels={labels.roleLabels}
+          />
+        ),
       },
     ];
   }, [labels, narrow]);
@@ -406,7 +465,12 @@ export function GanttChart({
   function handleInit(api: IApi) {
     api.on('update-task', (ev) => {
       if (ev.inProgress) return;
-      onTaskUpdate?.({ id: String(ev.id), start: ev.task.start, end: ev.task.end, progress: ev.task.progress });
+      onTaskUpdate?.({
+        id: String(ev.id),
+        start: ev.task.start,
+        end: ev.task.end,
+        progress: ev.task.progress,
+      });
     });
     api.on('open-task', (ev) => {
       if (ev.mode) openIds.current.add(String(ev.id));
