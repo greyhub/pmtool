@@ -226,6 +226,27 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
               </div>
             </div>
 
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-ink-secondary">
+                <input
+                  type="checkbox"
+                  checked={task.isMilestone}
+                  disabled={!task.isMilestone && !task.dueDate}
+                  onChange={(e) => updateTask.mutate({ isMilestone: e.target.checked })}
+                  className="h-4 w-4 accent-action-primary"
+                />
+                {t('isMilestone')}
+              </label>
+              <p className="mt-1 text-xs text-ink-muted">
+                {!task.isMilestone && !task.dueDate ? t('isMilestoneNeedsDue') : t('isMilestoneHint')}
+              </p>
+              {updateTask.isError && (
+                <p role="alert" className="mt-1 text-xs text-danger">
+                  {updateTask.error instanceof ApiError ? updateTask.error.message : 'Có lỗi xảy ra'}
+                </p>
+              )}
+            </div>
+
             <AssigneesEditor orgSlug={orgSlug} task={task} onChange={(change) => updateTask.mutate(change)} />
           </Card>
 

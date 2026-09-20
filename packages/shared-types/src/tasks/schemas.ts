@@ -9,6 +9,8 @@ export const createTaskSchema = z.object({
   startDate: z.string().datetime().optional(),
   dueDate: z.string().datetime().optional(),
   estimateHours: z.number().min(0).max(10_000).optional(),
+  /** A zero-duration checkpoint; requires dueDate, and startDate is forced equal to it. */
+  isMilestone: z.boolean().optional(),
   /** The one accountable person; everyone else helping goes in supporterIds. */
   assigneeId: z.string().optional(),
   supporterIds: z.array(z.string()).optional(),
@@ -24,6 +26,7 @@ export const updateTaskSchema = z.object({
   dueDate: z.string().datetime().nullable().optional(),
   estimateHours: z.number().min(0).max(10_000).nullable().optional(),
   percentComplete: z.number().int().min(0).max(100).optional(),
+  isMilestone: z.boolean().optional(),
   /** null clears the primary assignee; omitted leaves it unchanged. */
   assigneeId: z.string().nullable().optional(),
   /** Replaces the supporter list when present. */
@@ -60,6 +63,7 @@ export const taskSchema = z.object({
   dueDate: z.string().nullable(),
   estimateHours: z.number().nullable(),
   percentComplete: z.number(),
+  isMilestone: z.boolean(),
   orderIndex: z.number(),
   boardColumnId: z.string().nullable(),
   createdById: z.string(),

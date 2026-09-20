@@ -49,10 +49,6 @@ const STATUS_BAR_COLOR: Record<TaskDto['status'], string> = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function isSameCalendarDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
 function toAssignees(task: TaskDto): GanttAssignee[] {
   return (task.assignees ?? []).map((a) => ({ name: a.fullName, character: a.mascotCharacter, role: a.role }));
 }
@@ -109,7 +105,7 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
         const childRanges = children.map(taskDates);
         start = new Date(Math.min(...childRanges.map((r) => r.start.getTime())));
         end = new Date(Math.max(...childRanges.map((r) => r.end.getTime())));
-      } else if (task.startDate && task.dueDate && isSameCalendarDay(new Date(task.startDate), new Date(task.dueDate))) {
+      } else if (task.isMilestone) {
         type = 'milestone';
       }
 

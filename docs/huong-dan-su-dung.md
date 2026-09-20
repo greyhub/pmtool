@@ -24,6 +24,8 @@ PMTool tổ chức dữ liệu theo 3 cấp: **Tổ chức** (Organization) → 
 16. [Thông báo Telegram](#16-thông-báo-telegram)
 17. [Giao diện: sáng/tối, song ngữ, di động](#17-giao-diện-sángtối-song-ngữ-di-động)
 18. [Nhân vật đồng hành](#18-nhân-vật-đồng-hành)
+19. [Mốc quan trọng (Milestone)](#19-mốc-quan-trọng-milestone)
+20. [Giao phẩm (Deliverable)](#20-giao-phẩm-deliverable)
 
 ---
 
@@ -67,7 +69,7 @@ Vào menu bên trái, chọn **Cài đặt tổ chức** (chỉ Owner/Admin thao
 ## 4. Dự án và công việc (WBS)
 
 - Từ menu bên trái, chọn **Dự án** để xem danh sách, bấm **Tạo dự án** — nhập **Tên dự án** và **Mã dự án** (chữ hoa + số, ví dụ `WEB`, dùng làm tiền tố cho mã công việc như `WEB-1`, `WEB-2`, ...).
-- Mỗi dự án có 10 tab: **Tổng quan** (dashboard), **Công việc** (danh sách WBS), **Bảng** (Kanban), **Tiến độ** (Gantt), **Rủi ro/Vấn đề**, **Điều lệ**, **Các bên liên quan**, **Tài liệu**, **Artifact**, **Cài đặt**.
+- Mỗi dự án có 12 tab: **Tổng quan** (dashboard), **Công việc** (danh sách WBS), **Bảng** (Kanban), **Tiến độ** (Gantt), **Mốc quan trọng**, **Giao phẩm**, **Rủi ro/Vấn đề**, **Điều lệ**, **Các bên liên quan**, **Tài liệu**, **Artifact**, **Cài đặt**.
 - Trong tab **Công việc**, bấm **Thêm công việc** để tạo việc mới với tiêu đề, mô tả, độ ưu tiên (Thấp/Trung bình/Cao/Khẩn cấp), ngày bắt đầu/kết thúc, người phụ trách.
 - Mở một công việc để xem chi tiết: có thể **thêm công việc con** (phân cấp cha/con không giới hạn độ sâu — đây là cấu trúc WBS thật sự), thêm **phụ thuộc** (predecessor/successor — hệ thống tự chặn vòng lặp phụ thuộc), gán **người phụ trách** (đúng 1 người chịu trách nhiệm) cùng các **người hỗ trợ** (không giới hạn số lượng), và **bình luận** trao đổi ngay trên công việc.
 - Trạng thái công việc: Cần làm → Đang làm → Đang xem xét → Hoàn thành, hoặc Bị chặn.
@@ -208,3 +210,20 @@ Có thể **Ngắt kết nối** bất cứ lúc nào từ cùng trang Cài đ�
 Ở góc dưới bên trái mọi trang (khi đã đăng nhập), một nhân vật nhỏ theo dõi con trỏ chuột của bạn và phản ứng khi bạn bấm vào ("boop"). Vào **Cài đặt** để chọn nhân vật mình thích trong số 52 nhân vật có sẵn — lựa chọn được lưu theo tài khoản và hiển thị trên mọi trang, mọi tổ chức bạn tham gia. Nhân vật tự ẩn trên màn hình hẹp (điện thoại) và tự tắt hiệu ứng theo dõi con trỏ nếu thiết bị không có chuột, hoặc tắt hiệu ứng chuyển động nếu hệ điều hành đang bật chế độ giảm chuyển động (reduced motion).
 
 **Mỗi nhân vật chỉ thuộc về một người trong cùng tổ chức**: nếu một thành viên khác trong bất kỳ tổ chức nào bạn tham gia đã chọn nhân vật đó, hệ thống báo lỗi và giữ nguyên lựa chọn cũ của bạn — chọn nhân vật khác chưa ai dùng. Quy tắc này áp dụng theo từng tổ chức (không phải toàn hệ thống), nên nhân vật vẫn có thể trùng giữa hai người ở hai tổ chức khác nhau không liên quan.
+
+## 19. Mốc quan trọng (Milestone)
+
+Tab **Mốc quan trọng** liệt kê các cột mốc của dự án theo ngày đến hạn.
+
+- **Mốc thực chất là một công việc được đánh dấu "Là mốc quan trọng"** — nên mở mốc ra là trang chi tiết công việc quen thuộc: có người phụ trách/hỗ trợ, phụ thuộc, bình luận, và xuất hiện trên biểu đồ Tiến độ dưới dạng hình thoi. Mốc không có thời lượng: ngày bắt đầu luôn trùng ngày đến hạn (đổi ngày đến hạn thì ngày bắt đầu đi theo).
+- Bấm **Thêm mốc**, nhập tên và ngày đến hạn (bắt buộc), có thể chọn người phụ trách. Cũng có thể biến một công việc có sẵn thành mốc bằng ô **Là mốc quan trọng** ở trang chi tiết công việc (cần đã có ngày đến hạn).
+- Mỗi mốc hiển thị: ngày đến hạn, người phụ trách, trạng thái, nhãn **Trễ hạn** nếu quá hạn mà chưa hoàn thành, và tiến độ **giao phẩm đã nghiệm thu / tổng** gắn với mốc. Nút **+ Giao phẩm** thêm nhanh một giao phẩm đã gắn sẵn vào mốc đó.
+
+## 20. Giao phẩm (Deliverable)
+
+Tab **Giao phẩm** theo dõi các sản phẩm bàn giao của dự án và việc nghiệm thu chúng.
+
+- Mỗi giao phẩm có: **tên**, **tiêu chí nghiệm thu**, công việc/mốc liên quan (tuỳ chọn, phải thuộc cùng dự án), người phụ trách, hạn giao, đường dẫn tới sản phẩm thật, mô tả.
+- **Vòng đời**: Kế hoạch → Đang làm → **Đã nộp** → **Đã nghiệm thu** hoặc **Bị từ chối**. Thành viên (Member trở lên) tạo, sửa và bấm **Nộp**. Chỉ **PM/Admin/Owner** được **Nghiệm thu** hoặc **Từ chối** — từ chối bắt buộc nhập lý do, hiển thị ngay dưới tên giao phẩm. Bị từ chối thì làm lại rồi **Nộp** lại.
+- Hệ thống lưu ai nghiệm thu và khi nào. **Sửa nội dung** (tên, mô tả, tiêu chí, đường dẫn) của giao phẩm đã nộp/nghiệm thu/từ chối sẽ rút lại việc nộp và nghiệm thu, giao phẩm quay về "Đang làm" — vì bản nghiệm thu cũ không còn đúng với nội dung mới (giống cách Điều lệ dự án hoạt động). Đổi người phụ trách, hạn hay công việc liên quan thì không ảnh hưởng.
+- Mọi thay đổi được ghi vào dòng hoạt động của tổ chức.

@@ -102,6 +102,9 @@ export const BADGE_KEYS = [
 ] as const;
 export type BadgeKey = (typeof BADGE_KEYS)[number];
 
+export const DELIVERABLE_STATUSES = ['PLANNED', 'IN_PROGRESS', 'SUBMITTED', 'ACCEPTED', 'REJECTED'] as const;
+export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+
 export const TASK_ASSIGNEE_ROLES = ['PRIMARY', 'SUPPORT'] as const;
 export type TaskAssigneeRole = (typeof TASK_ASSIGNEE_ROLES)[number];
 

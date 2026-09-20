@@ -188,7 +188,9 @@
       "stakeholders": "Stakeholders",
       "documents": "Documents",
       "artifacts": "Artifact",
-      "settings": "Settings"
+      "settings": "Settings",
+      "milestones": "Milestones",
+      "deliverables": "Deliverables"
     },
     "settings": {
       "title": "Project settings",
@@ -280,7 +282,10 @@
       "addDependency": "Add dependency",
       "delete": "Delete task",
       "deleteConfirmTitle": "Delete this task?",
-      "deleteConfirmDescription": "Its subtasks will be deleted too. This action cannot be undone."
+      "deleteConfirmDescription": "Its subtasks will be deleted too. This action cannot be undone.",
+      "isMilestone": "Milestone",
+      "isMilestoneHint": "A milestone has no duration: its start date always equals its due date.",
+      "isMilestoneNeedsDue": "Set a due date first (drag the bar on the Timeline) before marking this as a milestone."
     }
   },
   "risks": {
@@ -729,6 +734,86 @@
       "day": "Day",
       "week": "Week",
       "month": "Month"
+    }
+  },
+  "deliverables": {
+    "status": {
+      "PLANNED": "Planned",
+      "IN_PROGRESS": "In progress",
+      "SUBMITTED": "Submitted",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected"
+    },
+    "list": {
+      "title": "Deliverables",
+      "subtitle": "The project's handover outputs and their acceptance status",
+      "create": "Add deliverable",
+      "empty": "No deliverables yet.",
+      "columnName": "Deliverable",
+      "columnLink": "Task/milestone",
+      "columnStatus": "Status",
+      "columnOwner": "Owner",
+      "columnDue": "Due",
+      "criteriaPrefix": "Criteria:",
+      "rejectedBecause": "Rejected because:",
+      "acceptedBy": "Accepted by {name} ({date})",
+      "submit": "Submit",
+      "accept": "Accept",
+      "reject": "Reject",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "rejectTitle": "Reject deliverable",
+      "rejectReason": "Reason for rejection",
+      "genericError": "Something went wrong, please try again"
+    },
+    "form": {
+      "createTitle": "Add deliverable",
+      "editTitle": "Edit deliverable",
+      "name": "Deliverable name",
+      "nameRequired": "Please enter a name",
+      "acceptanceCriteria": "Acceptance criteria",
+      "acceptanceCriteriaHint": "What has to be true for this to count as done",
+      "task": "Related task/milestone",
+      "taskNone": "None",
+      "dueDate": "Due date",
+      "owner": "Owner",
+      "ownerNone": "Unassigned",
+      "url": "Link",
+      "urlHint": "Where the real output lives (Drive, Git, ...)",
+      "description": "Description",
+      "reopenWarning": "Editing the content withdraws the submission/acceptance and returns it to \"In progress\".",
+      "submit": "Save",
+      "cancel": "Cancel",
+      "genericError": "Something went wrong, please try again"
+    }
+  },
+  "milestones": {
+    "list": {
+      "title": "Milestones",
+      "subtitle": "The project's checkpoints — really just tasks flagged as milestones",
+      "create": "Add milestone",
+      "empty": "No milestones yet.",
+      "overdue": "Overdue",
+      "dueDate": "Due date",
+      "assignee": "Assignee",
+      "deliverables": "Accepted deliverables",
+      "noDeliverables": "No deliverables yet",
+      "addDeliverable": "+ Deliverable",
+      "allAccepted": "All deliverables accepted"
+    },
+    "form": {
+      "title": "Add milestone",
+      "hint": "A milestone is a task with no duration; you can still open it like any task to add dependencies, comments and supporters.",
+      "name": "Milestone name",
+      "nameRequired": "Please enter a name",
+      "dueDate": "Due date",
+      "dueRequired": "Please pick a due date",
+      "assignee": "Assignee",
+      "assigneeNone": "Unassigned",
+      "submit": "Create milestone",
+      "cancel": "Cancel",
+      "genericError": "Something went wrong, please try again"
     }
   }
 }

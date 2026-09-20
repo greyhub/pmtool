@@ -74,6 +74,10 @@ export class TasksService {
       );
     }
 
+    if (input.isMilestone && !input.dueDate) {
+      throw new BadRequestException('Mốc quan trọng cần có ngày đến hạn');
+    }
+
     const initialAssignees = toAssigneeRows(
       input.assigneeId,
       input.supporterIds,
@@ -102,8 +106,16 @@ export class TasksService {
             ? toRichText(input.description)
             : undefined,
           priority: input.priority,
-          startDate: input.startDate ? new Date(input.startDate) : undefined,
+          // A milestone has no duration: it starts the day it's due.
+          startDate: input.isMilestone
+            ? input.dueDate
+              ? new Date(input.dueDate)
+              : undefined
+            : input.startDate
+              ? new Date(input.startDate)
+              : undefined,
           dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
+          isMilestone: input.isMilestone,
           estimateHours: input.estimateHours,
           orderIndex: Date.now(),
           boardColumnId: firstColumn?.id,
@@ -189,6 +201,19 @@ export class TasksService {
           )
         : null;
 
+    // While a task is (or is becoming) a milestone, its start always follows its due date.
+    const willBeMilestone = input.isMilestone ?? existing.isMilestone;
+    const nextDueDate =
+      input.dueDate === undefined ? existing.dueDate : input.dueDate;
+    if (willBeMilestone && !nextDueDate) {
+      throw new BadRequestException('Mốc quan trọng cần có ngày đến hạn');
+    }
+    const milestoneStart =
+      willBeMilestone &&
+      (input.isMilestone === true || input.dueDate !== undefined)
+        ? new Date(nextDueDate as Date | string)
+        : undefined;
+
     const updated = await this.prisma.db.$transaction(async (tx) => {
       if (nextAssignees) {
         await tx.taskAssignee.deleteMany({ where: { taskId } });
@@ -211,12 +236,14 @@ export class TasksService {
                 : toRichText(input.description),
           status: input.status,
           priority: input.priority,
-          startDate:
-            input.startDate === undefined
+          startDate: milestoneStart
+            ? milestoneStart
+            : input.startDate === undefined
               ? undefined
               : input.startDate
                 ? new Date(input.startDate)
                 : null,
+          isMilestone: input.isMilestone,
           dueDate:
             input.dueDate === undefined
               ? undefined

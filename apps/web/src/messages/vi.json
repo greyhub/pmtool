@@ -188,7 +188,9 @@
       "stakeholders": "Các bên liên quan",
       "documents": "Tài liệu",
       "artifacts": "Artifact",
-      "settings": "Cài đặt"
+      "settings": "Cài đặt",
+      "milestones": "Mốc quan trọng",
+      "deliverables": "Giao phẩm"
     },
     "settings": {
       "title": "Cài đặt dự án",
@@ -280,7 +282,10 @@
       "addDependency": "Thêm phụ thuộc",
       "delete": "Xoá công việc",
       "deleteConfirmTitle": "Xoá công việc này?",
-      "deleteConfirmDescription": "Mọi công việc con bên trong cũng sẽ bị xoá. Hành động này không thể hoàn tác."
+      "deleteConfirmDescription": "Mọi công việc con bên trong cũng sẽ bị xoá. Hành động này không thể hoàn tác.",
+      "isMilestone": "Là mốc quan trọng",
+      "isMilestoneHint": "Mốc là cột mốc không có thời lượng: ngày bắt đầu luôn trùng ngày đến hạn.",
+      "isMilestoneNeedsDue": "Cần đặt ngày đến hạn (kéo thanh trên biểu đồ Tiến độ) trước khi đánh dấu là mốc."
     }
   },
   "risks": {
@@ -729,6 +734,86 @@
       "day": "Ngày",
       "week": "Tuần",
       "month": "Tháng"
+    }
+  },
+  "deliverables": {
+    "status": {
+      "PLANNED": "Kế hoạch",
+      "IN_PROGRESS": "Đang làm",
+      "SUBMITTED": "Đã nộp",
+      "ACCEPTED": "Đã nghiệm thu",
+      "REJECTED": "Bị từ chối"
+    },
+    "list": {
+      "title": "Giao phẩm",
+      "subtitle": "Các sản phẩm bàn giao của dự án và trạng thái nghiệm thu",
+      "create": "Thêm giao phẩm",
+      "empty": "Chưa có giao phẩm nào.",
+      "columnName": "Giao phẩm",
+      "columnLink": "Công việc/mốc",
+      "columnStatus": "Trạng thái",
+      "columnOwner": "Người phụ trách",
+      "columnDue": "Hạn",
+      "criteriaPrefix": "Tiêu chí:",
+      "rejectedBecause": "Lý do từ chối:",
+      "acceptedBy": "Nghiệm thu bởi {name} ({date})",
+      "submit": "Nộp",
+      "accept": "Nghiệm thu",
+      "reject": "Từ chối",
+      "edit": "Sửa",
+      "delete": "Xoá",
+      "cancel": "Hủy",
+      "rejectTitle": "Từ chối giao phẩm",
+      "rejectReason": "Lý do từ chối",
+      "genericError": "Có lỗi xảy ra, vui lòng thử lại"
+    },
+    "form": {
+      "createTitle": "Thêm giao phẩm",
+      "editTitle": "Sửa giao phẩm",
+      "name": "Tên giao phẩm",
+      "nameRequired": "Vui lòng nhập tên giao phẩm",
+      "acceptanceCriteria": "Tiêu chí nghiệm thu",
+      "acceptanceCriteriaHint": "Điều kiện để giao phẩm được coi là đạt",
+      "task": "Công việc/mốc liên quan",
+      "taskNone": "Không gắn",
+      "dueDate": "Hạn giao",
+      "owner": "Người phụ trách",
+      "ownerNone": "Chưa giao",
+      "url": "Đường dẫn",
+      "urlHint": "Nơi lưu sản phẩm thật (Drive, Git, ...)",
+      "description": "Mô tả",
+      "reopenWarning": "Sửa nội dung sẽ rút lại việc nộp/nghiệm thu, giao phẩm quay về \"Đang làm\".",
+      "submit": "Lưu",
+      "cancel": "Hủy",
+      "genericError": "Có lỗi xảy ra, vui lòng thử lại"
+    }
+  },
+  "milestones": {
+    "list": {
+      "title": "Mốc quan trọng",
+      "subtitle": "Các cột mốc của dự án — thực chất là công việc được đánh dấu là mốc",
+      "create": "Thêm mốc",
+      "empty": "Chưa có mốc nào.",
+      "overdue": "Trễ hạn",
+      "dueDate": "Ngày đến hạn",
+      "assignee": "Người phụ trách",
+      "deliverables": "Giao phẩm đã nghiệm thu",
+      "noDeliverables": "Chưa có giao phẩm",
+      "addDeliverable": "+ Giao phẩm",
+      "allAccepted": "Mọi giao phẩm đã nghiệm thu"
+    },
+    "form": {
+      "title": "Thêm mốc quan trọng",
+      "hint": "Mốc là công việc không có thời lượng; bạn vẫn mở được nó như mọi công việc khác để thêm phụ thuộc, bình luận, người hỗ trợ.",
+      "name": "Tên mốc",
+      "nameRequired": "Vui lòng nhập tên mốc",
+      "dueDate": "Ngày đến hạn",
+      "dueRequired": "Vui lòng chọn ngày đến hạn",
+      "assignee": "Người phụ trách",
+      "assigneeNone": "Chưa giao",
+      "submit": "Tạo mốc",
+      "cancel": "Hủy",
+      "genericError": "Có lỗi xảy ra, vui lòng thử lại"
     }
   }
 }

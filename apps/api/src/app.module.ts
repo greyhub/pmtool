@@ -21,6 +21,8 @@ import { TelegramModule } from './modules/telegram/telegram.module';
 import { CharterModule } from './modules/charter/charter.module';
 import { StakeholdersModule } from './modules/stakeholders/stakeholders.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { DeliverablesModule } from './modules/deliverables/deliverables.module';
+import { MilestonesModule } from './modules/milestones/milestones.module';
 import { ArtifactsModule } from './modules/artifacts/artifacts.module';
 import { HealthModule } from './modules/health/health.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
@@ -50,6 +52,8 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     CharterModule,
     StakeholdersModule,
     DocumentsModule,
+    DeliverablesModule,
+    MilestonesModule,
     ArtifactsModule,
     HealthModule,
   ],

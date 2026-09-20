@@ -15,3 +15,4 @@ export * from './hooks/charter';
 export * from './hooks/stakeholders';
 export * from './hooks/documents';
 export * from './hooks/artifacts';
+export * from './hooks/deliverables';

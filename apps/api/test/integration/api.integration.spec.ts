@@ -384,6 +384,213 @@ describe('Quests', () => {
   });
 });
 
+describe('Deliverables and milestones', () => {
+  it('runs a deliverable through submit and PM sign-off, and rolls it up on its milestone', async () => {
+    const pm = await registerUser('Deliverable PM');
+    const org = await createOrg(pm.accessToken, 'Deliverable Org');
+    const member = await inviteAndAccept(
+      pm.accessToken,
+      org.slug,
+      'MEMBER',
+      'Deliverable Member',
+    );
+    const project = await createProject(pm.accessToken, org.slug, 'DLV');
+    const other = await createProject(pm.accessToken, org.slug, 'OTH');
+    const proj = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const asPm = { Authorization: `Bearer ${pm.accessToken}` };
+    const asMember = { Authorization: `Bearer ${member.accessToken}` };
+    const due = new Date(Date.now() + 5 * 86400000).toISOString();
+
+    // A milestone is a task: start is forced to equal due, and it needs a due date.
+    await request(app.getHttpServer())
+      .post(`${proj}/tasks`)
+      .set(asPm)
+      .send({ title: 'Mốc không ngày', isMilestone: true })
+      .expect(400);
+    const milestone = await request(app.getHttpServer())
+      .post(`${proj}/tasks`)
+      .set(asPm)
+      .send({
+        title: 'Bàn giao GĐ1',
+        isMilestone: true,
+        dueDate: due,
+        startDate: new Date(Date.now() - 86400000).toISOString(),
+      })
+      .expect(201);
+    expect(milestone.body.data.isMilestone).toBe(true);
+    expect(milestone.body.data.startDate).toBe(milestone.body.data.dueDate);
+    const otherTask = await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${other.key}/tasks`,
+      )
+      .set(asPm)
+      .send({ title: 'Việc dự án khác' })
+      .expect(201);
+
+    // A deliverable can't point at a task from another project.
+    await request(app.getHttpServer())
+      .post(`${proj}/deliverables`)
+      .set(asMember)
+      .send({ name: 'Sai dự án', taskId: otherTask.body.data.id })
+      .expect(400);
+
+    const created = await request(app.getHttpServer())
+      .post(`${proj}/deliverables`)
+      .set(asMember)
+      .send({
+        name: 'Báo cáo GĐ1',
+        acceptanceCriteria: 'Đủ 3 chương',
+        taskId: milestone.body.data.id,
+      })
+      .expect(201);
+    const id = created.body.data.id;
+    expect(created.body.data).toMatchObject({
+      status: 'PLANNED',
+      task: { isMilestone: true },
+    });
+
+    // Can't be reviewed before it's submitted.
+    await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/accept`)
+      .set(asPm)
+      .expect(409);
+    await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/submit`)
+      .set(asMember)
+      .expect(200);
+
+    // A MEMBER can submit but not sign off; rejection needs a reason.
+    await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/accept`)
+      .set(asMember)
+      .expect(403);
+    await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/reject`)
+      .set(asPm)
+      .send({})
+      .expect(400);
+    const rejected = await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/reject`)
+      .set(asPm)
+      .send({ reason: 'Thiếu chương 3' })
+      .expect(200);
+    expect(rejected.body.data).toMatchObject({
+      status: 'REJECTED',
+      rejectionReason: 'Thiếu chương 3',
+    });
+
+    // Rework and resubmit, then accept.
+    await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/submit`)
+      .set(asMember)
+      .expect(200);
+    const accepted = await request(app.getHttpServer())
+      .post(`${proj}/deliverables/${id}/accept`)
+      .set(asPm)
+      .expect(200);
+    expect(accepted.body.data).toMatchObject({
+      status: 'ACCEPTED',
+      rejectionReason: null,
+      reviewedBy: { fullName: 'Deliverable PM' },
+    });
+
+    const rollup = await request(app.getHttpServer())
+      .get(`${proj}/milestones`)
+      .set(asPm)
+      .expect(200);
+    expect(rollup.body.data).toHaveLength(1);
+    expect(rollup.body.data[0]).toMatchObject({
+      title: 'Bàn giao GĐ1',
+      deliverablesTotal: 1,
+      deliverablesAccepted: 1,
+      isOverdue: false,
+    });
+
+    // Editing the accepted deliverable's content withdraws the sign-off, and the milestone count drops.
+    const edited = await request(app.getHttpServer())
+      .patch(`${proj}/deliverables/${id}`)
+      .set(asMember)
+      .send({ name: 'Báo cáo GĐ1 (v2)' })
+      .expect(200);
+    expect(edited.body.data).toMatchObject({
+      status: 'IN_PROGRESS',
+      reviewedAt: null,
+    });
+    const after = await request(app.getHttpServer())
+      .get(`${proj}/milestones`)
+      .set(asPm)
+      .expect(200);
+    expect(after.body.data[0]).toMatchObject({
+      deliverablesTotal: 1,
+      deliverablesAccepted: 0,
+    });
+  });
+
+  it('keeps deliverables and milestones tenant-isolated', async () => {
+    const ownerA = await registerUser('Deliv Owner A');
+    const orgA = await createOrg(ownerA.accessToken, 'Deliv Org A');
+    const projA = await createProject(ownerA.accessToken, orgA.slug, 'DLA');
+    await request(app.getHttpServer())
+      .post(
+        `${API_PREFIX}/organizations/${orgA.slug}/projects/${projA.key}/deliverables`,
+      )
+      .set('Authorization', `Bearer ${ownerA.accessToken}`)
+      .send({ name: 'Bí mật' })
+      .expect(201);
+
+    const ownerB = await registerUser('Deliv Owner B');
+    await createOrg(ownerB.accessToken, 'Deliv Org B');
+    for (const path of ['deliverables', 'milestones']) {
+      await request(app.getHttpServer())
+        .get(
+          `${API_PREFIX}/organizations/${orgA.slug}/projects/${projA.key}/${path}`,
+        )
+        .set('Authorization', `Bearer ${ownerB.accessToken}`)
+        .expect(403);
+    }
+  });
+
+  it('turning a task into a milestone snaps its start to the due date', async () => {
+    const owner = await registerUser('Promote Owner');
+    const org = await createOrg(owner.accessToken, 'Promote Org');
+    const project = await createProject(owner.accessToken, org.slug, 'PRM');
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`;
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const start = new Date(Date.now() - 3 * 86400000).toISOString();
+    const due = new Date(Date.now() + 3 * 86400000).toISOString();
+    const task = await request(app.getHttpServer())
+      .post(base)
+      .set(auth)
+      .send({ title: 'Việc thường', startDate: start, dueDate: due })
+      .expect(201);
+    expect(task.body.data.isMilestone).toBe(false);
+
+    const promoted = await request(app.getHttpServer())
+      .patch(`${base}/${task.body.data.id}`)
+      .set(auth)
+      .send({ isMilestone: true })
+      .expect(200);
+    expect(promoted.body.data.startDate).toBe(promoted.body.data.dueDate);
+
+    // Moving a milestone's due date drags its start along.
+    const newDue = new Date(Date.now() + 10 * 86400000).toISOString();
+    const moved = await request(app.getHttpServer())
+      .patch(`${base}/${task.body.data.id}`)
+      .set(auth)
+      .send({ dueDate: newDue })
+      .expect(200);
+    expect(moved.body.data.startDate).toBe(moved.body.data.dueDate);
+    expect(new Date(moved.body.data.dueDate).toISOString()).toBe(newDue);
+
+    // A milestone can't lose its due date.
+    await request(app.getHttpServer())
+      .patch(`${base}/${task.body.data.id}`)
+      .set(auth)
+      .send({ dueDate: null })
+      .expect(400);
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');
