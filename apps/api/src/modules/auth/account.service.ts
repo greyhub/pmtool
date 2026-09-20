@@ -82,7 +82,7 @@ export class AccountService {
       // Following the emailed link also proves the user owns the address.
       this.prisma.db.user.update({
         where: { id: userId },
-        data: { passwordHash, emailVerifiedAt: new Date() },
+        data: { passwordHash, hasPassword: true, emailVerifiedAt: new Date() },
       }),
       // Whoever knew the old password (or stole a session) is signed out everywhere.
       this.prisma.db.refreshToken.updateMany({

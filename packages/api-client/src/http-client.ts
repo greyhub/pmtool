@@ -124,3 +124,8 @@ export async function apiRequestText(path: string): Promise<string> {
   }
   return res.text();
 }
+
+/** The API's origin, for links the browser follows directly (OAuth sign-in redirects). */
+export function getApiBaseUrl(): string {
+  return baseUrl;
+}

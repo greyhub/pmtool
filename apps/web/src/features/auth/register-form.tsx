@@ -8,6 +8,7 @@ import { useRegister, ApiError } from '@pmtool/api-client';
 import { Button, FormField, Input } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
 import { safeRedirectTarget } from '../../lib/post-auth-redirect';
+import { GoogleButton } from './google-button';
 
 export function RegisterForm() {
   const t = useTranslations('auth.register');
@@ -33,6 +34,8 @@ export function RegisterForm() {
   });
 
   return (
+    <div className="flex flex-col gap-4">
+      <GoogleButton label="signUp" />
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <FormField label={t('fullName')} htmlFor="fullName" error={errors.fullName?.message}>
         <Input id="fullName" autoComplete="name" invalid={!!errors.fullName} {...register('fullName')} />
@@ -77,5 +80,6 @@ export function RegisterForm() {
         })}
       </p>
     </form>
+    </div>
   );
 }

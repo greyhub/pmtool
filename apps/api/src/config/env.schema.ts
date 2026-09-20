@@ -27,6 +27,9 @@ export const envSchema = z.object({
   // localhost, which Telegram cannot actually reach — fine for local dev
   // where the webhook path is exercised directly in tests instead.
   API_PUBLIC_URL: z.string().default('http://localhost:3001'),
+  // Optional: "Sign in with Google". Without both, the button is hidden and the endpoints answer 404.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
   // Optional: outgoing email (password reset, verification, invitations).
   // Without SMTP_HOST the API logs the message instead of sending it.
   SMTP_HOST: z.string().optional(),

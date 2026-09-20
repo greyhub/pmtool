@@ -126,3 +126,26 @@ export function useResendVerification() {
       apiRequest<{ alreadyVerified: boolean }>('/api/v1/auth/resend-verification', { method: 'POST' }),
   });
 }
+
+/** Whether "Sign in with Google" is configured on this server. */
+export function useGoogleSignInEnabled() {
+  return useQuery({
+    queryKey: ['auth', 'google-config'] as const,
+    queryFn: () => apiRequest<{ enabled: boolean }>('/api/v1/auth/google/config'),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
+
+/** After the Google redirect the refresh cookie is set; trade it for an access token and load the user. */
+export function useCompleteGoogleSignIn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const tokens = await refreshSession();
+      setAccessToken(tokens.accessToken);
+      queryClient.setQueryData(authKeys.me, tokens.user);
+      return tokens;
+    },
+  });
+}

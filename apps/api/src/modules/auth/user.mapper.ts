@@ -11,6 +11,7 @@ export function toUserDto(user: User): UserDto {
     themePref: user.themePref as UserDto['themePref'],
     mascotCharacter: user.mascotCharacter as UserDto['mascotCharacter'],
     emailVerified: user.emailVerifiedAt !== null,
+    hasPassword: user.hasPassword,
     createdAt: user.createdAt.toISOString(),
   };
 }

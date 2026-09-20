@@ -43,7 +43,7 @@ export class PrivacyController {
     @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(deleteAccountSchema)) body: DeleteAccountInput,
   ): Promise<void> {
-    await this.privacy.deleteAccount(user.id, body.password);
+    await this.privacy.deleteAccount(user.id, body);
   }
 
   @Get('organizations/:orgSlug/export')
@@ -64,10 +64,6 @@ export class PrivacyController {
     @CurrentUser() user: AuthenticatedUser,
     @Body(new ZodValidationPipe(deleteAccountSchema)) body: DeleteAccountInput,
   ): Promise<void> {
-    await this.privacy.deleteOrganization(
-      ctx.organization.id,
-      user.id,
-      body.password,
-    );
+    await this.privacy.deleteOrganization(ctx.organization.id, user.id, body);
   }
 }

@@ -11,6 +11,7 @@ import {
 import { AppModule } from '../../src/app.module';
 import { findTemplate, templateStats } from '@pmtool/shared-types';
 import { AiQuotaService } from '../../src/modules/ai/ai-quota.service';
+import { GoogleClient } from '../../src/modules/auth/google-client';
 import { MailService } from '../../src/modules/mail/mail.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { hashLinkCode } from '../../src/modules/telegram/link-code.util';
@@ -98,6 +99,24 @@ async function getUserId(email: string): Promise<string> {
   return user.id;
 }
 
+const fakeGoogle = {
+  enabled: true,
+  redirectUri: 'http://localhost:3001/api/v1/auth/google/callback',
+  authUrl: (state: string) =>
+    `https://accounts.example.test/auth?state=${state}`,
+  exchange: async (code: string) => {
+    if (code === 'boom') throw new Error('token exchange failed');
+    const [email, name, verified] = code.split('|');
+    return {
+      sub: `sub-${email}`,
+      email: email!.toLowerCase(),
+      emailVerified: verified !== 'unverified',
+      name: name ?? null,
+      picture: null,
+    };
+  },
+};
+
 beforeAll(async () => {
   container = await new PostgreSqlContainer('postgres:16-alpine').start();
 
@@ -124,7 +143,11 @@ beforeAll(async () => {
 
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    // Google is never called for real: a code is "email|name|verified" and decodes to that profile.
+    .overrideProvider(GoogleClient)
+    .useValue(fakeGoogle)
+    .compile();
   app = moduleRef.createNestApplication();
   app.use(cookieParser());
   app.setGlobalPrefix('api');
@@ -2199,6 +2222,144 @@ describe('Notifications and my tasks', () => {
       .get(`${orgUrl}/my-tasks`)
       .set({ Authorization: `Bearer ${stranger.accessToken}` })
       .expect(403);
+  });
+});
+
+describe('Sign in with Google', () => {
+  const WEB = 'http://localhost:3000';
+  const api = `${API_PREFIX}/auth/google`;
+
+  /** Runs start → callback with one browser (cookie jar) and returns the callback response. */
+  async function signInWith(
+    code: string,
+    opts: { redirect?: string; stateOverride?: string } = {},
+  ) {
+    const agent = request.agent(app.getHttpServer());
+    const started = await agent
+      .get(`${api}/start`)
+      .query({ redirect: opts.redirect, locale: 'vi' })
+      .expect(302);
+    const state = new URL(started.headers.location!).searchParams.get('state')!;
+    const cb = await agent
+      .get(`${api}/callback`)
+      .query({ code, state: opts.stateOverride ?? state });
+    return { agent, started, cb };
+  }
+
+  it('reports whether Google sign-in is available', async () => {
+    const res = await request(app.getHttpServer())
+      .get(`${api}/config`)
+      .expect(200);
+    expect(res.body.data.enabled).toBe(true);
+  });
+
+  it('creates an account on first sign-in, signs in through the refresh cookie, and is idempotent', async () => {
+    const email = `gnew_${Date.now()}@example.com`;
+    const { agent, started, cb } = await signInWith(
+      `${email}|Nguyễn Gờ|verified`,
+      { redirect: '/vi/some/page' },
+    );
+    expect(started.headers.location).toContain(
+      'https://accounts.example.test/auth?state=',
+    );
+    expect(cb.status).toBe(302);
+    expect(cb.headers.location).toBe(
+      `${WEB}/vi/auth/google-done?redirect=%2Fvi%2Fsome%2Fpage`,
+    );
+
+    // The web page then trades the refresh cookie for an access token.
+    const session = await agent.post(`${API_PREFIX}/auth/refresh`).expect(200);
+    const me = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/auth/me`)
+      .set('Authorization', `Bearer ${session.body.data.accessToken}`)
+      .expect(200);
+    expect(me.body.data).toMatchObject({
+      email,
+      fullName: 'Nguyễn Gờ',
+      emailVerified: true,
+      hasPassword: false,
+    });
+
+    // Signing in again reuses the account.
+    await signInWith(`${email}|Tên khác|verified`);
+    const count = await app
+      .get(PrismaService)
+      .db.user.count({ where: { email } });
+    expect(count).toBe(1);
+  });
+
+  it('links to an existing password account by email and verifies it, without touching its password', async () => {
+    const user = await registerUser('Has Password');
+    const before = await app
+      .get(PrismaService)
+      .db.user.findUniqueOrThrow({ where: { email: user.email } });
+    expect(before.emailVerifiedAt).toBeNull();
+
+    const { cb } = await signInWith(`${user.email}|Whatever|verified`);
+    expect(cb.headers.location).toContain('/vi/auth/google-done');
+    const after = await app
+      .get(PrismaService)
+      .db.user.findUniqueOrThrow({ where: { email: user.email } });
+    expect(after.id).toBe(before.id);
+    expect(after.emailVerifiedAt).not.toBeNull();
+    expect(after.hasPassword).toBe(true);
+    expect(after.passwordHash).toBe(before.passwordHash);
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: user.email, password: 'Password123' })
+      .expect(200);
+  });
+
+  it('refuses a forged state, an unverified Google email, a failed exchange, and never creates the account', async () => {
+    const email = `gbad_${Date.now()}@example.com`;
+    const prisma = app.get(PrismaService);
+
+    const forged = await signInWith(`${email}|X|verified`, {
+      stateOverride: 'not-the-state',
+    });
+    expect(forged.cb.headers.location).toBe(`${WEB}/vi/login?error=google`);
+    const unverified = await signInWith(`${email}|X|unverified`);
+    expect(unverified.cb.headers.location).toBe(`${WEB}/vi/login?error=google`);
+    const failed = await signInWith('boom');
+    expect(failed.cb.headers.location).toBe(`${WEB}/vi/login?error=google`);
+    // No cookie at all (callback opened directly): also refused.
+    const bare = await request(app.getHttpServer())
+      .get(`${api}/callback`)
+      .query({ code: `${email}|X|verified`, state: 'x' });
+    expect(bare.headers.location).toBe(`${WEB}/vi/login?error=google`);
+    expect(await prisma.db.user.count({ where: { email } })).toBe(0);
+  });
+
+  it('only follows a same-site relative path after sign-in', async () => {
+    const email = `gredir_${Date.now()}@example.com`;
+    const { cb } = await signInWith(`${email}|R|verified`, {
+      redirect: 'https://evil.example/steal',
+    });
+    expect(cb.headers.location).toBe(`${WEB}/vi/auth/google-done`);
+    const { cb: cb2 } = await signInWith(`${email}|R|verified`, {
+      redirect: '//evil.example',
+    });
+    expect(cb2.headers.location).toBe(`${WEB}/vi/auth/google-done`);
+  });
+
+  it('lets a Google-only account delete itself by retyping its email, since it has no password', async () => {
+    const email = `gdel_${Date.now()}@example.com`;
+    const { agent } = await signInWith(`${email}|Del|verified`);
+    const token = (await agent.post(`${API_PREFIX}/auth/refresh`).expect(200))
+      .body.data.accessToken as string;
+    const auth = { Authorization: `Bearer ${token}` };
+    const del = (body: object) =>
+      request(app.getHttpServer())
+        .delete(`${API_PREFIX}/users/me`)
+        .set(auth)
+        .send(body);
+
+    await del({ password: 'anything' }).expect(403);
+    await del({ confirmEmail: 'someone@else.com' }).expect(403);
+    await del({ confirmEmail: email.toUpperCase() }).expect(204);
+    expect(
+      await app.get(PrismaService).db.user.count({ where: { email } }),
+    ).toBe(0);
   });
 });
 

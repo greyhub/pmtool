@@ -9,6 +9,30 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 const DELETED_NAME = 'Người dùng đã xoá';
 
+interface Identity {
+  password?: string;
+  confirmEmail?: string;
+}
+
+/** Re-proves who is asking before something irreversible: the password, or — for Google-only accounts — their own email. */
+async function assertIdentity(
+  user: { email: string; passwordHash: string; hasPassword: boolean },
+  proof: Identity,
+): Promise<void> {
+  if (user.hasPassword) {
+    if (
+      !proof.password ||
+      !(await argon2.verify(user.passwordHash, proof.password))
+    ) {
+      throw new ForbiddenException('Mật khẩu không đúng');
+    }
+  } else if (
+    proof.confirmEmail?.trim().toLowerCase() !== user.email.toLowerCase()
+  ) {
+    throw new ForbiddenException('Email xác nhận không khớp');
+  }
+}
+
 /** Data portability (export) and the right to erasure, for people and for organizations. */
 @Injectable()
 export class PrivacyService {
@@ -206,14 +230,12 @@ export class PrivacyService {
   async deleteOrganization(
     organizationId: string,
     userId: string,
-    password: string,
+    proof: Identity,
   ): Promise<void> {
     const user = await this.prisma.db.user.findUniqueOrThrow({
       where: { id: userId },
     });
-    if (!(await argon2.verify(user.passwordHash, password))) {
-      throw new ForbiddenException('Mật khẩu không đúng');
-    }
+    await assertIdentity(user, proof);
     // Every table that hangs off an organization cascades from this one row.
     await this.prisma.db.organization.delete({ where: { id: organizationId } });
   }
@@ -224,14 +246,12 @@ export class PrivacyService {
    * the account row. What they wrote in shared workspaces stays, attributed to
    * "Người dùng đã xoá", so other people's projects are not damaged.
    */
-  async deleteAccount(userId: string, password: string): Promise<void> {
+  async deleteAccount(userId: string, proof: Identity): Promise<void> {
     const db = this.prisma.db;
     const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
     if (user.email.endsWith('@deleted.invalid'))
       throw new ForbiddenException('Tài khoản đã bị xoá');
-    if (!(await argon2.verify(user.passwordHash, password))) {
-      throw new ForbiddenException('Mật khẩu không đúng');
-    }
+    await assertIdentity(user, proof);
 
     const memberships = await db.membership.findMany({
       where: { userId },

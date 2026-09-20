@@ -138,7 +138,8 @@
       "submit": "Đăng nhập",
       "noAccount": "Chưa có tài khoản?",
       "registerLink": "Đăng ký ngay",
-      "forgotLink": "Quên mật khẩu?"
+      "forgotLink": "Quên mật khẩu?",
+      "googleFailed": "Đăng nhập bằng Google không thành công. Vui lòng thử lại hoặc dùng email."
     },
     "register": {
       "title": "Tạo tài khoản",
@@ -187,6 +188,15 @@
       "resend": "Gửi lại email",
       "sent": "Đã gửi — kiểm tra hộp thư.",
       "error": "Chưa gửi được, thử lại sau."
+    },
+    "google": {
+      "signIn": "Tiếp tục với Google",
+      "signUp": "Đăng ký bằng Google",
+      "or": "hoặc dùng email",
+      "finishing": "Đang đăng nhập…",
+      "working": "Đang hoàn tất đăng nhập bằng Google…",
+      "failed": "Không hoàn tất được đăng nhập bằng Google. Vui lòng thử lại.",
+      "backToLogin": "Quay lại đăng nhập"
     }
   },
   "onboarding": {
@@ -767,7 +777,8 @@
       "password": "Mật khẩu hiện tại",
       "cancel": "Huỷ",
       "confirmDelete": "Xoá vĩnh viễn",
-      "error": "Có lỗi xảy ra, vui lòng thử lại."
+      "error": "Có lỗi xảy ra, vui lòng thử lại.",
+      "confirmEmail": "Nhập lại email của bạn để xác nhận"
     }
   },
   "integrations": {
@@ -968,7 +979,8 @@
         "typeSlug": "Gõ \"{slug}\" để xác nhận",
         "password": "Mật khẩu hiện tại",
         "cancel": "Huỷ",
-        "confirmDelete": "Xoá vĩnh viễn"
+        "confirmDelete": "Xoá vĩnh viễn",
+        "confirmEmail": "Nhập lại email của bạn để xác nhận"
       }
     }
   },

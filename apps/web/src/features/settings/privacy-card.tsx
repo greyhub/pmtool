@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ApiError, useDeleteAccount, useExportMyData } from '@pmtool/api-client';
+import { ApiError, useDeleteAccount, useExportMyData, useMe } from '@pmtool/api-client';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, FormField, Input, Modal } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
 import { downloadJson } from '../../lib/download-json';
@@ -12,6 +12,9 @@ export function PrivacyCard() {
   const router = useRouter();
   const exportData = useExportMyData();
   const deleteAccount = useDeleteAccount();
+  const { data: me } = useMe();
+  // Accounts made through Google have no password: they confirm by retyping their email.
+  const needsEmail = me?.hasPassword === false;
   const [confirming, setConfirming] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -22,7 +25,7 @@ export function PrivacyCard() {
   }
 
   function handleDelete() {
-    deleteAccount.mutate({ password }, { onSuccess: () => router.push('/') });
+    deleteAccount.mutate(needsEmail ? { confirmEmail: password } : { password }, { onSuccess: () => router.push('/') });
   }
 
   return (
@@ -82,11 +85,11 @@ export function PrivacyCard() {
           </>
         }
       >
-        <FormField label={t('password')} htmlFor="delete-password">
+        <FormField label={needsEmail ? t('confirmEmail') : t('password')} htmlFor="delete-password">
           <Input
             id="delete-password"
-            type="password"
-            autoComplete="current-password"
+            type={needsEmail ? 'email' : 'password'}
+            autoComplete={needsEmail ? 'email' : 'current-password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

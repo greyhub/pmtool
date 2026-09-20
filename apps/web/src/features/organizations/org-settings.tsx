@@ -304,6 +304,7 @@ function DataCard({ orgSlug }: { orgSlug: string }) {
   const { data: members } = useOrganizationMembers(orgSlug);
   const { data: me } = useMe();
   const isOwner = members?.find((m) => m.userId === me?.id)?.role === 'OWNER';
+  const needsEmail = me?.hasPassword === false;
   const [confirming, setConfirming] = useState(false);
   const [typedSlug, setTypedSlug] = useState('');
   const [password, setPassword] = useState('');
@@ -361,7 +362,7 @@ function DataCard({ orgSlug }: { orgSlug: string }) {
               variant="danger"
               disabled={typedSlug !== orgSlug || !password || deleteOrg.isPending}
               onClick={() =>
-                deleteOrg.mutate({ password }, { onSuccess: () => router.push('/onboarding/create-organization') })
+                deleteOrg.mutate(needsEmail ? { confirmEmail: password } : { password }, { onSuccess: () => router.push('/onboarding/create-organization') })
               }
             >
               {t('confirmDelete')}
@@ -373,11 +374,11 @@ function DataCard({ orgSlug }: { orgSlug: string }) {
           <FormField label={t('typeSlug', { slug: orgSlug })} htmlFor="delete-org-slug">
             <Input id="delete-org-slug" value={typedSlug} onChange={(e) => setTypedSlug(e.target.value)} />
           </FormField>
-          <FormField label={t('password')} htmlFor="delete-org-password">
+          <FormField label={needsEmail ? t('confirmEmail') : t('password')} htmlFor="delete-org-password">
             <Input
               id="delete-org-password"
-              type="password"
-              autoComplete="current-password"
+              type={needsEmail ? 'email' : 'password'}
+              autoComplete={needsEmail ? 'email' : 'current-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

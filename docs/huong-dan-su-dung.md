@@ -44,6 +44,8 @@ PMTool tổ chức dữ liệu theo 3 cấp: **Tổ chức** (Organization) → 
 
 Mời thêm thành viên vào tổ chức được thực hiện ở trang **Cài đặt tổ chức** — xem [mục 3](#3-quản-lý-tổ-chức).
 
+**Đăng nhập bằng Google.** Khi quản trị hệ thống đã cấu hình, trang **Đăng nhập** và **Đăng ký** có nút **Tiếp tục với Google**. Bấm nút, chọn tài khoản Google — lần đầu PMTool tự tạo tài khoản (tên và ảnh lấy từ Google, email được coi là đã xác minh, không cần đặt mật khẩu), các lần sau vào thẳng. Nếu email Google trùng với một tài khoản đã đăng ký bằng mật khẩu, hai cách đăng nhập dùng chung **một tài khoản** (không tạo bản trùng, mật khẩu cũ vẫn dùng được). Mở link mời rồi đăng nhập bằng Google sẽ quay lại đúng lời mời. Tài khoản chỉ dùng Google chưa có mật khẩu: muốn đặt, dùng **Quên mật khẩu**; khi **xoá tài khoản/tổ chức** bạn xác nhận bằng cách gõ lại email của mình thay vì mật khẩu.
+
 **Xác minh email.** Sau khi đăng ký, PMTool gửi một email chứa liên kết xác minh (hiệu lực 24 giờ). Trong lúc chưa xác minh bạn thấy một dải nhắc ở đầu trang kèm nút **Gửi lại email**. Khi quản trị hệ thống bật yêu cầu xác minh, tài khoản chưa xác minh sẽ chưa dùng được **trợ lý AI** và **mời thành viên** (hai tính năng dễ bị lạm dụng); mọi thứ khác vẫn dùng bình thường.
 
 **Quên mật khẩu.** Ở trang **Đăng nhập** bấm **Quên mật khẩu?**, nhập email. Hệ thống luôn trả lời giống nhau dù email có tài khoản hay không (để không lộ ai đã đăng ký) và, nếu có, gửi liên kết đặt lại có hiệu lực **60 phút, dùng được một lần**; yêu cầu mới sẽ vô hiệu liên kết cũ. Đặt mật khẩu mới xong, **mọi phiên đăng nhập cũ bị đăng xuất** và email của bạn được coi là đã xác minh.

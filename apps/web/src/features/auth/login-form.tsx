@@ -8,6 +8,7 @@ import { useLogin, ApiError, apiRequest } from '@pmtool/api-client';
 import { Button, FormField, Input } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
 import { safeRedirectTarget } from '../../lib/post-auth-redirect';
+import { GoogleButton } from './google-button';
 
 export function LoginForm() {
   const t = useTranslations('auth.login');
@@ -47,34 +48,45 @@ export function LoginForm() {
     });
   });
 
+  const googleFailed =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') === 'google';
+
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <FormField label={t('email')} htmlFor="email" error={errors.email?.message}>
-        <Input id="email" type="email" autoComplete="email" invalid={!!errors.email} {...register('email')} />
-      </FormField>
-
-      <FormField label={t('password')} htmlFor="password" error={errors.password?.message}>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          invalid={!!errors.password}
-          {...register('password')}
-        />
-        <Link href="/forgot-password" className="mt-1 inline-block text-xs text-ink-secondary hover:underline">
-          {t('forgotLink')}
-        </Link>
-      </FormField>
-
-      {login.isError && (
-        <p role="alert" className="text-sm text-danger">
-          {login.error instanceof ApiError ? login.error.message : 'Có lỗi xảy ra'}
+    <div className="flex flex-col gap-4">
+      {googleFailed && (
+        <p role="alert" className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger">
+          {t('googleFailed')}
         </p>
       )}
+      <GoogleButton label="signIn" />
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        <FormField label={t('email')} htmlFor="email" error={errors.email?.message}>
+          <Input id="email" type="email" autoComplete="email" invalid={!!errors.email} {...register('email')} />
+        </FormField>
 
-      <Button type="submit" disabled={login.isPending} className="mt-2">
-        {t('submit')}
-      </Button>
-    </form>
+        <FormField label={t('password')} htmlFor="password" error={errors.password?.message}>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            invalid={!!errors.password}
+            {...register('password')}
+          />
+          <Link href="/forgot-password" className="mt-1 inline-block text-xs text-ink-secondary hover:underline">
+            {t('forgotLink')}
+          </Link>
+        </FormField>
+
+        {login.isError && (
+          <p role="alert" className="text-sm text-danger">
+            {login.error instanceof ApiError ? login.error.message : 'Có lỗi xảy ra'}
+          </p>
+        )}
+
+        <Button type="submit" disabled={login.isPending} className="mt-2">
+          {t('submit')}
+        </Button>
+      </form>
+    </div>
   );
 }

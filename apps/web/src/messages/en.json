@@ -138,7 +138,8 @@
       "submit": "Sign in",
       "noAccount": "Don't have an account?",
       "registerLink": "Sign up",
-      "forgotLink": "Forgot password?"
+      "forgotLink": "Forgot password?",
+      "googleFailed": "Google sign-in did not work. Please try again or use your email."
     },
     "register": {
       "title": "Create your account",
@@ -187,6 +188,15 @@
       "resend": "Resend email",
       "sent": "Sent — check your inbox.",
       "error": "Could not send, try again later."
+    },
+    "google": {
+      "signIn": "Continue with Google",
+      "signUp": "Sign up with Google",
+      "or": "or use email",
+      "finishing": "Signing you in…",
+      "working": "Finishing Google sign-in…",
+      "failed": "Could not finish signing in with Google. Please try again.",
+      "backToLogin": "Back to sign in"
     }
   },
   "onboarding": {
@@ -767,7 +777,8 @@
       "password": "Current password",
       "cancel": "Cancel",
       "confirmDelete": "Delete permanently",
-      "error": "Something went wrong, please try again."
+      "error": "Something went wrong, please try again.",
+      "confirmEmail": "Type your email address to confirm"
     }
   },
   "integrations": {
@@ -968,7 +979,8 @@
         "typeSlug": "Type \"{slug}\" to confirm",
         "password": "Current password",
         "cancel": "Cancel",
-        "confirmDelete": "Delete permanently"
+        "confirmDelete": "Delete permanently",
+        "confirmEmail": "Type your email address to confirm"
       }
     }
   },

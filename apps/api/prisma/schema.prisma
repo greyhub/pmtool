@@ -31,6 +31,8 @@ model User {
   mascotCharacter String  @default("fox")
   // Set once the user proves they own the address (link in the verification email).
   emailVerifiedAt DateTime?
+  // False for accounts created through Google sign-in: their stored password is random and unknown to them.
+  hasPassword     Boolean  @default(true)
   telegramChatId String?  @unique
   // Daily task-status digest via Telegram — distinct from the due-date
   // sweep (Task.telegramReminderSentAt). Enabled by default so anyone who

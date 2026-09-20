@@ -33,6 +33,8 @@ export const userSchema = z.object({
   themePref: z.enum(THEME_PREFERENCES),
   mascotCharacter: z.enum(MASCOT_CHARACTERS),
   emailVerified: z.boolean(),
+  /** False when the account signs in only through Google and never set a password. */
+  hasPassword: z.boolean(),
   createdAt: z.string(),
 });
 export type UserDto = z.infer<typeof userSchema>;
@@ -71,5 +73,11 @@ export const verifyEmailSchema = z.object({ token: z.string().min(1) });
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 
 /** Deleting an account needs the current password, so a stolen session cannot erase it. */
-export const deleteAccountSchema = z.object({ password: z.string().min(1) });
+export const deleteAccountSchema = z
+  .object({
+    password: z.string().min(1).optional(),
+    /** For accounts without a password: type your own email address to confirm. */
+    confirmEmail: z.string().min(1).optional(),
+  })
+  .refine((v) => v.password || v.confirmEmail, { message: 'Cần mật khẩu hoặc email xác nhận' });
 export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;

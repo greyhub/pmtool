@@ -49,7 +49,7 @@ Miễn phí không có nghĩa là hạ chuẩn: người dùng vẫn giao dữ l
 | Bước | Hạng mục | Lý do ở chế độ miễn phí |
 |---|---|---|
 | 1 ✅ | **G5 Giới hạn tốc độ + hạn mức AI theo tổ chức** *(xong 2026-09-20)* | Không có doanh thu bù chi phí AI/lạm dụng; chống dò mật khẩu và đăng ký hàng loạt |
-| 2 ✅ | **G1/G2 Quên mật khẩu, xác minh email, email giao dịch** *(xong 2026-09-20; cần cấu hình SMTP thật ở production rồi bật `EMAIL_VERIFICATION_REQUIRED`)* (nhà cung cấp email cắm được; chưa cấu hình thì ghi log) | Không có mật khẩu = mất tài khoản; email chặn tài khoản rác |
+| 2 ✅ | **Đăng nhập bằng Google** *(xong 2026-09-21; cần Client ID/Secret thật — xem `apps/api/.env.example`)* · **G1/G2 Quên mật khẩu, xác minh email, email giao dịch** *(xong 2026-09-20; cần cấu hình SMTP thật ở production rồi bật `EMAIL_VERIFICATION_REQUIRED`)* (nhà cung cấp email cắm được; chưa cấu hình thì ghi log) | Không có mật khẩu = mất tài khoản; email chặn tài khoản rác |
 | 3 ✅ | **G4 Xuất dữ liệu + xoá tài khoản + trang điều khoản/quyền riêng tư** *(xong 2026-09-20 — còn cần tư vấn pháp lý rà soát nội dung và điền tên đơn vị/email liên hệ; Owner cũng có thể xoá cả tổ chức)* | Bắt buộc pháp lý khi thu dữ liệu cá nhân (Nghị định 13/2023), xây niềm tin để dùng miễn phí |
 | 4 ✅ | **G8 Dự án mẫu + checklist kích hoạt** *(xong 2026-09-21: 3 mẫu vi/en — phần mềm, sự kiện, marketing — và thẻ "Bắt đầu nhanh"; nên bổ sung mẫu theo ngành khi có phản hồi beta)* | Rút ngắn thời gian tới "aha" — chỉ số quan trọng nhất khi không có doanh thu |
 | 5 ✅ | **G9 Nhập/xuất CSV** *(xong 2026-09-21: nhập/xuất công việc; xuất PDF báo cáo và nhập Excel .xlsx/MS Project chưa có)* | Hạ rào chuyển đổi từ bảng tính; xuất cũng phục vụ G4 |
