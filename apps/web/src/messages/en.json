@@ -222,7 +222,11 @@
       "keyHint": "Uppercase letters and digits, e.g. PMT — used as the prefix for task keys",
       "name": "Project name",
       "description": "Description",
-      "submit": "Create project"
+      "submit": "Create project",
+      "startFrom": "Start from",
+      "blank": "Blank project",
+      "blankHint": "Build the scope and work yourself from scratch.",
+      "stats": "{phases} phases · {deliverables} deliverables · {workPackages} work packages · {activities} activities, with scope, milestones and common risks"
     },
     "status": {
       "PLANNING": "Planning",
@@ -631,6 +635,34 @@
         },
         "expandAll": "Expand all",
         "collapseAll": "Collapse all"
+      }
+    },
+    "onboarding": {
+      "title": "Get started",
+      "subtitle": "{done}/{total} first steps done",
+      "dismiss": "Hide",
+      "next": "Next",
+      "steps": {
+        "createProject": {
+          "title": "Create your first project",
+          "hint": "Start from a template (software, event, marketing) or a blank project."
+        },
+        "addTasks": {
+          "title": "Add at least 5 tasks",
+          "hint": "Break the work down so it can be assigned and tracked."
+        },
+        "inviteTeammate": {
+          "title": "Invite a teammate",
+          "hint": "Invite by email or share the invitation link."
+        },
+        "defineScope": {
+          "title": "Define the scope and WBS",
+          "hint": "Write the project scope and break it into deliverables and work packages."
+        },
+        "addDeliverable": {
+          "title": "Create your first deliverable",
+          "hint": "Track submission and acceptance of what you hand over."
+        }
       }
     }
   },

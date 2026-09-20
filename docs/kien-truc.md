@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.5 Dự án mẫu và checklist kích hoạt
+
+Danh mục mẫu (`packages/shared-types/src/templates/catalog.ts`) là **dữ liệu thuần, song ngữ vi/en**, dùng chung cho API và giao diện (giao diện vẽ danh sách chọn mẫu từ cùng dữ liệu). `planTemplate()` (`apps/api/src/modules/projects/template-plan.ts`, hàm thuần có unit test) xếp mẫu lên lịch: hoạt động nối tiếp trong gói công việc, gói trong giao phẩm, giao phẩm trong giai đoạn, giai đoạn nối tiếp nhau, chỉ dùng ngày làm việc, mốc ở cuối mỗi giai đoạn. `ProjectsService.create` ghi toàn bộ trong **cùng một transaction** với việc tạo dự án (phạm vi nháp, task theo thứ tự cha trước con với `humanKey` liên tục, từ điển WBS, bản ghi giao phẩm, rủi ro; `taskSequence` được đặt để việc mới nối tiếp) — lỗi giữa chừng thì không có dự án dở dang. Unit test bảo đảm mọi mẫu: đủ số phần tử, đúng thứ bậc, ngày làm việc, cha bao trọn con, và **không có cha nào chỉ một con** (để dự án mới không bị cảnh báo quy tắc 100%). `GET organizations/:org/dashboard/onboarding` tính checklist "Bắt đầu nhanh" từ số liệu thực (`DashboardService.onboarding`).
+
 ### 1.4 Khung phạm vi PMBOK
 
 | Khái niệm PMBOK | Lưu ở đâu | Ghi chú thiết kế |

@@ -38,6 +38,10 @@ PMTool tổ chức dữ liệu theo 3 cấp: **Tổ chức** (Organization) → 
 
 Đăng nhập lần sau tại trang **Đăng nhập**; phiên đăng nhập dùng access token (15 phút) tự làm mới qua refresh token (cookie httpOnly, 30 ngày) — không cần đăng nhập lại thường xuyên.
 
+**Bắt đầu nhanh.** Trên Dashboard của một tổ chức mới có thẻ **Bắt đầu nhanh** liệt kê 5 bước đầu tiên — tạo dự án, thêm ít nhất 5 công việc, mời một đồng đội, xác định phạm vi/WBS, tạo giao phẩm đầu tiên. Bước nào xong sẽ tự được tích (tính từ dữ liệu thật, không phải tự đánh dấu); bước kế tiếp có nút **Làm tiếp**. Bấm **Ẩn** để tắt (nhớ theo từng tổ chức trên trình duyệt), và thẻ tự biến mất khi xong cả 5 bước.
+
+**Dự án mẫu.** Khi **Tạo dự án** bạn có thể chọn **Bắt đầu từ**: *Dự án trống* hoặc một mẫu — *Dự án phần mềm*, *Tổ chức sự kiện*, *Chiến dịch marketing*. Mẫu tạo sẵn (bằng ngôn ngữ đang dùng): bản nháp **Phạm vi**, cây **WBS** đủ 4 cấp với **từ điển WBS**, các **hoạt động** xếp lịch nối tiếp theo ngày làm việc (bỏ thứ Bảy/Chủ nhật) từ ngày bắt đầu, một **mốc** ở cuối mỗi giai đoạn, **giao phẩm** kèm tiêu chí nghiệm thu, và vài **rủi ro** thường gặp. Toàn bộ chỉ là điểm khởi đầu — sửa, xoá hay thêm tuỳ ý; dự án mới từ mẫu không có cảnh báo nào ở Kiểm tra độ phủ.
+
 Mời thêm thành viên vào tổ chức được thực hiện ở trang **Cài đặt tổ chức** — xem [mục 3](#3-quản-lý-tổ-chức).
 
 **Xác minh email.** Sau khi đăng ký, PMTool gửi một email chứa liên kết xác minh (hiệu lực 24 giờ). Trong lúc chưa xác minh bạn thấy một dải nhắc ở đầu trang kèm nút **Gửi lại email**. Khi quản trị hệ thống bật yêu cầu xác minh, tài khoản chưa xác minh sẽ chưa dùng được **trợ lý AI** và **mời thành viên** (hai tính năng dễ bị lạm dụng); mọi thứ khác vẫn dùng bình thường.

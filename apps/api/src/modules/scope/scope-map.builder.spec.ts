@@ -120,7 +120,7 @@ describe('buildScopeMap', () => {
     expect(filled.deliverableStatuses.PLANNED).toBe(1);
   });
 
-  it('flags activities not under a work package and milestones without a deliverable', () => {
+  it('flags activities not under a work package', () => {
     const extra = [
       ...tasks,
       task({ id: 'loose', parentTaskId: 'ph', orderIndex: 3 }),
@@ -131,7 +131,43 @@ describe('buildScopeMap', () => {
       'loose',
       'root-act',
     ]);
-    expect(offenders(map, 'milestoneWithoutDeliverable')).toEqual(['ms']);
+  });
+
+  it('a milestone is tied to a deliverable by a sign-off record or by closing a phase that has deliverables', () => {
+    // 'ms' closes phase 'ph', which contains deliverable 'dl'.
+    expect(
+      offenders(buildScopeMap(base({ tasks })), 'milestoneWithoutDeliverable'),
+    ).toEqual([]);
+
+    const lonely = [
+      ...tasks,
+      task({ id: 'lonely', isMilestone: true, orderIndex: 8 }),
+      task({ id: 'bare-phase', nodeType: 'PHASE', orderIndex: 7 }),
+      task({ id: 'bare-ms', isMilestone: true, parentTaskId: 'bare-phase' }),
+    ];
+    const map = buildScopeMap(base({ tasks: lonely }));
+    expect(offenders(map, 'milestoneWithoutDeliverable').sort()).toEqual([
+      'bare-ms',
+      'lonely',
+    ]);
+
+    const linked = buildScopeMap(
+      base({
+        tasks: lonely,
+        deliverables: [
+          {
+            id: 'r9',
+            name: 'Bàn giao',
+            taskId: 'lonely',
+            status: 'PLANNED',
+            acceptanceCriteria: null,
+          },
+        ],
+      }),
+    );
+    expect(offenders(linked, 'milestoneWithoutDeliverable')).toEqual([
+      'bare-ms',
+    ]);
   });
 
   it('hints at the 100% rule for a parent with a single child', () => {

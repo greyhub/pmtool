@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
+  OnboardingDto,
+  ONBOARDING_STEP_KEYS,
   OrgDashboardDto,
   ProjectDashboardDto,
   PROJECT_STATUSES,
@@ -36,6 +38,50 @@ function zeroCounts<T extends readonly string[]>(
 @Injectable()
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /** Which "getting started" steps this organization has already done. */
+  async onboarding(organizationId: string): Promise<OnboardingDto> {
+    const db = this.prisma.db;
+    const [
+      firstProject,
+      tasks,
+      members,
+      pendingInvites,
+      scopes,
+      structured,
+      deliverables,
+    ] = await Promise.all([
+      db.project.findFirst({
+        where: { organizationId },
+        orderBy: { createdAt: 'asc' },
+        select: { key: true },
+      }),
+      db.task.count({ where: { organizationId } }),
+      db.membership.count({ where: { organizationId } }),
+      db.membershipInvite.count({
+        where: { organizationId, acceptedAt: null },
+      }),
+      db.projectScope.count({ where: { organizationId } }),
+      // Any task given a WBS level above "activity" means the team has started structuring the work.
+      db.task.count({
+        where: { organizationId, nodeType: { not: 'ACTIVITY' } },
+      }),
+      db.deliverable.count({ where: { organizationId } }),
+    ]);
+    const done: Record<(typeof ONBOARDING_STEP_KEYS)[number], boolean> = {
+      createProject: firstProject !== null,
+      addTasks: tasks >= 5,
+      inviteTeammate: members >= 2 || pendingInvites > 0,
+      defineScope: scopes > 0 || structured > 0,
+      addDeliverable: deliverables > 0,
+    };
+    const steps = ONBOARDING_STEP_KEYS.map((key) => ({ key, done: done[key] }));
+    return {
+      steps,
+      completed: steps.every((s) => s.done),
+      projectKey: firstProject?.key ?? null,
+    };
+  }
 
   async orgDashboard(organizationId: string): Promise<OrgDashboardDto> {
     const [

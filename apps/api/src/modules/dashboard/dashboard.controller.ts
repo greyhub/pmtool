@@ -1,7 +1,11 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Project } from '@prisma/client';
-import { OrgDashboardDto, ProjectDashboardDto } from '@pmtool/shared-types';
+import {
+  OnboardingDto,
+  OrgDashboardDto,
+  ProjectDashboardDto,
+} from '@pmtool/shared-types';
 import { DashboardService } from './dashboard.service';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
@@ -22,6 +26,14 @@ export class OrgDashboardController {
     @CurrentOrg() ctx: CurrentOrgContext,
   ): Promise<{ data: OrgDashboardDto }> {
     const data = await this.dashboardService.orgDashboard(ctx.organization.id);
+    return { data };
+  }
+
+  @Get('onboarding')
+  async onboarding(
+    @CurrentOrg() ctx: CurrentOrgContext,
+  ): Promise<{ data: OnboardingDto }> {
+    const data = await this.dashboardService.onboarding(ctx.organization.id);
     return { data };
   }
 }

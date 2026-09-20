@@ -187,11 +187,17 @@ export function buildScopeMap(input: ScopeMapInput): ScopeMapDto {
       const parent = t.parentTaskId ? byId.get(t.parentTaskId) : undefined;
       return !parent || parent.nodeType !== 'WORK_PACKAGE';
     }),
-    check(
-      'milestoneWithoutDeliverable',
-      milestones,
-      (t) => (recordsByTask.get(t.id) ?? []).length === 0,
-    ),
+    // A milestone is tied to a deliverable when a sign-off record points at it, or when it closes
+    // a phase/deliverable that contains deliverable nodes (the usual "phase ends at this milestone").
+    check('milestoneWithoutDeliverable', milestones, (t) => {
+      if ((recordsByTask.get(t.id) ?? []).length > 0) return false;
+      const siblings = t.parentTaskId
+        ? (childrenOf.get(t.parentTaskId) ?? [])
+        : [];
+      return !siblings.some(
+        (c) => c.nodeType === 'DELIVERABLE' && !c.isMilestone,
+      );
+    }),
     check(
       'singleChildParent',
       parents,

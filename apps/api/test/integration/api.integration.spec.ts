@@ -9,6 +9,7 @@ import {
   StartedPostgreSqlContainer,
 } from '@testcontainers/postgresql';
 import { AppModule } from '../../src/app.module';
+import { findTemplate, templateStats } from '@pmtool/shared-types';
 import { AiQuotaService } from '../../src/modules/ai/ai-quota.service';
 import { MailService } from '../../src/modules/mail/mail.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -1695,6 +1696,162 @@ describe('Privacy: export and account deletion', () => {
         fullName: 'Back Again',
       })
       .expect(201);
+  });
+});
+
+describe('Project templates', () => {
+  it('starts a project from a template: scope, WBS with dictionary, milestones, records and risks, with a clean coverage report', async () => {
+    const owner = await registerUser('Template Owner');
+    const org = await createOrg(owner.accessToken, 'Template Org');
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const stats = templateStats(findTemplate('software')!);
+
+    const created = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects`)
+      .set(auth)
+      .send({
+        key: 'TPL',
+        name: 'Từ mẫu',
+        templateId: 'software',
+        locale: 'vi',
+        startDate: '2026-09-21T05:00:00.000Z',
+      })
+      .expect(201);
+    expect(created.body.data.startDate).toBeTruthy();
+    expect(created.body.data.targetEndDate).toBeTruthy();
+
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/TPL`;
+    const tasks = (await http().get(`${base}/tasks`).set(auth).expect(200)).body
+      .data as {
+      humanKey: string;
+      nodeType: string;
+      isMilestone: boolean;
+      dueDate: string;
+    }[];
+    const total =
+      stats.phases +
+      stats.deliverables +
+      stats.workPackages +
+      stats.activities +
+      stats.milestones;
+    expect(tasks).toHaveLength(total);
+    expect(tasks.filter((t) => t.isMilestone)).toHaveLength(stats.milestones);
+    expect(tasks.every((t) => t.dueDate)).toBe(true);
+    const scope = (await http().get(`${base}/scope`).set(auth).expect(200)).body
+      .data;
+    expect(scope.status).toBe('DRAFT');
+    expect(scope.inScope).toContain('Phân tích yêu cầu');
+
+    const deliverables = (
+      await http().get(`${base}/deliverables`).set(auth).expect(200)
+    ).body.data;
+    expect(deliverables).toHaveLength(stats.deliverables);
+    const risks = (await http().get(`${base}/risks`).set(auth).expect(200)).body
+      .data;
+    expect(risks).toHaveLength(stats.risks);
+
+    // Every template gap check that a template can satisfy is satisfied.
+    const map = (await http().get(`${base}/scope-map`).set(auth).expect(200))
+      .body.data;
+    const failing = (key: string) =>
+      map.checks.find((c: { key: string }) => c.key === key).offenders;
+    expect(failing('workPackageWithoutActivity')).toEqual([]);
+    expect(failing('workPackageWithoutDictionary')).toEqual([]);
+    expect(failing('deliverableWithoutCriteria')).toEqual([]);
+    expect(failing('deliverableWithoutRecord')).toEqual([]);
+    expect(failing('activityOutsideWorkPackage')).toEqual([]);
+    expect(failing('milestoneWithoutDeliverable')).toEqual([]);
+    expect(failing('singleChildParent')).toEqual([]);
+
+    // Keys run TPL-1..TPL-n with no gaps, so the next task continues the sequence.
+    const next = await http()
+      .post(`${base}/tasks`)
+      .set(auth)
+      .send({ title: 'Việc mới' })
+      .expect(201);
+    expect(next.body.data.humanKey).toBe(`TPL-${total + 1}`);
+  });
+
+  it('rejects an unknown template and builds English content on request', async () => {
+    const owner = await registerUser('Template En');
+    const org = await createOrg(owner.accessToken, 'Template En Org');
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const url = `${API_PREFIX}/organizations/${org.slug}/projects`;
+
+    await http()
+      .post(url)
+      .set(auth)
+      .send({ key: 'NOPE', name: 'x', templateId: 'does-not-exist' })
+      .expect(400);
+    await http()
+      .post(url)
+      .set(auth)
+      .send({ key: 'EVT', name: 'Event', templateId: 'event', locale: 'en' })
+      .expect(201);
+    const tasks = (await http().get(`${url}/EVT/tasks`).set(auth).expect(200))
+      .body.data as { title: string }[];
+    expect(tasks.some((t) => t.title === 'Event plan')).toBe(true);
+  });
+});
+
+describe('Getting-started checklist', () => {
+  it('ticks steps off from what the organization actually has', async () => {
+    const owner = await registerUser('Onboard Owner');
+    const org = await createOrg(owner.accessToken, 'Onboard Org');
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const get = async () =>
+      (
+        await http()
+          .get(`${API_PREFIX}/organizations/${org.slug}/dashboard/onboarding`)
+          .set(auth)
+          .expect(200)
+      ).body.data as {
+        steps: { key: string; done: boolean }[];
+        completed: boolean;
+        projectKey: string | null;
+      };
+    const done = (r: { steps: { key: string; done: boolean }[] }) =>
+      r.steps.filter((s) => s.done).map((s) => s.key);
+
+    const fresh = await get();
+    expect(done(fresh)).toEqual([]);
+    expect(fresh.projectKey).toBeNull();
+
+    // A template project brings a project, tasks, scope/WBS and deliverables in one go.
+    await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects`)
+      .set(auth)
+      .send({ key: 'ONB', name: 'Onboarding', templateId: 'software' })
+      .expect(201);
+    const afterTemplate = await get();
+    expect(done(afterTemplate)).toEqual([
+      'createProject',
+      'addTasks',
+      'defineScope',
+      'addDeliverable',
+    ]);
+    expect(afterTemplate.projectKey).toBe('ONB');
+    expect(afterTemplate.completed).toBe(false);
+
+    // A pending invitation counts as inviting a teammate.
+    await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set(auth)
+      .send({ email: 'someone@example.test', role: 'MEMBER' })
+      .expect(201);
+    const all = await get();
+    expect(all.completed).toBe(true);
+
+    // Another organization's checklist is not readable.
+    const other = await registerUser('Onboard Other');
+    await createOrg(other.accessToken, 'Onboard Other Org');
+    await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}/dashboard/onboarding`)
+      .set({ Authorization: `Bearer ${other.accessToken}` })
+      .expect(403);
   });
 });
 

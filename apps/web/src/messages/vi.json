@@ -222,7 +222,11 @@
       "keyHint": "Chữ hoa và số, ví dụ: PMT — dùng làm tiền tố cho mã công việc",
       "name": "Tên dự án",
       "description": "Mô tả",
-      "submit": "Tạo dự án"
+      "submit": "Tạo dự án",
+      "startFrom": "Bắt đầu từ",
+      "blank": "Dự án trống",
+      "blankHint": "Tự xây dựng phạm vi và công việc từ đầu.",
+      "stats": "{phases} giai đoạn · {deliverables} giao phẩm · {workPackages} gói công việc · {activities} hoạt động, kèm phạm vi, mốc và rủi ro thường gặp"
     },
     "status": {
       "PLANNING": "Lên kế hoạch",
@@ -631,6 +635,34 @@
         },
         "expandAll": "Mở hết",
         "collapseAll": "Thu gọn hết"
+      }
+    },
+    "onboarding": {
+      "title": "Bắt đầu nhanh",
+      "subtitle": "Đã xong {done}/{total} bước đầu tiên",
+      "dismiss": "Ẩn",
+      "next": "Làm tiếp",
+      "steps": {
+        "createProject": {
+          "title": "Tạo dự án đầu tiên",
+          "hint": "Bắt đầu từ mẫu (phần mềm, sự kiện, marketing) hoặc dự án trống."
+        },
+        "addTasks": {
+          "title": "Thêm ít nhất 5 công việc",
+          "hint": "Chia nhỏ công việc để giao và theo dõi."
+        },
+        "inviteTeammate": {
+          "title": "Mời một đồng đội",
+          "hint": "Mời qua email hoặc gửi liên kết mời."
+        },
+        "defineScope": {
+          "title": "Xác định phạm vi và cấu trúc WBS",
+          "hint": "Viết phạm vi dự án và phân rã thành giao phẩm, gói công việc."
+        },
+        "addDeliverable": {
+          "title": "Tạo giao phẩm đầu tiên",
+          "hint": "Theo dõi việc nộp và nghiệm thu sản phẩm bàn giao."
+        }
       }
     }
   },

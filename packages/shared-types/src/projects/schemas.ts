@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { ORG_ROLES, PROJECT_STATUSES } from '../common/enums';
+import { LOCALES, ORG_ROLES, PROJECT_STATUSES } from '../common/enums';
+import { templateIdSchema } from '../templates/catalog';
 
 export const projectKeySchema = z
   .string()
@@ -13,6 +14,10 @@ export const createProjectSchema = z.object({
   description: z.string().max(2000).optional(),
   startDate: z.string().datetime().optional(),
   targetEndDate: z.string().datetime().optional(),
+  /** Start from a ready-made scope + WBS + milestones + risks instead of an empty project. */
+  templateId: templateIdSchema.optional(),
+  /** Language of the template's texts (defaults to Vietnamese). */
+  locale: z.enum(LOCALES).optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 

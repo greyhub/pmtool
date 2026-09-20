@@ -41,10 +41,9 @@ flowchart LR
 | 5. Thấy kết quả | Bảng, Tiến độ, Tổng quan | Kéo thả Kanban, Gantt hiện thanh, dashboard cập nhật. |
 
 **Ma sát/khoảng trống:**
-- Không có **dự án mẫu / mẫu WBS** hay dữ liệu demo cho tổ chức mới → màn hình trống ở lần đầu. *(Cơ hội lớn: mẫu theo ngành — phần mềm, xây dựng, sự kiện.)*
-- Không có **hướng dẫn tương tác** (checklist "3 việc đầu tiên"); giá trị PMBOK (phạm vi → WBS → độ phủ) nằm sâu ở tab thứ 2–3.
-- Không có **xác minh email** và **quên mật khẩu** → người dùng mất mật khẩu là mất tài khoản. *(Chặn GTM — xem gtm.md.)*
-- Chưa có email giao dịch nào (chào mừng, xác nhận).
+- ~~Không có dự án mẫu~~ → đã có **3 mẫu** (phần mềm, sự kiện, marketing; song ngữ) khi tạo dự án. *Cơ hội: thêm mẫu theo ngành (xây dựng, lắp đặt…) theo phản hồi.*
+- ~~Không có hướng dẫn tương tác~~ → đã có thẻ **Bắt đầu nhanh** (5 bước, tính từ dữ liệu thật) trên Dashboard tổ chức.
+- ~~Không có xác minh email / quên mật khẩu / email giao dịch~~ → đã có (cần cấu hình SMTP ở production).
 
 ### J2 — Mời đồng đội và tham gia
 

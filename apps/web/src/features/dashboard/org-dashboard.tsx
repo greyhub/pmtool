@@ -10,6 +10,7 @@ import { StatusBreakdown } from './status-breakdown';
 import { ActivityFeed } from './activity-feed';
 import { GamificationSummaryCard } from './gamification-summary-card';
 import { QuestsPanel } from '../gamification/quests-panel';
+import { OnboardingChecklist } from './onboarding-checklist';
 
 export function OrgDashboard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('dashboard.org');
@@ -23,6 +24,8 @@ export function OrgDashboard({ orgSlug }: { orgSlug: string }) {
     <div>
       <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
       <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
+
+      <OnboardingChecklist orgSlug={orgSlug} />
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label={t('totalProjects')} value={data.totalProjects} />

@@ -33,3 +33,15 @@ export const projectDashboardSchema = z.object({
   openIssueCount: z.number(),
 });
 export type ProjectDashboardDto = z.infer<typeof projectDashboardSchema>;
+
+export const ONBOARDING_STEP_KEYS = ['createProject', 'addTasks', 'inviteTeammate', 'defineScope', 'addDeliverable'] as const;
+export type OnboardingStepKey = (typeof ONBOARDING_STEP_KEYS)[number];
+
+/** A "getting started" checklist, computed from what the organization already has. */
+export const onboardingSchema = z.object({
+  steps: z.array(z.object({ key: z.enum(ONBOARDING_STEP_KEYS), done: z.boolean() })),
+  completed: z.boolean(),
+  /** The project the project-level steps should open (the oldest one), if any. */
+  projectKey: z.string().nullable(),
+});
+export type OnboardingDto = z.infer<typeof onboardingSchema>;
