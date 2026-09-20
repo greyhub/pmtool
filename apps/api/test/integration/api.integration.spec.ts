@@ -160,6 +160,16 @@ afterAll(async () => {
   await container?.stop();
 });
 
+describe('Health', () => {
+  it('answers liveness and readiness (readiness checks the database) without authentication', async () => {
+    await request(app.getHttpServer()).get(`${API_PREFIX}/health`).expect(200);
+    const ready = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/health/ready`)
+      .expect(200);
+    expect(ready.body.status ?? ready.body.data?.status).toBe('ok');
+  });
+});
+
 describe('Auth flow', () => {
   it('registers, then authenticates subsequent requests with the access token', async () => {
     const { accessToken, email } = await registerUser('Auth Flow Tester');

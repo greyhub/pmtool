@@ -82,6 +82,8 @@ infra/            docker-compose cho Postgres + Redis (dev)
 
 **Dữ liệu & quyền riêng tư:** xuất dữ liệu cá nhân và dữ liệu tổ chức (JSON), xoá tài khoản (ẩn danh hoá, giữ nội dung chung), chuyển quyền Owner, trang Điều khoản/Chính sách quyền riêng tư công khai. Web cần `NEXT_PUBLIC_OPERATOR_NAME` và `NEXT_PUBLIC_CONTACT_EMAIL` (xem `apps/web/.env.example`); nội dung pháp lý cần được tư vấn pháp lý rà soát trước khi mở đăng ký công khai.
 
+**Triển khai production:** `Dockerfile`, `infra/docker-compose.prod.yml` (Postgres, Redis, API, Web, Caddy HTTPS, sao lưu hằng đêm), `infra/backup/` (sao lưu và khôi phục), `GET /api/v1/health/ready` (kiểm tra cơ sở dữ liệu) — hướng dẫn đầy đủ ở [docs/van-hanh.md](docs/van-hanh.md).
+
 ## Yêu cầu môi trường
 
 - Node.js >= 20.18 (xem `.nvmrc`)
