@@ -21,6 +21,8 @@ export interface GanttTaskInput {
   type?: 'task' | 'summary' | 'milestone';
   /** CSS color value (e.g. `var(--color-success)`) used to recolor this task's bar/milestone. */
   barColor?: string;
+  /** Summary rows only: whether the row is expanded. */
+  open?: boolean;
   /** Rendered as small character-icon sprites (see `character-card.tsx`'s
    * identical technique), not text — relies on each org member having a
    * distinct `character` (enforced server-side) so the icon alone reliably
@@ -198,6 +200,10 @@ export function GanttChart({
   const [narrow, setNarrow] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Which parent rows the user has expanded. Saving a task refetches the list, and
+  // the library rebuilds its tree from scratch (all collapsed) — so the open state
+  // is kept here and fed back into the data instead of living only in the library.
+  const openIds = useRef<Set<string>>(new Set());
 
   useEffect(() => setMounted(true), []);
 
@@ -264,6 +270,11 @@ export function GanttChart({
     ];
   }, [labels, narrow]);
 
+  const tasksWithOpen = useMemo(
+    () => tasks.map((t) => (t.type === 'summary' ? { ...t, open: openIds.current.has(t.id) } : t)),
+    [tasks],
+  );
+
   const gridWidth = useMemo(() => computeGridWidth(columns), [columns]);
 
   if (!mounted) {
@@ -274,6 +285,10 @@ export function GanttChart({
     api.on('update-task', (ev) => {
       if (ev.inProgress) return;
       onTaskUpdate?.({ id: String(ev.id), start: ev.task.start, end: ev.task.end, progress: ev.task.progress });
+    });
+    api.on('open-task', (ev) => {
+      if (ev.mode) openIds.current.add(String(ev.id));
+      else openIds.current.delete(String(ev.id));
     });
     api.on('select-task', (ev) => {
       onTaskClick?.(String(ev.id));
@@ -341,7 +356,7 @@ export function GanttChart({
           <div style={{ minWidth: gridWidth + 200 }}>
             <Skin>
               <Gantt
-                tasks={tasks}
+                tasks={tasksWithOpen}
                 links={links}
                 scales={SCALE_PRESETS[zoom]}
                 columns={columns}
