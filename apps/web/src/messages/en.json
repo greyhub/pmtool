@@ -380,6 +380,7 @@
     "quests": {
       "title": "My quests",
       "completed": "Completed",
+      "nothingDue": "Nothing due in this period",
       "DAILY_DUE_TASKS": {
         "name": "Clear today's list",
         "description": "Finish every task due today"

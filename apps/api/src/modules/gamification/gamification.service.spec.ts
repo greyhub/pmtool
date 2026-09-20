@@ -313,15 +313,23 @@ describe('GamificationService quests', () => {
   });
 
   describe('getMyQuests', () => {
-    it('omits DAILY_DUE_TASKS/WEEKLY_DUE_TASKS when nothing is due', async () => {
+    it('still lists DAILY_DUE_TASKS/WEEKLY_DUE_TASKS with target 0 when nothing is due', async () => {
       prisma.db.task.findMany.mockResolvedValue([]);
 
       const quests = await service.getMyQuests('org_1', 'user_1');
 
       expect(quests.map((q) => q.questKey)).toEqual([
+        'DAILY_DUE_TASKS',
         'DAILY_LOGIN',
         'DAILY_PROGRESS_UPDATE',
+        'WEEKLY_DUE_TASKS',
       ]);
+      expect(quests[0]).toMatchObject({
+        target: 0,
+        progress: 0,
+        completed: false,
+      });
+      expect(prisma.db.userScore.upsert).not.toHaveBeenCalled();
     });
 
     it('includes DAILY_DUE_TASKS with live progress when tasks are due today, without awarding early', async () => {

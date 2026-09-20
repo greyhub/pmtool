@@ -9,6 +9,7 @@ import { StatCard } from './stat-card';
 import { StatusBreakdown } from './status-breakdown';
 import { ActivityFeed } from './activity-feed';
 import { GamificationSummaryCard } from './gamification-summary-card';
+import { QuestsPanel } from '../gamification/quests-panel';
 
 export function OrgDashboard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('dashboard.org');
@@ -77,6 +78,9 @@ export function OrgDashboard({ orgSlug }: { orgSlug: string }) {
       </Card>
 
       <GamificationSummaryCard orgSlug={orgSlug} />
+      <div className="mt-4">
+        <QuestsPanel orgSlug={orgSlug} />
+      </div>
       <ActivityFeed orgSlug={orgSlug} />
     </div>
   );

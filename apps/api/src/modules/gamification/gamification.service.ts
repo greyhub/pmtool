@@ -397,19 +397,14 @@ export class GamificationService {
       ),
     ]);
 
-    const quests: QuestView[] = [];
-    if (dueTodayRow) {
-      quests.push(
-        toQuestView('DAILY_DUE_TASKS', 'daily', dueTodayTarget, dueTodayRow),
-      );
-    }
-    quests.push(toQuestView('DAILY_LOGIN', 'daily', 1, loginRow));
-    quests.push(toQuestView('DAILY_PROGRESS_UPDATE', 'daily', 1, progressRow));
-    if (dueWeekRow) {
-      quests.push(
-        toQuestView('WEEKLY_DUE_TASKS', 'weekly', dueWeekTarget, dueWeekRow),
-      );
-    }
+    // Always listed, even with nothing due (target 0) — hiding them made the
+    // daily/weekly quests look missing for anyone without due tasks.
+    const quests: QuestView[] = [
+      toQuestView('DAILY_DUE_TASKS', 'daily', dueTodayTarget, dueTodayRow),
+      toQuestView('DAILY_LOGIN', 'daily', 1, loginRow),
+      toQuestView('DAILY_PROGRESS_UPDATE', 'daily', 1, progressRow),
+      toQuestView('WEEKLY_DUE_TASKS', 'weekly', dueWeekTarget, dueWeekRow),
+    ];
     return quests;
   }
 }

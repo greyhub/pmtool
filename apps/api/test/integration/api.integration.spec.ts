@@ -361,7 +361,7 @@ describe('Quests', () => {
     expect(leaderboard.body.data[0].totalPoints).toBe(70);
   });
 
-  it('omits the due-today quest when nothing is due today', async () => {
+  it('lists the due-task quests with target 0 (and awards nothing) when nothing is due', async () => {
     const owner = await registerUser('No Quests Owner');
     const org = await createOrg(owner.accessToken, 'No Quests Org');
 
@@ -370,12 +370,17 @@ describe('Quests', () => {
       .set('Authorization', `Bearer ${owner.accessToken}`)
       .expect(200);
 
-    const keys = res.body.data.map((q: { questKey: string }) => q.questKey);
-    expect(keys).not.toContain('DAILY_DUE_TASKS');
-    expect(keys).not.toContain('WEEKLY_DUE_TASKS');
-    expect(keys).toEqual(
-      expect.arrayContaining(['DAILY_LOGIN', 'DAILY_PROGRESS_UPDATE']),
-    );
+    const byKey = (key: string) =>
+      res.body.data.find((q: { questKey: string }) => q.questKey === key);
+    expect(res.body.data).toHaveLength(4);
+    expect(byKey('DAILY_DUE_TASKS')).toMatchObject({
+      target: 0,
+      completed: false,
+    });
+    expect(byKey('WEEKLY_DUE_TASKS')).toMatchObject({
+      target: 0,
+      completed: false,
+    });
   });
 });
 

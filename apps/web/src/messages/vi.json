@@ -380,6 +380,7 @@
     "quests": {
       "title": "Nhiệm vụ của tôi",
       "completed": "Đã hoàn thành",
+      "nothingDue": "Chưa có công việc nào đến hạn trong kỳ này",
       "DAILY_DUE_TASKS": {
         "name": "Xong việc hôm nay",
         "description": "Hoàn thành mọi công việc đến hạn hôm nay"

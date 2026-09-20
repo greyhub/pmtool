@@ -33,24 +33,34 @@ export function QuestsPanel({ orgSlug }: { orgSlug: string }) {
       <h2 className="text-sm font-semibold text-ink-secondary">{t('title')}</h2>
       <div className="mt-4 flex flex-col gap-4">
         {quests.map((quest) => {
-          const percent = quest.target === 0 ? 0 : Math.round((quest.progress / quest.target) * 100);
+          const percent =
+            quest.target === 0 ? 0 : Math.round((quest.progress / quest.target) * 100);
           return (
             <div key={quest.questKey} className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium text-ink-primary">{t(`${quest.questKey}.name`)}</span>
+                <span className="text-sm font-medium text-ink-primary">
+                  {t(`${quest.questKey}.name`)}
+                </span>
                 <Badge variant={quest.completed ? 'success' : 'neutral'}>
                   {quest.completed ? t('completed') : `+${quest.points}`}
                 </Badge>
               </div>
               <p className="text-xs text-ink-secondary">{t(`${quest.questKey}.description`)}</p>
-              <div className="flex items-center gap-3">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-subtle">
-                  <div className="h-full rounded-full bg-action-primary" style={{ width: `${percent}%` }} />
+              {quest.target === 0 ? (
+                <p className="text-xs text-ink-muted">{t('nothingDue')}</p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-subtle">
+                    <div
+                      className="h-full rounded-full bg-action-primary"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  <span className="w-12 shrink-0 text-right text-xs text-ink-muted">
+                    {quest.progress}/{quest.target}
+                  </span>
                 </div>
-                <span className="w-12 shrink-0 text-right text-xs text-ink-muted">
-                  {quest.progress}/{quest.target}
-                </span>
-              </div>
+              )}
             </div>
           );
         })}
