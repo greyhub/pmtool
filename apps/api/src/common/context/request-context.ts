@@ -5,6 +5,8 @@ export interface RequestContextStore {
   userId: string;
   organizationId?: string;
   orgRole?: OrgRole;
+  /** Extra detail a handler wants recorded on this request's activity-log row (e.g. what changed). */
+  activityMetadata?: Record<string, unknown>;
 }
 
 export const requestContextStorage =
@@ -22,4 +24,10 @@ export function getOrganizationIdOrThrow(): string {
     );
   }
   return orgId;
+}
+
+/** Lets a service enrich the ActivityLog row the AuditLogInterceptor writes for this request. */
+export function addActivityMetadata(extra: Record<string, unknown>): void {
+  const store = requestContextStorage.getStore();
+  if (store) store.activityMetadata = { ...store.activityMetadata, ...extra };
 }

@@ -60,7 +60,10 @@ export class AuditLogInterceptor implements NestInterceptor {
             entityType: meta.entityType,
             action: meta.action,
             entityId: String(entityId),
-            metadata: title ? { title } : undefined,
+            metadata:
+              title || ctx.activityMetadata
+                ? { ...(title ? { title } : {}), ...ctx.activityMetadata }
+                : undefined,
           })
           .catch(() => {});
       }),

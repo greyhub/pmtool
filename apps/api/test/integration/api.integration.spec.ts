@@ -591,6 +591,91 @@ describe('Deliverables and milestones', () => {
   });
 });
 
+describe('Task history', () => {
+  it('records what changed on each edit, skips no-ops, and keeps other tasks out', async () => {
+    const owner = await registerUser('History Owner');
+    const org = await createOrg(owner.accessToken, 'History Org');
+    const helper = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'History Helper',
+    );
+    const ownerId = await getUserId(owner.email);
+    const helperId = await getUserId(helper.email);
+    const project = await createProject(owner.accessToken, org.slug, 'HST');
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`;
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+
+    const task = await request(app.getHttpServer())
+      .post(base)
+      .set(auth)
+      .send({ title: 'Việc có lịch sử', assigneeId: ownerId })
+      .expect(201);
+    const id = task.body.data.id;
+    const other = await request(app.getHttpServer())
+      .post(base)
+      .set(auth)
+      .send({ title: 'Việc khác' })
+      .expect(201);
+    await request(app.getHttpServer())
+      .patch(`${base}/${other.body.data.id}`)
+      .set(auth)
+      .send({ status: 'DONE' })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`${base}/${id}`)
+      .set(auth)
+      .send({ status: 'IN_PROGRESS', percentComplete: 40 })
+      .expect(200);
+    // Resending the same values changes nothing and must not add an entry.
+    await request(app.getHttpServer())
+      .patch(`${base}/${id}`)
+      .set(auth)
+      .send({ status: 'IN_PROGRESS', percentComplete: 40 })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch(`${base}/${id}`)
+      .set(auth)
+      .send({ assigneeId: helperId, supporterIds: [ownerId] })
+      .expect(200);
+
+    const res = await request(app.getHttpServer())
+      .get(`${base}/${id}/history`)
+      .set(auth)
+      .expect(200);
+    const entries = res.body.data as {
+      action: string;
+      actor: { fullName: string };
+      changes: any[];
+    }[];
+    // Newest first: reassignment, then status/progress, then creation.
+    expect(entries.map((e) => e.action)).toEqual([
+      'updated',
+      'updated',
+      'created',
+    ]);
+    expect(entries[0]!.changes).toEqual([
+      { field: 'assignee', from: 'History Owner', to: 'History Helper' },
+      { field: 'supporters', added: ['History Owner'], removed: [] },
+    ]);
+    expect(entries[1]!.changes).toEqual([
+      { field: 'status', from: 'TODO', to: 'IN_PROGRESS' },
+      { field: 'percentComplete', from: 0, to: 40 },
+    ]);
+    expect(entries[1]!.actor.fullName).toBe('History Owner');
+
+    // Another org's member can't read it.
+    const stranger = await registerUser('History Stranger');
+    await createOrg(stranger.accessToken, 'History Stranger Org');
+    await request(app.getHttpServer())
+      .get(`${base}/${id}/history`)
+      .set('Authorization', `Bearer ${stranger.accessToken}`)
+      .expect(403);
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');

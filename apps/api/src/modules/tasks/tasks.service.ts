@@ -11,8 +11,30 @@ import {
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { toRichText } from './rich-text.util';
+import { addActivityMetadata } from '../../common/context/request-context';
+import { diffTask, TaskSnapshot } from './task-changes';
 import { GamificationService } from '../gamification/gamification.service';
 import { TelegramNotificationsService } from '../telegram/telegram-notifications.service';
+
+type TaskWithAssignees = Awaited<ReturnType<TasksService['findByIdOrThrow']>>;
+
+function snapshot(task: TaskWithAssignees): TaskSnapshot {
+  const names = (role: 'PRIMARY' | 'SUPPORT') =>
+    task.assignees.filter((a) => a.role === role).map((a) => a.user.fullName);
+  return {
+    title: task.title,
+    description:
+      task.description === null ? null : JSON.stringify(task.description),
+    status: task.status,
+    priority: task.priority,
+    startDate: task.startDate,
+    dueDate: task.dueDate,
+    percentComplete: task.percentComplete,
+    isMilestone: task.isMilestone,
+    assignee: names('PRIMARY')[0] ?? null,
+    supporters: names('SUPPORT'),
+  };
+}
 
 const TASK_INCLUDE = {
   assignees: {
@@ -259,6 +281,9 @@ export class TasksService {
         include: TASK_INCLUDE,
       });
     });
+
+    const changes = diffTask(snapshot(existing), snapshot(updated));
+    if (changes.length > 0) addActivityMetadata({ changes });
 
     if (existing.status !== 'DONE' && updated.status === 'DONE') {
       await this.gamificationService.awardPoints(

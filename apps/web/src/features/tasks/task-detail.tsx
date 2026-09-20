@@ -16,9 +16,11 @@ import { TASK_PRIORITIES, TASK_STATUSES } from '@pmtool/shared-types';
 import { Avatar, Button, Card, Input, Modal, Select } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
 import { dateInputToIso, isoToDateInput } from '../../lib/date-input';
+import { neighbours } from './task-filters';
 import { TaskStatusBadge } from './task-badges';
 import { AssigneesEditor } from './assignees-editor';
 import { CommentsSection } from './comments-section';
+import { TaskHistory } from './task-history';
 import { DependenciesEditor } from './dependencies-editor';
 import { CreateTaskModal } from './create-task-modal';
 import { SuggestionsModal } from '../ai/suggestions-modal';
@@ -131,6 +133,27 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
     setDateError(false);
   }, [task?.startDate, task?.dueDate]);
 
+  const { prev, next } = task ? neighbours(allTasks ?? [], task.id) : { prev: null, next: null };
+  const prevHref = prev ? `/${orgSlug}/projects/${projectKey}/tasks/${prev.id}` : null;
+  const nextHref = next ? `/${orgSlug}/projects/${projectKey}/tasks/${next.id}` : null;
+
+  // j / k step through tasks in list order, like a mail client — ignored while typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (
+        el &&
+        (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)
+      )
+        return;
+      if (e.key === 'j' && nextHref) router.push(nextHref);
+      if (e.key === 'k' && prevHref) router.push(prevHref);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [nextHref, prevHref, router]);
+
   if (!task) return null;
 
   const subtasks = (allTasks ?? []).filter((tsk) => tsk.parentTaskId === task.id);
@@ -138,9 +161,37 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
 
   return (
     <div>
-      <Link href={`/${orgSlug}/projects/${projectKey}/tasks`} className="text-sm text-ink-secondary hover:underline">
-        ← {t('backToList')}
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href={`/${orgSlug}/projects/${projectKey}/tasks`} className="text-sm text-ink-secondary hover:underline">
+          ← {t('backToList')}
+        </Link>
+        <nav aria-label={t('navigate')} className="flex items-center gap-1 text-sm">
+          {[
+            { task: prev, href: prevHref, label: t('prevTask'), arrow: '‹', key: 'k' },
+            { task: next, href: nextHref, label: t('nextTask'), arrow: '›', key: 'j' },
+          ].map((n) =>
+            n.href && n.task ? (
+              <Link
+                key={n.key}
+                href={n.href}
+                title={`${n.label} (${n.key}): ${n.task.humanKey} ${n.task.title}`}
+                aria-label={`${n.label}: ${n.task.humanKey} ${n.task.title}`}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary"
+              >
+                {n.arrow}
+              </Link>
+            ) : (
+              <span
+                key={n.key}
+                aria-hidden="true"
+                className="flex h-8 w-8 items-center justify-center text-ink-muted/40"
+              >
+                {n.arrow}
+              </span>
+            ),
+          )}
+        </nav>
+      </div>
 
       {parent && (
         <p className="mt-2 text-xs text-ink-muted">
@@ -277,6 +328,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
 
           <Card className="p-6">
             <CommentsSection orgSlug={orgSlug} projectKey={projectKey} taskId={task.id} />
+          </Card>
+
+          <Card className="p-6">
+            <TaskHistory orgSlug={orgSlug} projectKey={projectKey} taskId={task.id} />
           </Card>
         </div>
 

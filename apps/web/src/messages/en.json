@@ -251,7 +251,14 @@
       "clearFilters": "Clear filters",
       "expandAll": "Expand all",
       "collapseAll": "Collapse all",
-      "noResults": "No tasks match these filters."
+      "noResults": "No tasks match these filters.",
+      "sortLabel": "Sort",
+      "sortDefault": "Original order",
+      "sortDue": "Nearest due date",
+      "sortPriority": "Priority",
+      "groupLabel": "Group",
+      "groupNone": "No grouping",
+      "groupStatus": "By status"
     },
     "create": {
       "title": "Create a new task",
@@ -313,7 +320,34 @@
       "startDate": "Start",
       "dueDate": "Due",
       "dateOrderError": "The start date must be on or before the due date.",
-      "sendHint": "Ctrl+Enter to send"
+      "sendHint": "Ctrl+Enter to send",
+      "navigate": "Navigate tasks",
+      "prevTask": "Previous task",
+      "nextTask": "Next task"
+    },
+    "history": {
+      "title": "History",
+      "none": "empty",
+      "yes": "yes",
+      "no": "no",
+      "created": "created this task",
+      "madeChanges": "made changes:",
+      "editedDescription": "Description: edited",
+      "supportersAdded": "Supporters: added {names}",
+      "supportersRemoved": "Supporters: removed {names}",
+      "changed": "{field}: {from} → {to}",
+      "showAll": "Show all ({count})",
+      "showLess": "Show less",
+      "fields": {
+        "title": "Title",
+        "status": "Status",
+        "priority": "Priority",
+        "startDate": "Start date",
+        "dueDate": "Due date",
+        "percentComplete": "% complete",
+        "isMilestone": "Milestone",
+        "assignee": "Assignee"
+      }
     }
   },
   "risks": {

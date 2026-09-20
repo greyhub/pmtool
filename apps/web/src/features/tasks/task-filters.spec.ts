@@ -1,5 +1,14 @@
 import type { TaskDto } from '@pmtool/shared-types';
-import { dueState, filterTasks, fold, NO_FILTERS } from './task-filters';
+import {
+  dueState,
+  filterTasks,
+  fold,
+  groupByStatus,
+  neighbours,
+  NO_FILTERS,
+  sortTasks,
+  treeOrder,
+} from './task-filters';
 import { formatRelativeTime } from '../../lib/relative-time';
 
 function task(id: string, over: Partial<TaskDto> = {}): TaskDto {
@@ -102,5 +111,56 @@ describe('formatRelativeTime', () => {
   });
   it('handles sub-minute as "just now"', () => {
     expect(formatRelativeTime('2026-09-20T11:59:50.000Z', 'vi', now)).toMatch(/giây|bây giờ/i);
+  });
+});
+
+describe('sortTasks', () => {
+  const tasks = [
+    task('a', { dueDate: '2026-09-30T12:00:00.000Z', priority: 'LOW' }),
+    task('b', { dueDate: null, priority: 'CRITICAL' }),
+    task('c', { dueDate: '2026-09-21T12:00:00.000Z', priority: 'HIGH' }),
+    task('d', { dueDate: '2026-09-21T12:00:00.000Z', priority: 'HIGH' }),
+  ];
+  it('keeps the original order by default (same array)', () => {
+    expect(sortTasks(tasks, 'DEFAULT')).toBe(tasks);
+  });
+  it('sorts by due date with undated last, keeping ties stable', () => {
+    expect(sortTasks(tasks, 'DUE').map((t) => t.id)).toEqual(['c', 'd', 'a', 'b']);
+  });
+  it('sorts by priority, most urgent first', () => {
+    expect(sortTasks(tasks, 'PRIORITY').map((t) => t.id)).toEqual(['b', 'c', 'd', 'a']);
+  });
+  it('does not mutate its input', () => {
+    const copy = tasks.map((t) => t.id);
+    sortTasks(tasks, 'DUE');
+    expect(tasks.map((t) => t.id)).toEqual(copy);
+  });
+});
+
+describe('groupByStatus', () => {
+  it('returns only non-empty buckets in workflow order and flattens subtasks', () => {
+    const groups = groupByStatus([
+      task('1', { status: 'DONE' }),
+      task('2', { status: 'IN_PROGRESS' }),
+      task('3', { status: 'IN_PROGRESS', parentTaskId: '2' }),
+    ]);
+    expect(groups.map((g) => g.status)).toEqual(['IN_PROGRESS', 'DONE']);
+    expect(groups[0]!.tasks.map((t) => [t.id, t.parentTaskId])).toEqual([
+      ['2', null],
+      ['3', null],
+    ]);
+  });
+});
+
+describe('treeOrder / neighbours', () => {
+  const tasks = [task('1'), task('2'), task('3', { parentTaskId: '1' }), task('4', { parentTaskId: '3' })];
+  it('lists each parent followed by its subtree', () => {
+    expect(treeOrder(tasks).map((t) => t.id)).toEqual(['1', '3', '4', '2']);
+  });
+  it('finds the previous and next task as displayed', () => {
+    expect(neighbours(tasks, '3')).toMatchObject({ prev: { id: '1' }, next: { id: '4' } });
+    expect(neighbours(tasks, '1').prev).toBeNull();
+    expect(neighbours(tasks, '2').next).toBeNull();
+    expect(neighbours(tasks, 'nope')).toEqual({ prev: null, next: null });
   });
 });

@@ -251,7 +251,14 @@
       "clearFilters": "Xoá bộ lọc",
       "expandAll": "Mở tất cả",
       "collapseAll": "Thu gọn tất cả",
-      "noResults": "Không có công việc nào khớp bộ lọc."
+      "noResults": "Không có công việc nào khớp bộ lọc.",
+      "sortLabel": "Sắp xếp",
+      "sortDefault": "Thứ tự gốc",
+      "sortDue": "Hạn gần nhất",
+      "sortPriority": "Độ ưu tiên",
+      "groupLabel": "Nhóm",
+      "groupNone": "Không nhóm",
+      "groupStatus": "Theo trạng thái"
     },
     "create": {
       "title": "Tạo công việc mới",
@@ -313,7 +320,34 @@
       "startDate": "Bắt đầu",
       "dueDate": "Đến hạn",
       "dateOrderError": "Ngày bắt đầu phải trước hoặc bằng ngày đến hạn.",
-      "sendHint": "Ctrl+Enter để gửi"
+      "sendHint": "Ctrl+Enter để gửi",
+      "navigate": "Chuyển công việc",
+      "prevTask": "Công việc trước",
+      "nextTask": "Công việc sau"
+    },
+    "history": {
+      "title": "Lịch sử thay đổi",
+      "none": "trống",
+      "yes": "có",
+      "no": "không",
+      "created": "đã tạo công việc",
+      "madeChanges": "đã cập nhật:",
+      "editedDescription": "Mô tả: đã chỉnh sửa",
+      "supportersAdded": "Người hỗ trợ: thêm {names}",
+      "supportersRemoved": "Người hỗ trợ: gỡ {names}",
+      "changed": "{field}: {from} → {to}",
+      "showAll": "Xem tất cả ({count})",
+      "showLess": "Thu gọn",
+      "fields": {
+        "title": "Tiêu đề",
+        "status": "Trạng thái",
+        "priority": "Độ ưu tiên",
+        "startDate": "Ngày bắt đầu",
+        "dueDate": "Hạn",
+        "percentComplete": "% hoàn thành",
+        "isMilestone": "Là mốc",
+        "assignee": "Người phụ trách"
+      }
     }
   },
   "risks": {

@@ -12,6 +12,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Project } from '@prisma/client';
 import {
+  TaskHistoryEntryDto,
   CommentDto,
   CreateCommentInput,
   createCommentSchema,
@@ -25,6 +26,8 @@ import {
 } from '@pmtool/shared-types';
 import { TasksService } from './tasks.service';
 import { CommentsService } from './comments.service';
+import { ActivityService } from '../activity/activity.service';
+import { toTaskHistory } from './task-history.mapper';
 import { LogActivity } from '../../common/decorators/log-activity.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
@@ -53,6 +56,7 @@ export class TasksController {
   constructor(
     private readonly tasksService: TasksService,
     private readonly commentsService: CommentsService,
+    private readonly activityService: ActivityService,
   ) {}
 
   @Post()
@@ -151,6 +155,20 @@ export class TasksController {
     @Param('taskId') taskId: string,
   ): Promise<void> {
     await this.tasksService.remove(ctx.organization.id, taskId);
+  }
+
+  @Get(':taskId/history')
+  async history(
+    @CurrentOrg() ctx: CurrentOrgContext,
+    @Param('taskId') taskId: string,
+  ): Promise<{ data: TaskHistoryEntryDto[] }> {
+    await this.tasksService.findByIdOrThrow(ctx.organization.id, taskId);
+    const rows = await this.activityService.listForEntity(
+      ctx.organization.id,
+      'Task',
+      taskId,
+    );
+    return { data: toTaskHistory(rows) };
   }
 
   @Get(':taskId/comments')

@@ -111,3 +111,23 @@ export const dependencySchema = z.object({
   lagDays: z.number(),
 });
 export type DependencyDto = z.infer<typeof dependencySchema>;
+
+const changeValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+
+export const taskChangeSchema = z.object({
+  field: z.string(),
+  from: changeValueSchema.optional(),
+  to: changeValueSchema.optional(),
+  added: z.array(z.string()).optional(),
+  removed: z.array(z.string()).optional(),
+});
+export type TaskChangeDto = z.infer<typeof taskChangeSchema>;
+
+export const taskHistoryEntrySchema = z.object({
+  id: z.string(),
+  action: z.enum(['created', 'updated']),
+  createdAt: z.string(),
+  actor: z.object({ id: z.string(), fullName: z.string(), avatarUrl: z.string().nullable() }),
+  changes: z.array(taskChangeSchema),
+});
+export type TaskHistoryEntryDto = z.infer<typeof taskHistoryEntrySchema>;

@@ -8,7 +8,16 @@ import { TASK_STATUSES } from '@pmtool/shared-types';
 import { Button, Card, Input, Select } from '@pmtool/ui';
 import { TaskTree, useCollapsedRows } from './task-tree';
 import { CreateTaskModal } from './create-task-modal';
-import { filterTasks, hasActiveFilters, NO_FILTERS, type TaskFilters } from './task-filters';
+import {
+  filterTasks,
+  groupByStatus,
+  hasActiveFilters,
+  NO_FILTERS,
+  sortTasks,
+  type GroupKey,
+  type SortKey,
+  type TaskFilters,
+} from './task-filters';
 import { NlTaskModal } from '../ai/nl-task-modal';
 import { SuggestionsModal } from '../ai/suggestions-modal';
 
@@ -22,10 +31,14 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
   const [nlCreateOpen, setNlCreateOpen] = useState(false);
   const [nlSuggestions, setNlSuggestions] = useState<TaskSuggestionDto[] | null>(null);
   const [filters, setFilters] = useState<TaskFilters>(NO_FILTERS);
+  const [sort, setSort] = useState<SortKey>('DEFAULT');
+  const [group, setGroup] = useState<GroupKey>('NONE');
   const rows = useCollapsedRows(orgSlug, projectKey);
 
   const filtering = hasActiveFilters(filters);
   const filtered = useMemo(() => filterTasks(tasks ?? [], filters, me?.id), [tasks, filters, me?.id]);
+  const visible = useMemo(() => sortTasks(filtered.tasks, sort), [filtered.tasks, sort]);
+  const groups = useMemo(() => (group === 'STATUS' ? groupByStatus(visible) : []), [group, visible]);
   const parentIds = useMemo(
     () => Array.from(new Set((tasks ?? []).map((x) => x.parentTaskId).filter((x): x is string => !!x))),
     [tasks],
@@ -103,6 +116,25 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
             {t('hideDone')}
           </label>
 
+          <Select
+            aria-label={t('sortLabel')}
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className="w-auto"
+          >
+            <option value="DEFAULT">{t('sortDefault')}</option>
+            <option value="DUE">{t('sortDue')}</option>
+            <option value="PRIORITY">{t('sortPriority')}</option>
+          </Select>
+          <Select
+            aria-label={t('groupLabel')}
+            value={group}
+            onChange={(e) => setGroup(e.target.value as GroupKey)}
+            className="w-auto"
+          >
+            <option value="NONE">{t('groupNone')}</option>
+            <option value="STATUS">{t('groupStatus')}</option>
+          </Select>
           <div className="ml-auto flex items-center gap-3 text-sm text-ink-secondary">
             {filtering ? (
               <>
@@ -138,14 +170,32 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
       <Card className="mt-4">
         {isLoading ? null : tasks && tasks.length > 0 ? (
           filtered.tasks.length > 0 ? (
-            <TaskTree
-              tasks={filtered.tasks}
-              orgSlug={orgSlug}
-              projectKey={projectKey}
-              forceExpanded={filtering}
-              collapsed={rows.collapsed}
-              onToggle={rows.toggle}
-            />
+            group === 'STATUS' ? (
+              groups.map((g) => (
+                <section key={g.status} aria-label={tStatus(g.status)}>
+                  <h3 className="border-b border-line bg-surface-subtle px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+                    {tStatus(g.status)} <span className="font-normal text-ink-muted">· {g.tasks.length}</span>
+                  </h3>
+                  <TaskTree
+                    tasks={g.tasks}
+                    orgSlug={orgSlug}
+                    projectKey={projectKey}
+                    forceExpanded
+                    collapsed={rows.collapsed}
+                    onToggle={rows.toggle}
+                  />
+                </section>
+              ))
+            ) : (
+              <TaskTree
+                tasks={visible}
+                orgSlug={orgSlug}
+                projectKey={projectKey}
+                forceExpanded={filtering}
+                collapsed={rows.collapsed}
+                onToggle={rows.toggle}
+              />
+            )
           ) : (
             <div className="p-6 text-center text-sm text-ink-secondary">
               <p>{t('noResults')}</p>

@@ -7,9 +7,10 @@ import { CommentsService } from './comments.service';
 import { ProjectGuard } from '../../common/guards/project.guard';
 import { GamificationModule } from '../gamification/gamification.module';
 import { TelegramModule } from '../telegram/telegram.module';
+import { ActivityModule } from '../activity/activity.module';
 
 @Module({
-  imports: [GamificationModule, TelegramModule],
+  imports: [GamificationModule, TelegramModule, ActivityModule],
   controllers: [TasksController, DependenciesController],
   providers: [TasksService, DependenciesService, CommentsService, ProjectGuard],
   exports: [TasksService],

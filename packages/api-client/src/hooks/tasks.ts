@@ -7,6 +7,7 @@ import type {
   DependencyDto,
   MoveTaskInput,
   TaskDto,
+  TaskHistoryEntryDto,
   UpdateTaskInput,
 } from '@pmtool/shared-types';
 import { apiRequest } from '../http-client';
@@ -38,6 +39,15 @@ export function useTask(orgSlug: string | undefined, projectKey: string | undefi
   return useQuery({
     queryKey: taskKeys.detail(orgSlug ?? '', projectKey ?? '', taskId ?? ''),
     queryFn: () => apiRequest<TaskDto>(`${base(orgSlug!, projectKey!)}/tasks/${taskId}`),
+    enabled: Boolean(orgSlug) && Boolean(projectKey) && Boolean(taskId),
+  });
+}
+
+/** Under the tasks prefix so any task mutation refreshes it. */
+export function useTaskHistory(orgSlug: string | undefined, projectKey: string | undefined, taskId: string | undefined) {
+  return useQuery({
+    queryKey: ['organizations', orgSlug ?? '', 'projects', projectKey ?? '', 'tasks', 'history', taskId ?? ''] as const,
+    queryFn: () => apiRequest<TaskHistoryEntryDto[]>(`${base(orgSlug!, projectKey!)}/tasks/${taskId}/history`),
     enabled: Boolean(orgSlug) && Boolean(projectKey) && Boolean(taskId),
   });
 }

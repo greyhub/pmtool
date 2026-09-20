@@ -44,4 +44,20 @@ export class ActivityService {
       take: FEED_TAKE,
     });
   }
+
+  async listForEntity(
+    organizationId: string,
+    entityType: string,
+    entityId: string,
+    take = 100,
+  ): Promise<
+    (ActivityLog & { actor: Pick<User, 'id' | 'fullName' | 'avatarUrl'> })[]
+  > {
+    return this.prisma.db.activityLog.findMany({
+      where: { organizationId, entityType, entityId },
+      include: { actor: { select: ACTOR_SELECT } },
+      orderBy: { createdAt: 'desc' },
+      take,
+    });
+  }
 }
