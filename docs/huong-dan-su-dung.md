@@ -73,6 +73,8 @@ Vào menu bên trái, chọn **Cài đặt tổ chức** (chỉ Owner/Admin thao
 - Trong tab **Công việc**, bấm **Thêm công việc** để tạo việc mới với tiêu đề, mô tả, độ ưu tiên (Thấp/Trung bình/Cao/Khẩn cấp), ngày bắt đầu/kết thúc, người phụ trách.
 - Mở một công việc để xem chi tiết: có thể **thêm công việc con** (phân cấp cha/con không giới hạn độ sâu — đây là cấu trúc WBS thật sự), thêm **phụ thuộc** (predecessor/successor — hệ thống tự chặn vòng lặp phụ thuộc), gán **người phụ trách** (đúng 1 người chịu trách nhiệm) cùng các **người hỗ trợ** (không giới hạn số lượng), và **bình luận** trao đổi ngay trên công việc.
 - Trạng thái công việc: Cần làm → Đang làm → Đang xem xét → Hoàn thành, hoặc Bị chặn.
+- **Danh sách công việc**: ô tìm kiếm (không phân biệt dấu — gõ "thiet ke" vẫn ra "Thiết kế"), lọc theo trạng thái / người (gồm **Của tôi**, **Chưa giao**) và **Ẩn việc đã xong**; khi đang lọc, công việc cha của kết quả vẫn hiện để giữ ngữ cảnh. Mỗi dòng cho thấy người phụ trách (+ số người hỗ trợ), hạn (đỏ **Trễ** nếu quá hạn, vàng khi hôm nay/sắp đến), tiến độ %, số công việc con đã xong, và **ô chọn trạng thái ngay trên dòng**. Nút **+** thêm công việc con luôn hiện; trạng thái thu/mở các nhánh được nhớ theo từng dự án (có **Mở tất cả / Thu gọn tất cả**).
+- **Chi tiết công việc**: bấm vào tiêu đề để sửa tại chỗ (Enter lưu, Esc huỷ); có ô **Bắt đầu** và **Đến hạn** (ngày bắt đầu không được sau ngày đến hạn); mọi thay đổi tự lưu và hiện "Đã lưu". Trên điện thoại, khối thuộc tính (trạng thái, người phụ trách...) nằm ngay đầu trang. Bình luận hiển thị thời gian tương đối ("3 phút trước", rê chuột để xem giờ đầy đủ) và gửi nhanh bằng **Ctrl+Enter**. Nút **Xoá công việc** nằm cuối trang và luôn hỏi xác nhận.
 
 ## 5. Quản lý Dự án
 

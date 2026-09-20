@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useComments, useCreateComment, useMe } from '@pmtool/api-client';
 import { Avatar, Button } from '@pmtool/ui';
+import { formatRelativeTime } from '../../lib/relative-time';
 
 export function CommentsSection({
   orgSlug,
@@ -15,6 +16,7 @@ export function CommentsSection({
   taskId: string;
 }) {
   const t = useTranslations('tasks.detail');
+  const locale = useLocale();
   const { data: comments } = useComments(orgSlug, projectKey, taskId);
   const { data: me } = useMe();
   const createComment = useCreateComment(orgSlug, projectKey, taskId);
@@ -37,9 +39,15 @@ export function CommentsSection({
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-medium text-ink-primary">{c.author?.fullName}</span>
-                <span className="text-xs text-ink-muted">{new Date(c.createdAt).toLocaleString('vi-VN')}</span>
+                <time
+                  dateTime={c.createdAt}
+                  title={new Date(c.createdAt).toLocaleString(locale)}
+                  className="text-xs text-ink-muted"
+                >
+                  {formatRelativeTime(c.createdAt, locale)}
+                </time>
               </div>
-              <p className="text-sm text-ink-secondary">{c.body}</p>
+              <p className="whitespace-pre-wrap break-words text-sm text-ink-secondary">{c.body}</p>
             </div>
           </div>
         ))}
@@ -51,14 +59,21 @@ export function CommentsSection({
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                submit();
+              }
+            }}
             placeholder={t('addComment')}
             rows={2}
             className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
           />
-          <div>
+          <div className="flex items-center gap-3">
             <Button size="sm" onClick={submit} disabled={createComment.isPending || !draft.trim()}>
               {t('sendComment')}
             </Button>
+            <span className="hidden text-xs text-ink-muted sm:inline">{t('sendHint')}</span>
           </div>
         </div>
       </div>

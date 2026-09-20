@@ -232,7 +232,26 @@
       "title": "Tasks",
       "create": "Add task",
       "addSubtask": "Add subtask",
-      "empty": "No tasks yet."
+      "empty": "No tasks yet.",
+      "collapse": "Collapse",
+      "expand": "Expand",
+      "milestone": "Milestone",
+      "due": "Due",
+      "overdue": "Overdue",
+      "subtasksDone": "{done}/{total} subtasks done",
+      "searchPlaceholder": "Search by title or key…",
+      "filterStatus": "Filter by status",
+      "allStatuses": "All statuses",
+      "filterAssignee": "Filter by person",
+      "allAssignees": "Everyone",
+      "mine": "Mine",
+      "unassigned": "Unassigned",
+      "hideDone": "Hide done",
+      "matches": "{shown}/{total} tasks",
+      "clearFilters": "Clear filters",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "noResults": "No tasks match these filters."
     },
     "create": {
       "title": "Create a new task",
@@ -244,7 +263,8 @@
       "IN_PROGRESS": "In progress",
       "IN_REVIEW": "In review",
       "DONE": "Done",
-      "BLOCKED": "Blocked"
+      "BLOCKED": "Blocked",
+      "label": "Status"
     },
     "priority": {
       "LOW": "Low",
@@ -285,7 +305,15 @@
       "deleteConfirmDescription": "Its subtasks will be deleted too. This action cannot be undone.",
       "isMilestone": "Milestone",
       "isMilestoneHint": "A milestone has no duration: its start date always equals its due date.",
-      "isMilestoneNeedsDue": "Set a due date first (drag the bar on the Timeline) before marking this as a milestone."
+      "isMilestoneNeedsDue": "Pick a due date above before marking this as a milestone.",
+      "editTitle": "Click to edit the title",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "saveError": "Couldn't save, please try again",
+      "startDate": "Start",
+      "dueDate": "Due",
+      "dateOrderError": "The start date must be on or before the due date.",
+      "sendHint": "Ctrl+Enter to send"
     }
   },
   "risks": {

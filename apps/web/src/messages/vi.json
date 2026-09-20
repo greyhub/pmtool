@@ -232,7 +232,26 @@
       "title": "Công việc",
       "create": "Thêm công việc",
       "addSubtask": "Thêm công việc con",
-      "empty": "Chưa có công việc nào."
+      "empty": "Chưa có công việc nào.",
+      "collapse": "Thu gọn",
+      "expand": "Mở rộng",
+      "milestone": "Mốc quan trọng",
+      "due": "Hạn",
+      "overdue": "Trễ",
+      "subtasksDone": "{done}/{total} công việc con đã xong",
+      "searchPlaceholder": "Tìm theo tên hoặc mã…",
+      "filterStatus": "Lọc theo trạng thái",
+      "allStatuses": "Mọi trạng thái",
+      "filterAssignee": "Lọc theo người",
+      "allAssignees": "Mọi người",
+      "mine": "Của tôi",
+      "unassigned": "Chưa giao",
+      "hideDone": "Ẩn việc đã xong",
+      "matches": "{shown}/{total} công việc",
+      "clearFilters": "Xoá bộ lọc",
+      "expandAll": "Mở tất cả",
+      "collapseAll": "Thu gọn tất cả",
+      "noResults": "Không có công việc nào khớp bộ lọc."
     },
     "create": {
       "title": "Tạo công việc mới",
@@ -244,7 +263,8 @@
       "IN_PROGRESS": "Đang làm",
       "IN_REVIEW": "Đang xem xét",
       "DONE": "Hoàn thành",
-      "BLOCKED": "Bị chặn"
+      "BLOCKED": "Bị chặn",
+      "label": "Trạng thái"
     },
     "priority": {
       "LOW": "Thấp",
@@ -285,7 +305,15 @@
       "deleteConfirmDescription": "Mọi công việc con bên trong cũng sẽ bị xoá. Hành động này không thể hoàn tác.",
       "isMilestone": "Là mốc quan trọng",
       "isMilestoneHint": "Mốc là cột mốc không có thời lượng: ngày bắt đầu luôn trùng ngày đến hạn.",
-      "isMilestoneNeedsDue": "Cần đặt ngày đến hạn (kéo thanh trên biểu đồ Tiến độ) trước khi đánh dấu là mốc."
+      "isMilestoneNeedsDue": "Chọn ngày đến hạn ở trên trước khi đánh dấu là mốc.",
+      "editTitle": "Bấm để sửa tiêu đề",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu",
+      "saveError": "Không lưu được, vui lòng thử lại",
+      "startDate": "Bắt đầu",
+      "dueDate": "Đến hạn",
+      "dateOrderError": "Ngày bắt đầu phải trước hoặc bằng ngày đến hạn.",
+      "sendHint": "Ctrl+Enter để gửi"
     }
   },
   "risks": {
