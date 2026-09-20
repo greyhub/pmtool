@@ -123,7 +123,11 @@
       "open": "Mở"
     },
     "ctaTitle": "Bắt đầu quản lý dự án ngay",
-    "ctaDescription": "Tạo tài khoản miễn phí và tổ chức đầu tiên của bạn trong chưa đầy một phút."
+    "ctaDescription": "Tạo tài khoản miễn phí và tổ chức đầu tiên của bạn trong chưa đầy một phút.",
+    "footer": {
+      "terms": "Điều khoản sử dụng",
+      "privacy": "Chính sách quyền riêng tư"
+    }
   },
   "auth": {
     "login": {
@@ -144,7 +148,8 @@
       "password": "Mật khẩu",
       "submit": "Đăng ký",
       "hasAccount": "Đã có tài khoản?",
-      "loginLink": "Đăng nhập"
+      "loginLink": "Đăng nhập",
+      "consent": "Bằng việc đăng ký, bạn đồng ý với <terms>Điều khoản sử dụng</terms> và <privacy>Chính sách quyền riêng tư</privacy>."
     },
     "forgot": {
       "title": "Quên mật khẩu",
@@ -693,6 +698,22 @@
       "current": "Đang dùng",
       "taken": "Đã có người chọn",
       "takenBy": "{name} đã chọn nhân vật này"
+    },
+    "privacy": {
+      "title": "Dữ liệu & quyền riêng tư",
+      "description": "Tải về dữ liệu cá nhân của bạn hoặc xoá tài khoản bất cứ lúc nào.",
+      "exportHint": "Tải một tệp JSON gồm hồ sơ, các tổ chức bạn tham gia, công việc được giao, bình luận, điểm và nhật ký hoạt động của bạn.",
+      "export": "Tải dữ liệu của tôi",
+      "deleteHint": "Xoá tài khoản sẽ gỡ bạn khỏi mọi tổ chức, xoá dữ liệu cá nhân và ẩn danh hồ sơ. Nội dung bạn đã viết trong không gian chung (bình luận, công việc) được giữ lại dưới tên \"Người dùng đã xoá\". Tổ chức chỉ có mình bạn sẽ bị xoá cùng.",
+      "delete": "Xoá tài khoản",
+      "privacyLink": "Chính sách quyền riêng tư",
+      "termsLink": "Điều khoản sử dụng",
+      "confirmTitle": "Xoá tài khoản vĩnh viễn?",
+      "confirmBody": "Không thể hoàn tác. Hãy tải dữ liệu của bạn trước nếu cần. Nhập mật khẩu để xác nhận.",
+      "password": "Mật khẩu hiện tại",
+      "cancel": "Huỷ",
+      "confirmDelete": "Xoá vĩnh viễn",
+      "error": "Có lỗi xảy ra, vui lòng thử lại."
     }
   },
   "integrations": {
@@ -880,6 +901,20 @@
         "columnExpires": "Hết hạn",
         "cancel": "Huỷ",
         "linkHintEmailed": "Đã gửi email mời tới người này. Bạn cũng có thể gửi thủ công liên kết dưới đây:"
+      },
+      "export": {
+        "title": "Xuất dữ liệu tổ chức",
+        "hint": "Tải toàn bộ dữ liệu của tổ chức (dự án, công việc, bình luận, rủi ro, điều lệ, phạm vi, giao phẩm…) thành một tệp JSON để lưu trữ hoặc chuyển đi. Chỉ Owner/Admin dùng được.",
+        "button": "Tải dữ liệu tổ chức",
+        "error": "Không xuất được dữ liệu.",
+        "deleteHint": "Xoá vĩnh viễn tổ chức cùng toàn bộ dự án, công việc và dữ liệu bên trong. Chỉ Owner làm được; không thể hoàn tác — hãy tải dữ liệu trước.",
+        "delete": "Xoá tổ chức",
+        "confirmTitle": "Xoá tổ chức vĩnh viễn?",
+        "confirmBody": "Toàn bộ dữ liệu của tổ chức \"{slug}\" sẽ bị xoá và không thể khôi phục.",
+        "typeSlug": "Gõ \"{slug}\" để xác nhận",
+        "password": "Mật khẩu hiện tại",
+        "cancel": "Huỷ",
+        "confirmDelete": "Xoá vĩnh viễn"
       }
     }
   },
@@ -1035,5 +1070,11 @@
     "collapseAll": "Thu gọn hết",
     "legalChildren": "Có thể chứa: {types}",
     "leaf": "Mức thấp nhất, không chứa mục con"
+  },
+  "legal": {
+    "home": "Về trang chủ",
+    "updated": "Cập nhật: {date}",
+    "terms": "Điều khoản sử dụng",
+    "privacy": "Chính sách quyền riêng tư"
   }
 }

@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { registerSchema, RegisterInput } from '@pmtool/shared-types';
 import { useRegister, ApiError } from '@pmtool/api-client';
 import { Button, FormField, Input } from '@pmtool/ui';
-import { useRouter } from '../../i18n/navigation';
+import { Link, useRouter } from '../../i18n/navigation';
 import { safeRedirectTarget } from '../../lib/post-auth-redirect';
 
 export function RegisterForm() {
@@ -26,9 +26,7 @@ export function RegisterForm() {
         // on that invite, not on "create your own organization". Read
         // directly from window instead of useSearchParams() so this
         // component doesn't force a Suspense boundary on its page.
-        const redirectTarget = safeRedirectTarget(
-          new URLSearchParams(window.location.search).get('redirect'),
-        );
+        const redirectTarget = safeRedirectTarget(new URLSearchParams(window.location.search).get('redirect'));
         router.push(redirectTarget ?? '/onboarding/create-organization');
       },
     });
@@ -63,6 +61,21 @@ export function RegisterForm() {
       <Button type="submit" disabled={registerMutation.isPending} className="mt-2">
         {t('submit')}
       </Button>
+
+      <p className="text-center text-xs text-ink-muted">
+        {t.rich('consent', {
+          terms: (chunks) => (
+            <Link href="/terms" className="underline hover:text-ink-secondary">
+              {chunks}
+            </Link>
+          ),
+          privacy: (chunks) => (
+            <Link href="/privacy" className="underline hover:text-ink-secondary">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </form>
   );
 }

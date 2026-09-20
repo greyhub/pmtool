@@ -156,6 +156,15 @@ export default function LandingPage() {
           {t('appName')} — {tLanding('register')}
         </Link>
       </section>
+
+      <footer className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-line-glass py-6 text-xs text-ink-muted">
+        <Link href="/terms" className="hover:underline">
+          {tLanding('footer.terms')}
+        </Link>
+        <Link href="/privacy" className="hover:underline">
+          {tLanding('footer.privacy')}
+        </Link>
+      </footer>
     </main>
   );
 }

@@ -1243,12 +1243,12 @@ describe('Role-based access matrix', () => {
       `${API_PREFIX}/organizations/${org.slug}/members/${id}`;
     const asAdmin = { Authorization: `Bearer ${admin.accessToken}` };
 
-    // OWNER can't be granted through the API at all (it is set when an org is created).
+    // An ADMIN cannot make anyone an OWNER (only an OWNER can).
     await request(app.getHttpServer())
       .patch(url(adminRow.id))
       .set(asAdmin)
       .send({ role: 'OWNER' })
-      .expect(400);
+      .expect(403);
     await request(app.getHttpServer())
       .patch(url(ownerRow.id))
       .set(asAdmin)
@@ -1258,6 +1258,17 @@ describe('Role-based access matrix', () => {
       .delete(url(ownerRow.id))
       .set(asAdmin)
       .expect(403);
+
+    // An OWNER can hand the role over, after which the new owner may remove the old one.
+    await request(app.getHttpServer())
+      .patch(url(adminRow.id))
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ role: 'OWNER' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .delete(url(ownerRow.id))
+      .set(asAdmin)
+      .expect(200);
   });
 
   it('refuses to assign work to, or name as owner, someone outside the organization', async () => {
@@ -1494,6 +1505,196 @@ describe('Password reset and email verification', () => {
     )!;
     expect(mail.text).toContain(`token=${res.body.data.rawToken}`);
     expect(mail.text).toContain('Invite Mail Owner');
+  });
+});
+
+describe('Privacy: export and account deletion', () => {
+  const http = () => request(app.getHttpServer());
+  const asUser = (u: { accessToken: string }) => ({
+    Authorization: `Bearer ${u.accessToken}`,
+  });
+
+  it('exports a person their own data and an organization its workspace (owners/admins only)', async () => {
+    const owner = await registerUser('Export Owner');
+    const org = await createOrg(owner.accessToken, 'Export Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Export Member',
+    );
+    const project = await createProject(owner.accessToken, org.slug, 'EXP');
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const task = (
+      await http()
+        .post(`${base}/tasks`)
+        .set(asUser(owner))
+        .send({
+          title: 'Việc cần xuất',
+          assigneeId: await getUserId(member.email),
+        })
+        .expect(201)
+    ).body.data;
+    await http()
+      .post(`${base}/tasks/${task.id}/comments`)
+      .set(asUser(member))
+      .send({ body: 'Bình luận của member' })
+      .expect(201);
+
+    const mine = (
+      await http()
+        .get(`${API_PREFIX}/users/me/export`)
+        .set(asUser(member))
+        .expect(200)
+    ).body.data;
+    expect(mine.profile.email).toBe(member.email);
+    expect(JSON.stringify(mine)).not.toContain('passwordHash');
+    expect(mine.organizations).toEqual([
+      { name: 'Export Org', slug: org.slug, role: 'MEMBER' },
+    ]);
+    expect(mine.assignedTasks.map((t: { title: string }) => t.title)).toContain(
+      'Việc cần xuất',
+    );
+    expect(mine.comments).toHaveLength(1);
+
+    const orgUrl = `${API_PREFIX}/organizations/${org.slug}/export`;
+    await http().get(orgUrl).set(asUser(member)).expect(403);
+    const all = (await http().get(orgUrl).set(asUser(owner)).expect(200)).body
+      .data;
+    expect(all.organization.slug).toBe(org.slug);
+    expect(all.tasks.map((t: { title: string }) => t.title)).toContain(
+      'Việc cần xuất',
+    );
+    expect(all.comments[0].author.email).toBe(member.email);
+    expect(all.members.map((m: { email: string }) => m.email).sort()).toEqual(
+      [owner.email, member.email].sort(),
+    );
+    expect(JSON.stringify(all)).not.toContain('passwordHash');
+
+    const stranger = await registerUser('Export Stranger');
+    await createOrg(stranger.accessToken, 'Export Stranger Org');
+    await http().get(orgUrl).set(asUser(stranger)).expect(403);
+  });
+
+  it('lets only an OWNER delete an organization, with their password, taking all its data along', async () => {
+    const owner = await registerUser('Org Delete Owner');
+    const org = await createOrg(owner.accessToken, 'Org To Delete');
+    const admin = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'ADMIN',
+      'Org Delete Admin',
+    );
+    const project = await createProject(owner.accessToken, org.slug, 'ODL');
+    await http()
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`,
+      )
+      .set(asUser(owner))
+      .send({ title: 'Sẽ biến mất' })
+      .expect(201);
+    const url = `${API_PREFIX}/organizations/${org.slug}`;
+
+    await http()
+      .delete(url)
+      .set(asUser(admin))
+      .send({ password: 'Password123' })
+      .expect(403);
+    await http()
+      .delete(url)
+      .set(asUser(owner))
+      .send({ password: 'WrongPass123' })
+      .expect(403);
+    await http()
+      .delete(url)
+      .set(asUser(owner))
+      .send({ password: 'Password123' })
+      .expect(204);
+
+    const prisma = app.get(PrismaService);
+    expect(
+      await prisma.db.organization.count({ where: { slug: org.slug } }),
+    ).toBe(0);
+    expect(
+      await prisma.db.task.count({ where: { title: 'Sẽ biến mất' } }),
+    ).toBe(0);
+    await http().get(url).set(asUser(owner)).expect(404);
+  });
+
+  it('erases an account: needs the password, refuses to orphan a shared organization, keeps what others rely on', async () => {
+    const owner = await registerUser('Erase Owner');
+    const org = await createOrg(owner.accessToken, 'Erase Shared Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Erase Member',
+    );
+    const project = await createProject(owner.accessToken, org.slug, 'ERS');
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const task = (
+      await http()
+        .post(`${base}/tasks`)
+        .set(asUser(owner))
+        .send({ title: 'Việc chung' })
+        .expect(201)
+    ).body.data;
+    await http()
+      .post(`${base}/tasks/${task.id}/comments`)
+      .set(asUser(member))
+      .send({ body: 'Tôi sẽ rời đi' })
+      .expect(201);
+
+    const del = (u: { accessToken: string }, password: string) =>
+      http().delete(`${API_PREFIX}/users/me`).set(asUser(u)).send({ password });
+
+    // Wrong password: refused.
+    await del(member, 'WrongPass123').expect(403);
+    // The only OWNER of an organization that still has other people cannot leave it headless.
+    await del(owner, 'Password123').expect(409);
+
+    // A plain member can leave; their comment stays, attributed to the placeholder name.
+    await del(member, 'Password123').expect(204);
+    await http()
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email: member.email, password: 'Password123' })
+      .expect(401);
+    const comments = (
+      await http()
+        .get(`${base}/tasks/${task.id}/comments`)
+        .set(asUser(owner))
+        .expect(200)
+    ).body.data;
+    expect(comments).toHaveLength(1);
+    expect(comments[0].author.fullName).toBe('Người dùng đã xoá');
+    const members = (
+      await http()
+        .get(`${API_PREFIX}/organizations/${org.slug}/members`)
+        .set(asUser(owner))
+        .expect(200)
+    ).body.data;
+    expect(members).toHaveLength(1);
+
+    // Now the owner is alone, so deleting the account deletes the organization with it.
+    const ownerId = await getUserId(owner.email);
+    await del(owner, 'Password123').expect(204);
+    const prisma = app.get(PrismaService);
+    expect(
+      await prisma.db.organization.count({ where: { slug: org.slug } }),
+    ).toBe(0);
+    const row = await prisma.db.user.findUniqueOrThrow({
+      where: { email: `deleted-${ownerId}@deleted.invalid` },
+    });
+    expect(row.fullName).toBe('Người dùng đã xoá');
+    // The address is free again.
+    await request(app.getHttpServer())
+      .post(`${API_PREFIX}/auth/register`)
+      .send({
+        email: owner.email,
+        password: 'Password123',
+        fullName: 'Back Again',
+      })
+      .expect(201);
   });
 });
 

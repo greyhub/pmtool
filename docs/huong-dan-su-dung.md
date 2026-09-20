@@ -72,8 +72,8 @@ Phân quyền được kiểm tra ở tầng API cho mọi thao tác ghi dữ li
 | Nghiệm thu, từ chối hoặc **xoá** giao phẩm | ✓ | ✓ | ✓ | ✗ | ✗ |
 | Tạo và sửa dự án | ✓ | ✓ | ✓ | ✗ | ✗ |
 | **Phê duyệt** điều lệ và phạm vi | ✓ | ✓ | ✗ | ✗ | ✗ |
-| Mời, đổi vai trò, xoá thành viên; đổi tên tổ chức | ✓ | ✓ | ✗ | ✗ | ✗ |
-| Lưu trữ / khôi phục tổ chức | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Mời, đổi vai trò (trừ Owner), xoá thành viên; đổi tên tổ chức; xuất dữ liệu tổ chức | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Lưu trữ / khôi phục / **xoá** tổ chức; cấp hoặc thu hồi vai trò Owner | ✓ | ✗ | ✗ | ✗ | ✗ |
 
 Lưu ý: **Admin không thể hạ vai trò hoặc xoá Owner**; chỉ Owner mới làm được. Người chưa vào tổ chức không truy cập được bất cứ thứ gì của tổ chức. Bạn chỉ có thể chọn người **trong tổ chức** làm người phụ trách, người hỗ trợ, chủ giao phẩm, chủ rủi ro hay quản lý dự án.
 
@@ -85,6 +85,9 @@ Vào menu bên trái, chọn **Cài đặt tổ chức** (chỉ Owner/Admin thao
 
 - **Thông tin chung**: sửa **Tên tổ chức**, bấm **Lưu**. Nút **Lưu trữ tổ chức** (chỉ Owner) đưa tổ chức vào trạng thái lưu trữ: tổ chức biến mất khỏi danh sách chuyển đổi tổ chức, không tạo được dự án mới hay mời thêm thành viên mới — các thao tác khác (sửa dự án, xoá thành viên, ...) vẫn hoạt động bình thường. Bấm **Bỏ lưu trữ** bất cứ lúc nào để khôi phục lại như cũ.
 - **Thành viên**: bảng liệt kê toàn bộ thành viên, đổi vai trò trực tiếp qua ô chọn hoặc **Xoá** khỏi tổ chức. Tổ chức luôn phải còn ít nhất một Owner — hệ thống chặn việc hạ vai trò hoặc xoá Owner cuối cùng.
+- **Chuyển quyền Owner**: chỉ Owner mới đổi được vai trò của một thành viên sang **Owner** (đồng sở hữu) hoặc thay đổi/xoá một Owner; Admin thì không. Cần làm việc này trước khi người Owner duy nhất rời tổ chức hoặc xoá tài khoản.
+- **Xoá tổ chức** (chỉ Owner): trong thẻ dữ liệu ở cuối trang Cài đặt tổ chức; phải gõ lại slug và nhập mật khẩu; xoá vĩnh viễn toàn bộ dự án và dữ liệu bên trong, không hoàn tác được.
+- **Xuất dữ liệu tổ chức** (Owner/Admin): thẻ **Xuất dữ liệu tổ chức** ở cuối trang Cài đặt tổ chức tải toàn bộ dự án, công việc, bình luận, rủi ro, điều lệ, phạm vi, giao phẩm… thành một tệp JSON.
 - **Mời thành viên**: nhập **Email** và chọn **Vai trò**, bấm **Gửi lời mời**. PMTool **gửi email mời** tới người được mời (khi hệ thống đã cấu hình gửi email) và luôn hiển thị **liên kết chấp nhận lời mời** để bạn sao chép, gửi thủ công qua kênh khác nếu cần (Slack, Zalo, ...) — liên kết có hiệu lực 7 ngày. Người nhận đăng nhập/đăng ký tài khoản rồi mở liên kết đó để tham gia tổ chức — nếu họ chưa đăng nhập, hệ thống tự đưa họ quay lại đúng liên kết mời sau khi đăng nhập/đăng ký xong, không cần mở lại link.
   - Mời một email **đã là thành viên** sẽ báo lỗi rõ ràng thay vì tạo lời mời trùng — hãy đổi vai trò trực tiếp trong bảng Thành viên ở trên.
   - Mời lại **cùng một email** đang có lời mời chờ sẽ thay thế lời mời cũ (coi như gửi lại/đổi vai trò lời mời), không tạo thêm bản sao.
@@ -283,3 +286,14 @@ PMTool áp dụng chuỗi quản lý phạm vi của PMBOK. Mỗi khái niệm c
 - hoạt động không thuộc gói công việc;
 - mốc chưa gắn giao phẩm;
 - mục cha chỉ có một mục con (gợi ý kiểm tra "quy tắc 100%": các con phải gộp lại đủ phạm vi của cha, không thừa không thiếu).
+
+## 22. Dữ liệu cá nhân & quyền riêng tư
+
+Trong **Cài đặt → Dữ liệu & quyền riêng tư** bạn có thể:
+
+- **Tải dữ liệu của tôi**: một tệp JSON gồm hồ sơ (không có mật khẩu), các tổ chức bạn tham gia, công việc được giao, bình luận, điểm, huy hiệu, nhiệm vụ và nhật ký hoạt động của bạn.
+- **Xoá tài khoản**: nhập mật khẩu để xác nhận. Hệ thống gỡ bạn khỏi mọi tổ chức, xoá dữ liệu cá nhân (điểm, huy hiệu, liên kết Telegram, phiên đăng nhập) và **ẩn danh** hồ sơ (email, tên, ảnh). Nội dung bạn đã viết trong không gian chung (bình luận, công việc) được giữ lại dưới tên **"Người dùng đã xoá"** để dự án của người khác không bị hỏng. Tổ chức chỉ có mình bạn sẽ bị xoá cùng. Nếu bạn là **Owner duy nhất** của một tổ chức còn người khác, hệ thống từ chối và yêu cầu chuyển quyền Owner hoặc xoá thành viên trước. Email cũ có thể đăng ký lại sau đó.
+
+Trang **Điều khoản sử dụng** (`/terms`) và **Chính sách quyền riêng tư** (`/privacy`) công khai, có bản tiếng Việt và tiếng Anh, được liên kết từ trang đăng ký và chân trang chủ.
+
+> **Dành cho người vận hành:** nội dung hai trang này là bản dự thảo tiêu chuẩn cho dịch vụ miễn phí; đặt `NEXT_PUBLIC_OPERATOR_NAME` và `NEXT_PUBLIC_CONTACT_EMAIL` cho web, và **nhờ tư vấn pháp lý rà soát** (đặc biệt phần dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP, chuyển dữ liệu ra nước ngoài, và điều khoản đồng ý) trước khi mở đăng ký công khai.

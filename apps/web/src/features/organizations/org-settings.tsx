@@ -7,6 +7,9 @@ import {
   useArchiveOrganization,
   useCancelInvite,
   useCreateInvite,
+  useDeleteOrganization,
+  useExportOrganization,
+  useMe,
   useOrganization,
   useOrganizationInvites,
   useOrganizationMembers,
@@ -21,6 +24,7 @@ import {
   Card,
   FormField,
   Input,
+  Modal,
   Select,
   Table,
   TableBody,
@@ -29,9 +33,12 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@pmtool/ui';
+import { downloadJson } from '../../lib/download-json';
+import { useRouter } from '../../i18n/navigation';
 
 const ORG_ROLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
 const INVITE_ROLES = ['ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
+type OrgRole = (typeof ORG_ROLES)[number];
 
 function GeneralCard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('organizations.settings.general');
@@ -103,6 +110,9 @@ function MembersCard({ orgSlug }: { orgSlug: string }) {
   const { data: members } = useOrganizationMembers(orgSlug);
   const updateRole = useUpdateMembershipRole(orgSlug);
   const removeMember = useRemoveMember(orgSlug);
+  const { data: me } = useMe();
+  // Only an Owner may grant, change or remove the Owner role (the API enforces it too).
+  const isOwner = members?.find((m) => m.userId === me?.id)?.role === 'OWNER';
 
   return (
     <Card className="p-0">
@@ -132,14 +142,14 @@ function MembersCard({ orgSlug }: { orgSlug: string }) {
                       onChange={(e) =>
                         updateRole.mutate({
                           membershipId: m.id,
-                          role: e.target.value as (typeof INVITE_ROLES)[number],
+                          role: e.target.value as OrgRole,
                         })
                       }
-                      disabled={m.role === 'OWNER'}
+                      disabled={m.role === 'OWNER' && !isOwner}
                       className="w-36"
                     >
                       {ORG_ROLES.map((r) => (
-                        <option key={r} value={r} disabled={r === 'OWNER'}>
+                        <option key={r} value={r} disabled={r === 'OWNER' && !isOwner}>
                           {r}
                         </option>
                       ))}
@@ -150,7 +160,7 @@ function MembersCard({ orgSlug }: { orgSlug: string }) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled={m.role === 'OWNER'}
+                        disabled={m.role === 'OWNER' && !isOwner}
                         onClick={() => {
                           if (window.confirm(t('removeConfirm'))) {
                             removeMember.mutate(m.id);
@@ -286,6 +296,103 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
   );
 }
 
+function DataCard({ orgSlug }: { orgSlug: string }) {
+  const t = useTranslations('organizations.settings.export');
+  const router = useRouter();
+  const exportOrg = useExportOrganization(orgSlug);
+  const deleteOrg = useDeleteOrganization(orgSlug);
+  const { data: members } = useOrganizationMembers(orgSlug);
+  const { data: me } = useMe();
+  const isOwner = members?.find((m) => m.userId === me?.id)?.role === 'OWNER';
+  const [confirming, setConfirming] = useState(false);
+  const [typedSlug, setTypedSlug] = useState('');
+  const [password, setPassword] = useState('');
+
+  return (
+    <Card className="flex flex-col gap-4 p-6">
+      <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
+      <p className="text-sm text-ink-secondary">{t('hint')}</p>
+      <div>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={exportOrg.isPending}
+          onClick={() =>
+            exportOrg.mutate(undefined, {
+              onSuccess: (data) =>
+                downloadJson(`pmtool-${orgSlug}-${new Date().toISOString().slice(0, 10)}.json`, data),
+            })
+          }
+        >
+          {t('button')}
+        </Button>
+      </div>
+      {exportOrg.isError && (
+        <p role="alert" className="text-sm text-danger">
+          {exportOrg.error instanceof ApiError ? exportOrg.error.message : t('error')}
+        </p>
+      )}
+
+      {isOwner && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+          <p className="max-w-md text-sm text-ink-secondary">{t('deleteHint')}</p>
+          <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
+            {t('delete')}
+          </Button>
+        </div>
+      )}
+
+      <Modal
+        open={confirming}
+        onClose={() => {
+          setConfirming(false);
+          setTypedSlug('');
+          setPassword('');
+          deleteOrg.reset();
+        }}
+        title={t('confirmTitle')}
+        description={t('confirmBody', { slug: orgSlug })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={typedSlug !== orgSlug || !password || deleteOrg.isPending}
+              onClick={() =>
+                deleteOrg.mutate({ password }, { onSuccess: () => router.push('/onboarding/create-organization') })
+              }
+            >
+              {t('confirmDelete')}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <FormField label={t('typeSlug', { slug: orgSlug })} htmlFor="delete-org-slug">
+            <Input id="delete-org-slug" value={typedSlug} onChange={(e) => setTypedSlug(e.target.value)} />
+          </FormField>
+          <FormField label={t('password')} htmlFor="delete-org-password">
+            <Input
+              id="delete-org-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </FormField>
+          {deleteOrg.isError && (
+            <p role="alert" className="text-sm text-danger">
+              {deleteOrg.error instanceof ApiError ? deleteOrg.error.message : t('error')}
+            </p>
+          )}
+        </div>
+      </Modal>
+    </Card>
+  );
+}
+
 export function OrgSettings({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('organizations.settings');
 
@@ -298,6 +405,7 @@ export function OrgSettings({ orgSlug }: { orgSlug: string }) {
       <GeneralCard orgSlug={orgSlug} />
       <MembersCard orgSlug={orgSlug} />
       <InvitesCard orgSlug={orgSlug} />
+      <DataCard orgSlug={orgSlug} />
     </div>
   );
 }

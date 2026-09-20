@@ -20,6 +20,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { CharterModule } from './modules/charter/charter.module';
 import { ScopeModule } from './modules/scope/scope.module';
+import { PrivacyModule } from './modules/privacy/privacy.module';
 import { MailModule } from './modules/mail/mail.module';
 import { RateLimitModule } from './common/rate-limit/rate-limit.module';
 import { StakeholdersModule } from './modules/stakeholders/stakeholders.module';
@@ -56,6 +57,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     ScopeModule,
     RateLimitModule,
     MailModule,
+    PrivacyModule,
     StakeholdersModule,
     DocumentsModule,
     DeliverablesModule,

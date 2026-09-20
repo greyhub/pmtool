@@ -483,6 +483,10 @@ Kết quả rà soát phân quyền (2026-09-20) và các quy tắc đã đưa v
 | Sửa/xoá bản ghi của dự án B qua URL dự án A (rủi ro, tài liệu, bên liên quan, artifact, cột Kanban, công việc, phụ thuộc) — lợi dụng vai trò riêng trên A | Người chỉ là Viewer ở B nhưng là PM ở A có thể sửa dữ liệu B | `ProjectEntityGuard` + `@ProjectEntity(model, param)`: thực thể phải thuộc dự án trong URL, nếu không `404`. Có integration test. |
 | Phạm vi do PM soạn cũng do PM phê duyệt | Không tách người soạn và người duyệt | Phê duyệt phạm vi chỉ Owner/Admin — giống điều lệ. |
 
+### 5.1 Quyền riêng tư: xuất và xoá dữ liệu
+
+`PrivacyService` (`modules/privacy`): `GET users/me/export` (dữ liệu của chính người dùng, không có băm mật khẩu), `GET organizations/:org/export` (Owner/Admin: dự án, công việc + người phụ trách, phụ thuộc, bình luận, rủi ro, điều lệ, phạm vi, tài liệu, giao phẩm, từ điển WBS, artifact, nhật ký), `DELETE users/me` (cần mật khẩu), `DELETE organizations/:org` (chỉ Owner, cần mật khẩu; một dòng `Organization` bị xoá kéo theo mọi bảng con nhờ cascade). Xoá tài khoản là **ẩn danh hoá** chứ không xoá dòng `User`: nhiều bản ghi của người khác trỏ tới người dùng (bình luận, nhật ký, chủ giao phẩm…) và ràng buộc khoá ngoại/cascade sẽ xoá lây nội dung chung. Trong một transaction: xoá tổ chức chỉ có người này; gỡ membership/project role/assignee; xoá điểm, huy hiệu, nhiệm vụ, mã Telegram, refresh/auth token; đổi email thành `deleted-<id>@deleted.invalid`, tên thành "Người dùng đã xoá", huỷ mật khẩu. Bị chặn (409) nếu người đó là Owner duy nhất của tổ chức còn người khác. Vai trò Owner giờ cấp được (`PATCH members/:id`), nhưng **chỉ Owner** làm được.
+
 Các điểm đã biết, chưa xử lý (ghi nhận để quyết định trước GTM):
 - Mọi thành viên tổ chức (kể cả Viewer) **đọc được mọi dự án** trong tổ chức; chưa có dự án riêng tư.
 - Các route AI theo `taskId` (tóm tắt, gợi ý việc con) chưa ràng buộc công việc thuộc đúng dự án trong URL (chỉ đọc nội dung công việc cùng tổ chức, không ghi).

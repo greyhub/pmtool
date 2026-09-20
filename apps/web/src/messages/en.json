@@ -123,7 +123,11 @@
       "open": "Open"
     },
     "ctaTitle": "Start managing projects now",
-    "ctaDescription": "Create a free account and your first organization in under a minute."
+    "ctaDescription": "Create a free account and your first organization in under a minute.",
+    "footer": {
+      "terms": "Terms of use",
+      "privacy": "Privacy policy"
+    }
   },
   "auth": {
     "login": {
@@ -144,7 +148,8 @@
       "password": "Password",
       "submit": "Sign up",
       "hasAccount": "Already have an account?",
-      "loginLink": "Sign in"
+      "loginLink": "Sign in",
+      "consent": "By signing up you agree to the <terms>Terms of use</terms> and the <privacy>Privacy policy</privacy>."
     },
     "forgot": {
       "title": "Forgot password",
@@ -693,6 +698,22 @@
       "current": "In use",
       "taken": "Taken",
       "takenBy": "{name} already uses this character"
+    },
+    "privacy": {
+      "title": "Data & privacy",
+      "description": "Download your personal data or delete your account at any time.",
+      "exportHint": "Download a JSON file with your profile, the organizations you belong to, assigned tasks, comments, points and activity.",
+      "export": "Download my data",
+      "deleteHint": "Deleting your account removes you from every organization, erases your personal data and anonymizes your profile. What you wrote in shared workspaces (comments, tasks) stays under the name \"Deleted user\". Organizations where you are the only member are deleted with it.",
+      "delete": "Delete account",
+      "privacyLink": "Privacy policy",
+      "termsLink": "Terms of use",
+      "confirmTitle": "Delete your account permanently?",
+      "confirmBody": "This cannot be undone. Download your data first if you need it. Enter your password to confirm.",
+      "password": "Current password",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete permanently",
+      "error": "Something went wrong, please try again."
     }
   },
   "integrations": {
@@ -880,6 +901,20 @@
         "columnExpires": "Expires",
         "cancel": "Cancel",
         "linkHintEmailed": "An invitation email was sent. You can also send this link manually:"
+      },
+      "export": {
+        "title": "Export organization data",
+        "hint": "Download everything in this organization (projects, tasks, comments, risks, charter, scope, deliverables…) as a JSON file to keep or move. Owners and admins only.",
+        "button": "Download organization data",
+        "error": "Could not export the data.",
+        "deleteHint": "Permanently delete the organization with all its projects, tasks and data. Owners only; this cannot be undone — download the data first.",
+        "delete": "Delete organization",
+        "confirmTitle": "Delete this organization permanently?",
+        "confirmBody": "All data of the organization \"{slug}\" will be deleted and cannot be recovered.",
+        "typeSlug": "Type \"{slug}\" to confirm",
+        "password": "Current password",
+        "cancel": "Cancel",
+        "confirmDelete": "Delete permanently"
       }
     }
   },
@@ -1035,5 +1070,11 @@
     "collapseAll": "Collapse all",
     "legalChildren": "Can contain: {types}",
     "leaf": "Lowest level, cannot contain children"
+  },
+  "legal": {
+    "home": "Back to home",
+    "updated": "Updated: {date}",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy"
   }
 }

@@ -69,3 +69,7 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 export const verifyEmailSchema = z.object({ token: z.string().min(1) });
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+
+/** Deleting an account needs the current password, so a stolen session cannot erase it. */
+export const deleteAccountSchema = z.object({ password: z.string().min(1) });
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;

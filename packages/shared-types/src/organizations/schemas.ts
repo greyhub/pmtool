@@ -54,7 +54,8 @@ export const acceptInviteSchema = z.object({
 });
 export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
 
+/** OWNER is grantable, but only by an Owner (enforced in MembershipsService). */
 export const updateMembershipRoleSchema = z.object({
-  role: z.enum(ORG_ROLES).exclude(['OWNER']),
+  role: z.enum(ORG_ROLES),
 });
 export type UpdateMembershipRoleInput = z.infer<typeof updateMembershipRoleSchema>;

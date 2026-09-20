@@ -80,6 +80,8 @@ infra/            docker-compose cho Postgres + Redis (dev)
 
 **Hoàn thiện sản phẩm cho giai đoạn miễn phí:** giới hạn tốc độ + hạn mức AI/tổ chức, quên mật khẩu, xác minh email, email mời thành viên (SMTP tuỳ chọn) — xem [docs/gtm.md](docs/gtm.md#40-thứ-tự-thực-hiện-giai-đoạn-miễn-phí) cho thứ tự các hạng mục còn lại. Biến môi trường mới nằm trong `apps/api/.env.example` (mục *Free-tier abuse and cost controls* và SMTP).
 
+**Dữ liệu & quyền riêng tư:** xuất dữ liệu cá nhân và dữ liệu tổ chức (JSON), xoá tài khoản (ẩn danh hoá, giữ nội dung chung), chuyển quyền Owner, trang Điều khoản/Chính sách quyền riêng tư công khai. Web cần `NEXT_PUBLIC_OPERATOR_NAME` và `NEXT_PUBLIC_CONTACT_EMAIL` (xem `apps/web/.env.example`); nội dung pháp lý cần được tư vấn pháp lý rà soát trước khi mở đăng ký công khai.
+
 ## Yêu cầu môi trường
 
 - Node.js >= 20.18 (xem `.nvmrc`)
