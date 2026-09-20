@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DEPENDENCY_TYPES, MASCOT_CHARACTERS, TASK_ASSIGNEE_ROLES, TASK_PRIORITIES, TASK_STATUSES } from '../common/enums';
+import { DEPENDENCY_TYPES, MASCOT_CHARACTERS, TASK_ASSIGNEE_ROLES, TASK_PRIORITIES, TASK_STATUSES, WBS_NODE_TYPES } from '../common/enums';
 
 export const createTaskSchema = z.object({
   title: z.string().min(1).max(300),
@@ -11,6 +11,8 @@ export const createTaskSchema = z.object({
   estimateHours: z.number().min(0).max(10_000).optional(),
   /** A zero-duration checkpoint; requires dueDate, and startDate is forced equal to it. */
   isMilestone: z.boolean().optional(),
+  /** PMBOK role in the WBS; defaults to the legal level under the parent. */
+  nodeType: z.enum(WBS_NODE_TYPES).optional(),
   /** The one accountable person; everyone else helping goes in supporterIds. */
   assigneeId: z.string().optional(),
   supporterIds: z.array(z.string()).optional(),
@@ -27,6 +29,7 @@ export const updateTaskSchema = z.object({
   estimateHours: z.number().min(0).max(10_000).nullable().optional(),
   percentComplete: z.number().int().min(0).max(100).optional(),
   isMilestone: z.boolean().optional(),
+  nodeType: z.enum(WBS_NODE_TYPES).optional(),
   /** null clears the primary assignee; omitted leaves it unchanged. */
   assigneeId: z.string().nullable().optional(),
   /** Replaces the supporter list when present. */
@@ -64,6 +67,7 @@ export const taskSchema = z.object({
   estimateHours: z.number().nullable(),
   percentComplete: z.number(),
   isMilestone: z.boolean(),
+  nodeType: z.enum(WBS_NODE_TYPES),
   orderIndex: z.number(),
   boardColumnId: z.string().nullable(),
   createdById: z.string(),

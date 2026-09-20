@@ -190,7 +190,9 @@
       "artifacts": "Artifact",
       "settings": "Cài đặt",
       "milestones": "Mốc quan trọng",
-      "deliverables": "Giao phẩm"
+      "deliverables": "Giao phẩm",
+      "scope": "Phạm vi",
+      "wbs": "WBS"
     },
     "settings": {
       "title": "Cài đặt dự án",
@@ -323,7 +325,8 @@
       "sendHint": "Ctrl+Enter để gửi",
       "navigate": "Chuyển công việc",
       "prevTask": "Công việc trước",
-      "nextTask": "Công việc sau"
+      "nextTask": "Công việc sau",
+      "nodeType": "Cấp WBS"
     },
     "history": {
       "title": "Lịch sử thay đổi",
@@ -348,6 +351,18 @@
         "isMilestone": "Là mốc",
         "assignee": "Người phụ trách"
       }
+    },
+    "nodeType": {
+      "PHASE": "Giai đoạn",
+      "DELIVERABLE": "Giao phẩm",
+      "WORK_PACKAGE": "Gói công việc",
+      "ACTIVITY": "Hoạt động"
+    },
+    "nodeTypeHelp": {
+      "PHASE": "Nhóm quản lý ở cấp cao nhất của WBS (giai đoạn, hạng mục lớn).",
+      "DELIVERABLE": "Sản phẩm/kết quả kiểm chứng được mà dự án phải bàn giao.",
+      "WORK_PACKAGE": "Mức thấp nhất của WBS: đơn vị để ước lượng chi phí, thời gian và giao trách nhiệm.",
+      "ACTIVITY": "Công việc cụ thể, xếp lịch được, thuộc một gói công việc."
     }
   },
   "risks": {
@@ -520,7 +535,49 @@
       "openIssues": "Vấn đề đang mở",
       "taskBreakdown": "Công việc theo trạng thái",
       "overdueTasks": "Công việc quá hạn",
-      "noOverdueTasks": "Không có công việc quá hạn."
+      "noOverdueTasks": "Không có công việc quá hạn.",
+      "scopeMap": {
+        "title": "Sơ đồ liên kết PMBOK",
+        "subtitle": "Điều lệ → Phạm vi → WBS → Giao phẩm → Gói công việc → Hoạt động → Mốc. Bấm vào một ô để mở.",
+        "colCharter": "Điều lệ & Phạm vi",
+        "colPhase": "Giai đoạn",
+        "colDeliverable": "Giao phẩm",
+        "colWorkPackage": "Gói công việc",
+        "colActivity": "Hoạt động",
+        "colMilestone": "Mốc",
+        "activitiesCount": "{count} hoạt động",
+        "moreItems": "+{count} mục khác",
+        "charter": "Điều lệ",
+        "scope": "Phạm vi",
+        "empty": "Chưa có phần tử WBS nào để vẽ.",
+        "coverageTitle": "Kiểm tra độ phủ",
+        "allGood": "Cấu trúc đầy đủ: không phát hiện khoảng trống.",
+        "legendDone": "Hoàn thành",
+        "legendActive": "Đang làm",
+        "legendTodo": "Chưa làm",
+        "legendGap": "Có khoảng trống",
+        "legendDependency": "Phụ thuộc",
+        "checks": {
+          "workPackageWithoutActivity": "Gói công việc chưa có hoạt động",
+          "workPackageWithoutDictionary": "Gói công việc chưa có từ điển WBS",
+          "deliverableWithoutCriteria": "Giao phẩm chưa có tiêu chí nghiệm thu",
+          "deliverableWithoutRecord": "Giao phẩm chưa có bản ghi nghiệm thu",
+          "activityOutsideWorkPackage": "Hoạt động không thuộc gói công việc",
+          "milestoneWithoutDeliverable": "Mốc chưa gắn giao phẩm",
+          "singleChildParent": "Mục cha chỉ có một mục con (kiểm tra quy tắc 100%)"
+        },
+        "checkHelp": {
+          "workPackageWithoutActivity": "Gói công việc cần được chia thành hoạt động để xếp lịch.",
+          "workPackageWithoutDictionary": "Mô tả phạm vi của gói trong từ điển WBS.",
+          "deliverableWithoutCriteria": "Nêu tiêu chí nghiệm thu trong từ điển WBS hoặc bản ghi giao phẩm.",
+          "deliverableWithoutRecord": "Tạo bản ghi ở tab Giao phẩm và gắn vào nút này.",
+          "activityOutsideWorkPackage": "Đặt hoạt động dưới một gói công việc.",
+          "milestoneWithoutDeliverable": "Gắn mốc với giao phẩm sẽ được nghiệm thu tại mốc đó.",
+          "singleChildParent": "Các con phải gộp lại đủ 100% phạm vi của mục cha; một con duy nhất thường nghĩa là chưa phân rã."
+        },
+        "expandAll": "Mở hết",
+        "collapseAll": "Thu gọn hết"
+      }
     }
   },
   "settings": {
@@ -877,5 +934,53 @@
       "cancel": "Hủy",
       "genericError": "Có lỗi xảy ra, vui lòng thử lại"
     }
+  },
+  "scope": {
+    "title": "Phạm vi dự án",
+    "subtitle": "Bản mô tả phạm vi (Project Scope Statement): làm gì, không làm gì, bàn giao gì và nghiệm thu thế nào.",
+    "draft": "Bản nháp",
+    "approved": "Đã phê duyệt",
+    "approvedBanner": "Phê duyệt bởi {name} ngày {date}. Sửa nội dung sẽ đưa bản này về nháp.",
+    "inScope": "Trong phạm vi",
+    "inScopeHint": "Những gì dự án SẼ làm.",
+    "outOfScope": "Ngoài phạm vi",
+    "outOfScopeHint": "Những gì dự án KHÔNG làm — ngăn phình phạm vi.",
+    "deliverablesSummary": "Các giao phẩm chính",
+    "deliverablesSummaryHint": "Danh sách sản phẩm bàn giao, khớp với các nút Giao phẩm trong WBS.",
+    "acceptanceCriteria": "Tiêu chí nghiệm thu",
+    "assumptions": "Giả định",
+    "constraints": "Ràng buộc",
+    "save": "Lưu",
+    "approve": "Phê duyệt phạm vi"
+  },
+  "wbs": {
+    "title": "Cấu trúc phân rã công việc (WBS)",
+    "subtitle": "Phân rã phạm vi thành Giai đoạn › Giao phẩm › Gói công việc › Hoạt động. Mã WBS tự sinh theo thứ tự.",
+    "empty": "Chưa có công việc nào. Hãy tạo giai đoạn đầu tiên.",
+    "addRoot": "Thêm giai đoạn",
+    "addChild": "Thêm mục con",
+    "addChildAs": "Thêm {type}",
+    "newTitle": "Tên {type}",
+    "create": "Tạo",
+    "cancel": "Hủy",
+    "selectHint": "Chọn một phần tử WBS để xem và sửa từ điển WBS.",
+    "openTask": "Mở công việc",
+    "dictionary": "Từ điển WBS",
+    "dictionaryHint": "Mô tả chi tiết phần tử này: phạm vi, tiêu chí nghiệm thu, nguồn lực, chi phí…",
+    "filled": "Đã mô tả",
+    "missing": "Chưa mô tả",
+    "scopeDescription": "Mô tả phạm vi",
+    "acceptanceCriteria": "Tiêu chí nghiệm thu",
+    "assumptions": "Giả định",
+    "constraints": "Ràng buộc",
+    "requiredResources": "Nguồn lực cần",
+    "qualityRequirements": "Yêu cầu chất lượng",
+    "technicalReferences": "Tham chiếu kỹ thuật",
+    "costEstimate": "Ước tính chi phí",
+    "save": "Lưu từ điển",
+    "expandAll": "Mở hết",
+    "collapseAll": "Thu gọn hết",
+    "legalChildren": "Có thể chứa: {types}",
+    "leaf": "Mức thấp nhất, không chứa mục con"
   }
 }

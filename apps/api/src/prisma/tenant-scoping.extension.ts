@@ -25,6 +25,8 @@ const TENANT_SCOPED_MODELS = new Set([
   'Stakeholder',
   'ProjectDocument',
   'Deliverable',
+  'ProjectScope',
+  'WbsDictionaryEntry',
   'Artifact',
 ]);
 

@@ -676,6 +676,164 @@ describe('Task history', () => {
   });
 });
 
+describe('WBS, scope statement and dictionary', () => {
+  it('enforces the node-type hierarchy, keeps a dictionary per task, gates scope approval, and builds the scope map', async () => {
+    const owner = await registerUser('Wbs Owner');
+    const org = await createOrg(owner.accessToken, 'Wbs Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Wbs Member',
+    );
+    const project = await createProject(owner.accessToken, org.slug, 'WBS');
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const http = () => request(app.getHttpServer());
+    const create = (body: Record<string, unknown>) =>
+      http().post(`${base}/tasks`).set(auth).send(body);
+
+    const phase = (
+      await create({ title: 'Giai đoạn 1', nodeType: 'PHASE' }).expect(201)
+    ).body.data;
+    expect(phase.nodeType).toBe('PHASE');
+
+    // Unspecified means activity; the WBS tab sends the level it wants.
+    const plain = (
+      await create({ title: 'Việc thường', parentTaskId: phase.id }).expect(201)
+    ).body.data;
+    expect(plain.nodeType).toBe('ACTIVITY');
+    const deliverable = (
+      await create({
+        title: 'Giao phẩm A',
+        nodeType: 'DELIVERABLE',
+        parentTaskId: phase.id,
+      }).expect(201)
+    ).body.data;
+    expect(deliverable.nodeType).toBe('DELIVERABLE');
+
+    // A phase cannot live inside a deliverable.
+    await create({
+      title: 'Sai cấp',
+      nodeType: 'PHASE',
+      parentTaskId: deliverable.id,
+    }).expect(400);
+
+    const wp = (
+      await create({
+        title: 'Gói 1',
+        nodeType: 'WORK_PACKAGE',
+        parentTaskId: deliverable.id,
+      }).expect(201)
+    ).body.data;
+    expect(wp.nodeType).toBe('WORK_PACKAGE');
+    const activity = (
+      await create({ title: 'Hoạt động 1', parentTaskId: wp.id }).expect(201)
+    ).body.data;
+    expect(activity.nodeType).toBe('ACTIVITY');
+
+    // Retyping must still fit under the parent and above the children.
+    await http()
+      .patch(`${base}/tasks/${wp.id}`)
+      .set(auth)
+      .send({ nodeType: 'ACTIVITY' })
+      .expect(400);
+    await http()
+      .patch(`${base}/tasks/${wp.id}`)
+      .set(auth)
+      .send({ nodeType: 'PHASE' })
+      .expect(400);
+
+    // Adding a child under a plain activity promotes it to a work package.
+    const subActivity = (
+      await create({ title: 'Việc con', parentTaskId: activity.id }).expect(201)
+    ).body.data;
+    expect(subActivity.nodeType).toBe('ACTIVITY');
+    const promoted = await http()
+      .get(`${base}/tasks/${activity.id}`)
+      .set(auth)
+      .expect(200);
+    expect(promoted.body.data.nodeType).toBe('WORK_PACKAGE');
+
+    // WBS dictionary: empty, then upserted, then updated in place.
+    const dict = `${base}/wbs/${wp.id}/dictionary`;
+    expect((await http().get(dict).set(auth).expect(200)).body.data).toBeNull();
+    const saved = await http()
+      .put(dict)
+      .set(auth)
+      .send({ scopeDescription: 'Khảo sát', costEstimate: 1200 })
+      .expect(200);
+    expect(saved.body.data.scopeDescription).toBe('Khảo sát');
+    expect(saved.body.data.costEstimate).toBe(1200);
+    const updated = await http()
+      .put(dict)
+      .set(auth)
+      .send({ acceptanceCriteria: 'Được duyệt' })
+      .expect(200);
+    expect(updated.body.data.scopeDescription).toBe('Khảo sát');
+    expect(updated.body.data.acceptanceCriteria).toBe('Được duyệt');
+    // A dictionary of a task outside this project is not addressable.
+    await http()
+      .get(`${base}/wbs/does-not-exist/dictionary`)
+      .set(auth)
+      .expect(404);
+
+    // Scope statement: a MEMBER can read but not edit/approve; editing an approved one reverts it.
+    expect(
+      (await http().get(`${base}/scope`).set(auth).expect(200)).body.data,
+    ).toBeNull();
+    const memberAuth = { Authorization: `Bearer ${member.accessToken}` };
+    await http().get(`${base}/scope`).set(memberAuth).expect(200);
+    await http()
+      .put(`${base}/scope`)
+      .set(memberAuth)
+      .send({ inScope: 'x' })
+      .expect(403);
+    await http()
+      .put(`${base}/scope`)
+      .set(auth)
+      .send({ inScope: 'Làm A', outOfScope: 'Không làm B' })
+      .expect(200);
+    await http().post(`${base}/scope/approve`).set(memberAuth).expect(403);
+    const approved = await http()
+      .post(`${base}/scope/approve`)
+      .set(auth)
+      .expect(201);
+    expect(approved.body.data.status).toBe('APPROVED');
+    const reverted = await http()
+      .put(`${base}/scope`)
+      .set(auth)
+      .send({ inScope: 'Làm A và C' })
+      .expect(200);
+    expect(reverted.body.data.status).toBe('DRAFT');
+    expect(reverted.body.data.outOfScope).toBe('Không làm B');
+
+    // Scope map: chain, WBS codes and coverage.
+    const map = (await http().get(`${base}/scope-map`).set(auth).expect(200))
+      .body.data;
+    const node = (id: string) =>
+      map.nodes.find((n: { id: string }) => n.id === id);
+    expect(node(deliverable.id).code).toBe('1.2');
+    expect(node(wp.id).code).toBe('1.2.1');
+    expect(node(wp.id).hasDictionary).toBe(true);
+    const offenders = (key: string) =>
+      map.checks.find((c: { key: string }) => c.key === key).offenders;
+    expect(offenders('deliverableWithoutRecord')).toContain(deliverable.id);
+    expect(offenders('workPackageWithoutDictionary')).toContain(activity.id);
+    expect(offenders('workPackageWithoutDictionary')).not.toContain(wp.id);
+
+    // Tenant isolation.
+    const other = await registerUser('Wbs Other');
+    await createOrg(other.accessToken, 'Wbs Other Org');
+    for (const path of ['scope', 'scope-map', `wbs/${wp.id}/dictionary`]) {
+      await http()
+        .get(`${base}/${path}`)
+        .set('Authorization', `Bearer ${other.accessToken}`)
+        .expect(403);
+    }
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');

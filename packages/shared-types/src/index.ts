@@ -16,3 +16,5 @@ export * from './charter/schemas';
 export * from './stakeholders/schemas';
 export * from './documents/schemas';
 export * from './artifacts/schemas';
+export * from './tasks/wbs';
+export * from './scope/schemas';

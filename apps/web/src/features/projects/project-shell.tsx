@@ -30,6 +30,8 @@ export function ProjectShell({
 
   const tabs = [
     { href: `/${orgSlug}/projects/${projectKey}/dashboard`, label: tTabs('dashboard') },
+    { href: `/${orgSlug}/projects/${projectKey}/scope`, label: tTabs('scope') },
+    { href: `/${orgSlug}/projects/${projectKey}/wbs`, label: tTabs('wbs') },
     { href: `/${orgSlug}/projects/${projectKey}/tasks`, label: tTabs('tasks') },
     { href: `/${orgSlug}/projects/${projectKey}/board`, label: tTabs('board') },
     { href: `/${orgSlug}/projects/${projectKey}/gantt`, label: tTabs('gantt') },

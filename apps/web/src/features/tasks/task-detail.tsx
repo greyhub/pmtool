@@ -11,8 +11,8 @@ import {
   useTasks,
   useUpdateTask,
 } from '@pmtool/api-client';
-import type { TaskSuggestionDto } from '@pmtool/shared-types';
-import { TASK_PRIORITIES, TASK_STATUSES } from '@pmtool/shared-types';
+import type { TaskSuggestionDto, WbsNodeType } from '@pmtool/shared-types';
+import { canContain, computeWbsCodes, TASK_PRIORITIES, TASK_STATUSES, WBS_NODE_TYPES } from '@pmtool/shared-types';
 import { Avatar, Button, Card, Input, Modal, Select } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
 import { dateInputToIso, isoToDateInput } from '../../lib/date-input';
@@ -21,6 +21,8 @@ import { TaskStatusBadge } from './task-badges';
 import { AssigneesEditor } from './assignees-editor';
 import { CommentsSection } from './comments-section';
 import { TaskHistory } from './task-history';
+import { NodeTypeBadge } from '../wbs/node-type-badge';
+import { WbsDictionaryPanel } from '../wbs/wbs-dictionary-panel';
 import { DependenciesEditor } from './dependencies-editor';
 import { CreateTaskModal } from './create-task-modal';
 import { SuggestionsModal } from '../ai/suggestions-modal';
@@ -98,6 +100,8 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
   const t = useTranslations('tasks.detail');
   const tStatus = useTranslations('tasks.status');
   const tPriority = useTranslations('tasks.priority');
+  const tNodeType = useTranslations('tasks.nodeType');
+  const tNodeTypeHelp = useTranslations('tasks.nodeTypeHelp');
   const tListLabels = useTranslations('tasks.list');
   const tAi = useTranslations('ai.task');
   const router = useRouter();
@@ -158,6 +162,12 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
 
   const subtasks = (allTasks ?? []).filter((tsk) => tsk.parentTaskId === task.id);
   const parent = task.parentTaskId ? (allTasks ?? []).find((tsk) => tsk.id === task.parentTaskId) : undefined;
+  const wbsCode = computeWbsCodes(allTasks ?? []).get(task.id) ?? '';
+  // A type is offered only if it still fits under the parent and above every child.
+  const legalNodeTypes = WBS_NODE_TYPES.filter(
+    (type: WbsNodeType) =>
+      (!parent || canContain(parent.nodeType, type)) && subtasks.every((sub) => canContain(type, sub.nodeType)),
+  );
 
   return (
     <div>
@@ -210,6 +220,12 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
           )}
           {task.humanKey}
         </span>
+        {wbsCode && (
+          <span className="font-mono text-xs text-ink-muted" title="WBS">
+            WBS {wbsCode}
+          </span>
+        )}
+        <NodeTypeBadge type={task.nodeType} />
         <EditableTitle value={task.title} label={t('editTitle')} onSave={(title) => updateTask.mutate({ title })} />
         <span role="status" aria-live="polite" className="text-xs">
           {saveStatus === 'saving' && <span className="text-ink-muted">{t('saving')}</span>}
@@ -325,6 +341,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
               ))}
             </div>
           </Card>
+
+          {(task.nodeType === 'WORK_PACKAGE' || task.nodeType === 'DELIVERABLE') && (
+            <WbsDictionaryPanel orgSlug={orgSlug} projectKey={projectKey} task={task} code={wbsCode} hideOpenLink />
+          )}
 
           <Card className="p-6">
             <CommentsSection orgSlug={orgSlug} projectKey={projectKey} taskId={task.id} />
@@ -448,6 +468,25 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-subtle">
                 <div className="h-full rounded-full bg-action-primary" style={{ width: `${task.percentComplete}%` }} />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="task-node-type" className="text-sm font-semibold text-ink-secondary">
+                {t('nodeType')}
+              </label>
+              <Select
+                id="task-node-type"
+                className="mt-1"
+                value={task.nodeType}
+                onChange={(e) => updateTask.mutate({ nodeType: e.target.value as WbsNodeType })}
+              >
+                {legalNodeTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {tNodeType(type)}
+                  </option>
+                ))}
+              </Select>
+              <p className="mt-1 text-xs text-ink-muted">{tNodeTypeHelp(task.nodeType)}</p>
             </div>
 
             <div>

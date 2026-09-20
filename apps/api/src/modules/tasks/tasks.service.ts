@@ -8,9 +8,11 @@ import {
   CreateTaskInput,
   MoveTaskInput,
   UpdateTaskInput,
+  WbsNodeType,
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { toRichText } from './rich-text.util';
+import { assertRetypeFits, placeChild } from './wbs-rules';
 import { addActivityMetadata } from '../../common/context/request-context';
 import { diffTask, TaskSnapshot } from './task-changes';
 import { GamificationService } from '../gamification/gamification.service';
@@ -100,6 +102,16 @@ export class TasksService {
       throw new BadRequestException('Mốc quan trọng cần có ngày đến hạn');
     }
 
+    const parentType = input.parentTaskId
+      ? ((
+          await this.prisma.db.task.findUnique({
+            where: { id: input.parentTaskId },
+            select: { nodeType: true },
+          })
+        )?.nodeType ?? null)
+      : null;
+    const placement = placeChild(parentType, input.nodeType);
+
     const initialAssignees = toAssigneeRows(
       input.assigneeId,
       input.supporterIds,
@@ -117,12 +129,20 @@ export class TasksService {
         orderBy: { orderIndex: 'asc' },
       });
 
+      if (placement.promoteParentTo && input.parentTaskId) {
+        await tx.task.update({
+          where: { id: input.parentTaskId },
+          data: { nodeType: placement.promoteParentTo },
+        });
+      }
+
       return tx.task.create({
         data: {
           organizationId,
           projectId,
           humanKey,
           parentTaskId: input.parentTaskId,
+          nodeType: placement.nodeType,
           title: input.title,
           description: input.description
             ? toRichText(input.description)
@@ -236,6 +256,26 @@ export class TasksService {
         ? new Date(nextDueDate as Date | string)
         : undefined;
 
+    if (input.nodeType !== undefined && input.nodeType !== existing.nodeType) {
+      const [parent, children] = await Promise.all([
+        existing.parentTaskId
+          ? this.prisma.db.task.findUnique({
+              where: { id: existing.parentTaskId },
+              select: { nodeType: true },
+            })
+          : null,
+        this.prisma.db.task.findMany({
+          where: { parentTaskId: existing.id },
+          select: { nodeType: true },
+        }),
+      ]);
+      assertRetypeFits(
+        input.nodeType,
+        parent?.nodeType ?? null,
+        children.map((c) => c.nodeType),
+      );
+    }
+
     const updated = await this.prisma.db.$transaction(async (tx) => {
       if (nextAssignees) {
         await tx.taskAssignee.deleteMany({ where: { taskId } });
@@ -266,6 +306,7 @@ export class TasksService {
                 ? new Date(input.startDate)
                 : null,
           isMilestone: input.isMilestone,
+          nodeType: input.nodeType,
           dueDate:
             input.dueDate === undefined
               ? undefined
@@ -360,9 +401,26 @@ export class TasksService {
       }
     }
 
+    let movedType: WbsNodeType | undefined;
+    if (input.parentTaskId) {
+      const parent = await this.prisma.db.task.findUnique({
+        where: { id: input.parentTaskId },
+        select: { nodeType: true },
+      });
+      const placement = placeChild(parent?.nodeType ?? null, task.nodeType);
+      if (placement.promoteParentTo) {
+        await this.prisma.db.task.update({
+          where: { id: input.parentTaskId },
+          data: { nodeType: placement.promoteParentTo },
+        });
+      }
+      if (placement.nodeType !== task.nodeType) movedType = placement.nodeType;
+    }
+
     return this.prisma.db.task.update({
       where: { id: taskId },
       data: {
+        nodeType: movedType,
         parentTaskId: input.parentTaskId,
         boardColumnId: input.boardColumnId,
         orderIndex: input.orderIndex,

@@ -55,6 +55,7 @@ model User {
   telegramLinkCodes     TelegramLinkCode[]
   managedCharters       ProjectCharter[]   @relation("CharterProjectManager")
   approvedCharters      ProjectCharter[]   @relation("CharterApprover")
+  approvedScopes        ProjectScope[]     @relation("ScopeApprover")
   stakeholderProfiles   Stakeholder[]
   ownedProjectDocuments ProjectDocument[]
 
@@ -85,6 +86,8 @@ model Organization {
   userQuestProgress UserQuestProgress[]
   deliverables     Deliverable[]
   projectCharters  ProjectCharter[]
+  projectScopes    ProjectScope[]
+  wbsDictionary    WbsDictionaryEntry[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
   artifacts        Artifact[]
@@ -169,6 +172,7 @@ model Project {
   boardColumns BoardColumn[]
   risks        RiskIssue[]
   charter      ProjectCharter?
+  scope        ProjectScope?
   stakeholders Stakeholder[]
   documents    ProjectDocument[]
   artifacts    Artifact[]
@@ -225,6 +229,7 @@ model Task {
   dueDate                DateTime?
   estimateHours          Float?
   percentComplete        Int          @default(0) // 0-100, manually set — not derived from status/subtasks
+  nodeType               WbsNodeType  @default(ACTIVITY) // PMBOK role in the WBS: phase > deliverable > work package > activity
   isMilestone            Boolean      @default(false) // a zero-duration checkpoint: shows as a diamond on the Gantt and in the Milestones tab
   orderIndex             Float // fractional index for drag-reorder within a WBS level/board column
   boardColumnId          String?
@@ -241,6 +246,7 @@ model Task {
   assignees    TaskAssignee[]
   comments     Comment[]
   deliverables Deliverable[]
+  dictionary   WbsDictionaryEntry?
 
   dependenciesAsPredecessor TaskDependency[] @relation("PredecessorTask")
   dependenciesAsSuccessor   TaskDependency[] @relation("SuccessorTask")
@@ -255,6 +261,15 @@ model Task {
 /// PRIMARY = the one accountable person (at most one per task — enforced by a
 /// partial unique index in migration 20260920063000, which Prisma's schema
 /// language can't express); SUPPORT = anyone helping.
+/// PMBOK role of a task in the work breakdown structure. A child's rank must be
+/// lower than its parent's (PHASE > DELIVERABLE > WORK_PACKAGE > ACTIVITY).
+enum WbsNodeType {
+  PHASE
+  DELIVERABLE
+  WORK_PACKAGE
+  ACTIVITY
+}
+
 enum TaskAssigneeRole {
   PRIMARY
   SUPPORT
@@ -677,4 +692,55 @@ model TelegramLinkCode {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("telegram_link_codes")
+}
+
+/// PMBOK Project Scope Statement — one per project. Editing an APPROVED scope
+/// reverts it to DRAFT (same rule as ProjectCharter).
+model ProjectScope {
+  id                  String        @id @default(cuid())
+  organizationId      String
+  projectId           String        @unique
+  inScope             Json?
+  outOfScope          Json?
+  deliverablesSummary Json?
+  acceptanceCriteria  Json?
+  assumptions         Json?
+  constraints         Json?
+  status              CharterStatus @default(DRAFT)
+  approvedById        String?
+  approvedAt          DateTime?
+  createdById         String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  approvedBy   User?        @relation("ScopeApprover", fields: [approvedById], references: [id])
+
+  @@index([organizationId])
+  @@map("project_scopes")
+}
+
+/// PMBOK WBS Dictionary entry — the detail behind one WBS element (1:1 with a Task).
+model WbsDictionaryEntry {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  taskId              String   @unique
+  scopeDescription    Json?
+  acceptanceCriteria  Json?
+  assumptions         Json?
+  constraints         Json?
+  requiredResources   String?
+  qualityRequirements String?
+  technicalReferences String?
+  costEstimate        Float?
+  updatedById         String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("wbs_dictionary_entries")
 }

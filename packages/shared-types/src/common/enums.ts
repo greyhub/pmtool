@@ -105,6 +105,10 @@ export type BadgeKey = (typeof BADGE_KEYS)[number];
 export const DELIVERABLE_STATUSES = ['PLANNED', 'IN_PROGRESS', 'SUBMITTED', 'ACCEPTED', 'REJECTED'] as const;
 export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
 
+/** PMBOK role of a task in the WBS, highest level first. */
+export const WBS_NODE_TYPES = ['PHASE', 'DELIVERABLE', 'WORK_PACKAGE', 'ACTIVITY'] as const;
+export type WbsNodeType = (typeof WBS_NODE_TYPES)[number];
+
 export const TASK_ASSIGNEE_ROLES = ['PRIMARY', 'SUPPORT'] as const;
 export type TaskAssigneeRole = (typeof TASK_ASSIGNEE_ROLES)[number];
 

@@ -11,6 +11,7 @@ function makeTask(overrides: Partial<Record<string, unknown>> = {}) {
     projectId: 'proj_1',
     parentTaskId: null,
     boardColumnId: null,
+    nodeType: 'ACTIVITY',
     ...overrides,
   };
 }
@@ -100,7 +101,11 @@ describe('TasksService.move', () => {
 
   it('allows a valid re-parent + reorder', async () => {
     const t1 = makeTask({ id: 't1' });
-    const t5 = makeTask({ id: 't5', projectId: 'proj_1' });
+    const t5 = makeTask({
+      id: 't5',
+      projectId: 'proj_1',
+      nodeType: 'WORK_PACKAGE',
+    });
     prisma.db.task.findUnique.mockImplementation(
       ({ where }: { where: { id: string } }) => {
         if (where.id === 't1') return Promise.resolve(t1);
@@ -125,6 +130,39 @@ describe('TasksService.move', () => {
       where: { id: 't1' },
       data: { parentTaskId: 't5', boardColumnId: undefined, orderIndex: 250 },
     });
+  });
+
+  it('promotes an ACTIVITY parent to a work package when it receives a child', async () => {
+    const t1 = makeTask({ id: 't1' });
+    const t5 = makeTask({ id: 't5', nodeType: 'ACTIVITY' });
+    prisma.db.task.findUnique.mockImplementation(
+      ({ where }: { where: { id: string } }) =>
+        Promise.resolve(where.id === 't1' ? t1 : where.id === 't5' ? t5 : null),
+    );
+    prisma.db.task.findFirst.mockResolvedValue(null);
+    prisma.db.task.update.mockResolvedValue({ ...t1, parentTaskId: 't5' });
+
+    await service.move('org_1', 't1', { parentTaskId: 't5', orderIndex: 1 });
+
+    expect(prisma.db.task.update).toHaveBeenCalledWith({
+      where: { id: 't5' },
+      data: { nodeType: 'WORK_PACKAGE' },
+    });
+  });
+
+  it('rejects moving a phase under a work package', async () => {
+    const t1 = makeTask({ id: 't1', nodeType: 'PHASE' });
+    const t5 = makeTask({ id: 't5', nodeType: 'WORK_PACKAGE' });
+    prisma.db.task.findUnique.mockImplementation(
+      ({ where }: { where: { id: string } }) =>
+        Promise.resolve(where.id === 't1' ? t1 : where.id === 't5' ? t5 : null),
+    );
+    prisma.db.task.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.move('org_1', 't1', { parentTaskId: 't5', orderIndex: 1 }),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.db.task.update).not.toHaveBeenCalled();
   });
 
   it('throws NotFoundException when the task belongs to a different organization', async () => {

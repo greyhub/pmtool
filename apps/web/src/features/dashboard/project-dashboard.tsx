@@ -5,6 +5,7 @@ import { useProjectDashboard } from '@pmtool/api-client';
 import { TASK_STATUSES } from '@pmtool/shared-types';
 import { Card, CardContent, CardHeader, CardTitle } from '@pmtool/ui';
 import { Link } from '../../i18n/navigation';
+import { ScopeMap } from './scope-map';
 import { StatCard } from './stat-card';
 import { StatusBreakdown } from './status-breakdown';
 
@@ -49,7 +50,10 @@ export function ProjectDashboard({ orgSlug, projectKey }: { orgSlug: string; pro
                   <li key={task.id} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <span className="font-mono text-xs text-ink-muted">{task.humanKey}</span>
-                      <Link href={`/${orgSlug}/projects/${projectKey}/tasks/${task.id}`} className="text-ink-primary hover:underline">
+                      <Link
+                        href={`/${orgSlug}/projects/${projectKey}/tasks/${task.id}`}
+                        className="text-ink-primary hover:underline"
+                      >
                         {task.title}
                       </Link>
                     </span>
@@ -63,6 +67,8 @@ export function ProjectDashboard({ orgSlug, projectKey }: { orgSlug: string; pro
           </CardContent>
         </Card>
       </div>
+
+      <ScopeMap orgSlug={orgSlug} projectKey={projectKey} />
     </div>
   );
 }

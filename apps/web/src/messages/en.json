@@ -190,7 +190,9 @@
       "artifacts": "Artifact",
       "settings": "Settings",
       "milestones": "Milestones",
-      "deliverables": "Deliverables"
+      "deliverables": "Deliverables",
+      "scope": "Scope",
+      "wbs": "WBS"
     },
     "settings": {
       "title": "Project settings",
@@ -323,7 +325,8 @@
       "sendHint": "Ctrl+Enter to send",
       "navigate": "Navigate tasks",
       "prevTask": "Previous task",
-      "nextTask": "Next task"
+      "nextTask": "Next task",
+      "nodeType": "WBS level"
     },
     "history": {
       "title": "History",
@@ -348,6 +351,18 @@
         "isMilestone": "Milestone",
         "assignee": "Assignee"
       }
+    },
+    "nodeType": {
+      "PHASE": "Phase",
+      "DELIVERABLE": "Deliverable",
+      "WORK_PACKAGE": "Work package",
+      "ACTIVITY": "Activity"
+    },
+    "nodeTypeHelp": {
+      "PHASE": "Top-level management grouping of the WBS (phase, major component).",
+      "DELIVERABLE": "A verifiable product or result the project must hand over.",
+      "WORK_PACKAGE": "Lowest WBS level: the unit for estimating cost and time and assigning responsibility.",
+      "ACTIVITY": "A concrete, schedulable piece of work that belongs to a work package."
     }
   },
   "risks": {
@@ -520,7 +535,49 @@
       "openIssues": "Open issues",
       "taskBreakdown": "Tasks by status",
       "overdueTasks": "Overdue tasks",
-      "noOverdueTasks": "No overdue tasks."
+      "noOverdueTasks": "No overdue tasks.",
+      "scopeMap": {
+        "title": "PMBOK linkage map",
+        "subtitle": "Charter → Scope → WBS → Deliverables → Work packages → Activities → Milestones. Click a box to open it.",
+        "colCharter": "Charter & Scope",
+        "colPhase": "Phases",
+        "colDeliverable": "Deliverables",
+        "colWorkPackage": "Work packages",
+        "colActivity": "Activities",
+        "colMilestone": "Milestones",
+        "activitiesCount": "{count} activities",
+        "moreItems": "+{count} more",
+        "charter": "Charter",
+        "scope": "Scope",
+        "empty": "No WBS elements to draw yet.",
+        "coverageTitle": "Coverage checks",
+        "allGood": "Structure is complete: no gaps found.",
+        "legendDone": "Done",
+        "legendActive": "In progress",
+        "legendTodo": "Not started",
+        "legendGap": "Has a gap",
+        "legendDependency": "Dependency",
+        "checks": {
+          "workPackageWithoutActivity": "Work packages without activities",
+          "workPackageWithoutDictionary": "Work packages without a WBS dictionary entry",
+          "deliverableWithoutCriteria": "Deliverables without acceptance criteria",
+          "deliverableWithoutRecord": "Deliverables without a sign-off record",
+          "activityOutsideWorkPackage": "Activities not under a work package",
+          "milestoneWithoutDeliverable": "Milestones not tied to a deliverable",
+          "singleChildParent": "Parents with a single child (check the 100% rule)"
+        },
+        "checkHelp": {
+          "workPackageWithoutActivity": "A work package must be broken into activities to be scheduled.",
+          "workPackageWithoutDictionary": "Describe the package's scope in the WBS dictionary.",
+          "deliverableWithoutCriteria": "State acceptance criteria in the WBS dictionary or the deliverable record.",
+          "deliverableWithoutRecord": "Create a record in the Deliverables tab and link it to this node.",
+          "activityOutsideWorkPackage": "Place the activity under a work package.",
+          "milestoneWithoutDeliverable": "Link the milestone to the deliverable that is accepted there.",
+          "singleChildParent": "Children must add up to 100% of the parent's scope; a lone child usually means it is not decomposed yet."
+        },
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all"
+      }
     }
   },
   "settings": {
@@ -877,5 +934,53 @@
       "cancel": "Cancel",
       "genericError": "Something went wrong, please try again"
     }
+  },
+  "scope": {
+    "title": "Project scope",
+    "subtitle": "The Project Scope Statement: what is in, what is out, what is delivered and how it is accepted.",
+    "draft": "Draft",
+    "approved": "Approved",
+    "approvedBanner": "Approved by {name} on {date}. Editing reverts it to draft.",
+    "inScope": "In scope",
+    "inScopeHint": "What the project WILL do.",
+    "outOfScope": "Out of scope",
+    "outOfScopeHint": "What the project will NOT do — guards against scope creep.",
+    "deliverablesSummary": "Key deliverables",
+    "deliverablesSummaryHint": "The hand-over list; should match the Deliverable nodes in the WBS.",
+    "acceptanceCriteria": "Acceptance criteria",
+    "assumptions": "Assumptions",
+    "constraints": "Constraints",
+    "save": "Save",
+    "approve": "Approve scope"
+  },
+  "wbs": {
+    "title": "Work breakdown structure (WBS)",
+    "subtitle": "Decompose scope into Phase › Deliverable › Work package › Activity. WBS codes are generated from the order.",
+    "empty": "No work yet. Create the first phase.",
+    "addRoot": "Add phase",
+    "addChild": "Add child",
+    "addChildAs": "Add {type}",
+    "newTitle": "{type} name",
+    "create": "Create",
+    "cancel": "Cancel",
+    "selectHint": "Select a WBS element to view and edit its WBS dictionary entry.",
+    "openTask": "Open task",
+    "dictionary": "WBS dictionary",
+    "dictionaryHint": "Detail for this element: scope, acceptance criteria, resources, cost…",
+    "filled": "Described",
+    "missing": "Not described",
+    "scopeDescription": "Scope description",
+    "acceptanceCriteria": "Acceptance criteria",
+    "assumptions": "Assumptions",
+    "constraints": "Constraints",
+    "requiredResources": "Required resources",
+    "qualityRequirements": "Quality requirements",
+    "technicalReferences": "Technical references",
+    "costEstimate": "Cost estimate",
+    "save": "Save dictionary",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "legalChildren": "Can contain: {types}",
+    "leaf": "Lowest level, cannot contain children"
   }
 }

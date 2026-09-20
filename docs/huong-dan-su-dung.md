@@ -26,6 +26,7 @@ PMTool tổ chức dữ liệu theo 3 cấp: **Tổ chức** (Organization) → 
 18. [Nhân vật đồng hành](#18-nhân-vật-đồng-hành)
 19. [Mốc quan trọng (Milestone)](#19-mốc-quan-trọng-milestone)
 20. [Giao phẩm (Deliverable)](#20-giao-phẩm-deliverable)
+21. [Phạm vi, WBS và từ điển WBS (PMBOK)](#21-phạm-vi-wbs-và-từ-điển-wbs-pmbok)
 
 ---
 
@@ -148,7 +149,7 @@ Tab **Artifact** cho phép tự viết một trang HTML/CSS/JS và xem nó chạ
 ## 13. Dashboard tổng quan
 
 - **Dashboard tổ chức** (menu trái): tổng số dự án, số rủi ro/vấn đề đang mở, số công việc quá hạn trên toàn tổ chức, cùng biểu đồ phân bổ dự án/công việc theo trạng thái.
-- **Tổng quan dự án** (tab đầu tiên trong một dự án): tỉ lệ hoàn thành, số công việc/rủi ro/vấn đề đang mở của riêng dự án đó, danh sách công việc quá hạn.
+- **Tổng quan dự án** (tab đầu tiên trong một dự án): tỉ lệ hoàn thành, số công việc/rủi ro/vấn đề đang mở của riêng dự án đó, danh sách công việc quá hạn, và **Sơ đồ liên kết PMBOK** (xem mục 21).
 
 ## 14. Gamification: điểm, chuỗi ngày, huy hiệu
 
@@ -229,3 +230,33 @@ Tab **Giao phẩm** theo dõi các sản phẩm bàn giao của dự án và vi�
 - **Vòng đời**: Kế hoạch → Đang làm → **Đã nộp** → **Đã nghiệm thu** hoặc **Bị từ chối**. Thành viên (Member trở lên) tạo, sửa và bấm **Nộp**. Chỉ **PM/Admin/Owner** được **Nghiệm thu** hoặc **Từ chối** — từ chối bắt buộc nhập lý do, hiển thị ngay dưới tên giao phẩm. Bị từ chối thì làm lại rồi **Nộp** lại.
 - Hệ thống lưu ai nghiệm thu và khi nào. **Sửa nội dung** (tên, mô tả, tiêu chí, đường dẫn) của giao phẩm đã nộp/nghiệm thu/từ chối sẽ rút lại việc nộp và nghiệm thu, giao phẩm quay về "Đang làm" — vì bản nghiệm thu cũ không còn đúng với nội dung mới (giống cách Điều lệ dự án hoạt động). Đổi người phụ trách, hạn hay công việc liên quan thì không ảnh hưởng.
 - Mọi thay đổi được ghi vào dòng hoạt động của tổ chức.
+
+## 21. Phạm vi, WBS và từ điển WBS (PMBOK)
+
+PMTool áp dụng chuỗi quản lý phạm vi của PMBOK. Mỗi khái niệm có một chỗ riêng và liên kết với nhau:
+
+| Khái niệm PMBOK | Ý nghĩa | Ở đâu trong PMTool |
+|---|---|---|
+| Điều lệ dự án | Cho phép dự án tồn tại, mục tiêu cấp cao | Tab **Điều lệ** |
+| **Phạm vi dự án** (Scope Statement) | Trong/ngoài phạm vi, giao phẩm chính, tiêu chí nghiệm thu, giả định, ràng buộc | Tab **Phạm vi** |
+| **WBS** | Phân rã phạm vi theo giao phẩm: Giai đoạn › Giao phẩm › Gói công việc › Hoạt động | Tab **WBS** (và mỗi công việc có **Cấp WBS**) |
+| **Từ điển WBS** | Mô tả chi tiết từng phần tử: phạm vi, tiêu chí nghiệm thu, giả định, ràng buộc, nguồn lực, chất lượng, chi phí | Bảng bên phải tab **WBS**, và trang chi tiết của Giao phẩm/Gói công việc |
+| **Hoạt động** (Activity) | Công việc cụ thể, xếp lịch được, thuộc một gói công việc | Công việc cấp *Hoạt động*; phụ thuộc, người phụ trách, Tiến độ dùng như cũ |
+| Mốc | Cột mốc không thời lượng | Công việc đánh dấu "Là mốc" (mục 19) |
+
+**Cấp WBS và quy tắc thứ bậc.** Mỗi công việc có một cấp: *Giai đoạn > Giao phẩm > Gói công việc > Hoạt động*. Mục con phải ở cấp thấp hơn mục cha; hoạt động là mức thấp nhất. Thêm công việc con vào một hoạt động sẽ tự nâng hoạt động đó lên thành gói công việc, nên các thao tác cũ vẫn dùng bình thường. Đổi cấp không hợp lệ (ví dụ đưa gói công việc lên cao hơn cha của nó) bị từ chối kèm giải thích. Công việc có sẵn được xếp cấp tự động: công việc gốc có con là Giai đoạn, còn lại là Hoạt động — hãy chỉnh lại cho đúng cấu trúc thực tế.
+
+**Mã WBS** (1, 1.2, 1.2.3…) tự sinh theo thứ tự anh em, không lưu nên luôn đúng sau khi kéo thả sắp xếp lại.
+
+**Tab Phạm vi.** Giống Điều lệ: PM/Admin/Owner sửa và **Phê duyệt phạm vi**; sửa một bản đã duyệt sẽ đưa về Bản nháp (vì chữ ký cũ không còn đúng nội dung mới).
+
+**Tab WBS.** Cây có mã WBS và nhãn cấp; nút **+** ở mỗi dòng chỉ cho thêm các cấp hợp lệ bên dưới. Chọn một phần tử để viết/sửa từ điển WBS (thành viên trở lên được sửa).
+
+**Sơ đồ liên kết PMBOK (Tổng quan dự án).** Sơ đồ vẽ từ trái sang phải: Điều lệ → Phạm vi → Giai đoạn → Giao phẩm → Gói công việc → Hoạt động → Mốc. Ô có viền đứt màu cam là chỗ còn thiếu; ô xanh là đã hoàn thành/đã duyệt; thanh nhỏ là % hoàn thành; "✓ 1/2" là số bản ghi nghiệm thu đã duyệt trên tổng. Hoạt động được gộp thành bộ đếm — bấm **N hoạt động** (hoặc **Mở hết**) để bung ra. Bấm vào một ô để mở công việc tương ứng.
+
+**Kiểm tra độ phủ** ngay dưới sơ đồ liệt kê các khoảng trống theo PMBOK, mỗi mục có liên kết tới phần tử cần sửa:
+- gói công việc chưa có hoạt động, hoặc chưa có từ điển WBS;
+- giao phẩm chưa có tiêu chí nghiệm thu, hoặc chưa có bản ghi nghiệm thu (tab Giao phẩm);
+- hoạt động không thuộc gói công việc;
+- mốc chưa gắn giao phẩm;
+- mục cha chỉ có một mục con (gợi ý kiểm tra "quy tắc 100%": các con phải gộp lại đủ phạm vi của cha, không thừa không thiếu).

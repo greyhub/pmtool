@@ -7,6 +7,7 @@ import type {
   UpdateDeliverableInput,
 } from '@pmtool/shared-types';
 import { apiRequest } from '../http-client';
+import { scopeKeys } from './scope';
 
 function base(orgSlug: string, projectKey: string) {
   return `/api/v1/organizations/${orgSlug}/projects/${projectKey}`;
@@ -43,6 +44,7 @@ function useInvalidateDeliverables(orgSlug: string | undefined, projectKey: stri
   return () => {
     queryClient.invalidateQueries({ queryKey: deliverableKeys.list(orgSlug ?? '', projectKey ?? '') });
     queryClient.invalidateQueries({ queryKey: deliverableKeys.milestones(orgSlug ?? '', projectKey ?? '') });
+    queryClient.invalidateQueries({ queryKey: scopeKeys.map(orgSlug ?? '', projectKey ?? '') });
   };
 }
 

@@ -19,6 +19,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
 import { AiModule } from './modules/ai/ai.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { CharterModule } from './modules/charter/charter.module';
+import { ScopeModule } from './modules/scope/scope.module';
 import { StakeholdersModule } from './modules/stakeholders/stakeholders.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { DeliverablesModule } from './modules/deliverables/deliverables.module';
@@ -50,6 +51,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     AiModule,
     TelegramModule,
     CharterModule,
+    ScopeModule,
     StakeholdersModule,
     DocumentsModule,
     DeliverablesModule,
