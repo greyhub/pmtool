@@ -525,7 +525,7 @@ export function GanttChart({
             className={cn(
               'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
               zoom === level
-                ? 'bg-action-primary-bg text-ink-on-primary'
+                ? 'bg-action-primary text-ink-on-primary'
                 : 'text-ink-secondary hover:bg-surface-subtle',
             )}
           >
