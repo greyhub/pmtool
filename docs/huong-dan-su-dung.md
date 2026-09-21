@@ -345,7 +345,7 @@ Sprint là một lớp lập kế hoạch đặt **lên trên chính các công 
 
 **Quyền:** tạo/sửa/bắt đầu/đóng/xoá sprint — Owner, Admin, PM. Gán việc vào sprint và sửa điểm — mọi vai trò được sửa công việc (Member trở lên); Viewer chỉ xem.
 
-Chưa có (sẽ bổ sung): biểu đồ burndown, báo cáo review sprint, cảnh báo phình phạm vi, retrospective, tự lặp sprint.
+**Burndown:** bấm **Burndown** trên thẻ sprint đang chạy (hoặc ở mục "Sprint đã đóng") — xem mục 31. Chưa có (sẽ bổ sung): báo cáo review sprint, retrospective, tự lặp sprint.
 
 ## 26. Dự án riêng tư
 
@@ -391,3 +391,13 @@ Vào **Tổng quan → Báo cáo ngày** của một dự án.
 - **Xu hướng 14 ngày:** biểu đồ đường cho tiến độ, số việc xong, số quá hạn hoặc rủi ro mở. Dùng ‹ › hoặc chọn ngày để xem báo cáo cũ.
 - **Hôm nay** được tính trực tiếp (nhãn "Đang cập nhật") rồi chốt lúc 23:55 (nhãn "Đã chốt").
 - **Giới hạn:** hệ thống chỉ có số liệu **từ ngày tính năng bắt đầu chạy**; ngày trước đó hiện "chưa có số liệu" và không thể so sánh (không bịa số). Nếu máy chủ tắt đúng lúc 23:55, ngày đó không có bản chốt (số liệu hôm nay vẫn xem trực tiếp được). "Đến hạn nhưng chưa xong" tính theo trạng thái hiện tại, không phải lúc đó. Người có quyền xem dự án đều xem được báo cáo (kể cả Viewer).
+
+## 31. Biểu đồ burndown của sprint
+
+Biểu đồ cho thấy **khối lượng còn lại mỗi ngày** so với **đường lý tưởng** (giảm đều từ mức cam kết lúc bắt đầu về 0 vào ngày kết thúc), để biết sprint đang nhanh hay chậm hơn kế hoạch ngay giữa chừng.
+
+- **Mở:** trang Sprint → **Burndown** trên sprint đang chạy, hoặc ở "Sprint đã đóng". Ai xem được dự án đều xem được (kể cả Viewer).
+- **Đọc biểu đồ:** đường nét đứt là lý tưởng; đường vàng là thực tế còn lại; vạch đứng là hôm nay. Số **+N** ở một ngày là việc **thêm vào sprint sau khi bắt đầu** (phình phạm vi) — làm đường thực tế đi lên dù đội đã làm xong việc khác. Vòng rỗng là ngày không có số liệu (máy chủ tắt lúc chốt), lấy giá trị ngày trước.
+- **Kết luận nhanh:** *Nhanh hơn kế hoạch / Đúng kế hoạch / Chậm hơn kế hoạch* (so với đường lý tưởng hôm nay, dung sai 10% mức cam kết), cùng dự báo: với tốc độ đã làm được, cuối sprint còn khoảng bao nhiêu. Sprint quá hạn vẫn được vẽ tiếp và báo số ngày quá hạn. Sprint đã đóng hiện kết quả cuối cùng.
+- **Số liệu:** chốt lúc 23:55 mỗi đêm (giờ Việt Nam), riêng hôm nay tính trực tiếp; điểm đầu tiên ghi khi bấm **Bắt đầu sprint**, điểm cuối ghi khi đóng. Dùng đúng đơn vị của dự án (điểm hoặc giờ).
+- **Giới hạn:** đường lý tưởng tính theo **ngày lịch** (kể cả cuối tuần, chưa loại ngày nghỉ). Sprint đã chạy **trước khi có tính năng** chỉ có dữ liệu từ ngày này trở đi (ngày đầu lấy mức cam kết đã lưu).

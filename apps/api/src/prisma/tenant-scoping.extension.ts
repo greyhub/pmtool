@@ -31,6 +31,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'Notification',
   'Sprint',
   'ProjectDailySnapshot',
+  'SprintDailySnapshot',
   'Artifact',
 ]);
 

@@ -18,6 +18,7 @@ import { Badge, Button, Card, FormField, Input, Modal, Select } from '@pmtool/ui
 import { Link } from '../../i18n/navigation';
 import { usePermissions } from '../projects/use-permissions';
 import { TaskStatusBadge } from '../tasks/task-badges';
+import { BurndownModal } from './burndown-modal';
 import { velocityOf } from './velocity';
 
 const BACKLOG = '__backlog__';
@@ -173,6 +174,7 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
   const [closing, setClosing] = useState<SprintDto | null>(null);
   const [carryTo, setCarryTo] = useState(BACKLOG);
   const [error, setError] = useState<string | null>(null);
+  const [burndownOf, setBurndownOf] = useState<SprintDto | null>(null);
 
   if (!project || !tasks) return null;
   if (!enabled) {
@@ -324,6 +326,11 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                         </Button>
                       </>
                     )}
+                    {s.status === 'ACTIVE' && (
+                      <Button size="sm" variant="ghost" onClick={() => setBurndownOf(s)}>
+                        {t('burndown.open')}
+                      </Button>
+                    )}
                     {canManage && s.status === 'ACTIVE' && (
                       <Button
                         size="sm"
@@ -365,7 +372,14 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                 {closed.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-2">
                     <span className="text-ink-primary">{s.name}</span>
-                    <span className="text-xs text-ink-muted">
+                    <button
+                      type="button"
+                      onClick={() => setBurndownOf(s)}
+                      className="text-xs text-ink-secondary underline hover:text-ink-primary"
+                    >
+                      {t('burndown.open')}
+                    </button>
+                    <span className="ml-auto text-xs text-ink-muted">
                       {t('committedVsDone', {
                         committed: fmtLoad(s.committedLoad ?? 0),
                         done: fmtLoad(s.completedLoad ?? 0),
@@ -498,6 +512,14 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
           </Select>
         </FormField>
       </Modal>
+
+      <BurndownModal
+        orgSlug={orgSlug}
+        projectKey={projectKey}
+        sprintId={burndownOf?.id ?? null}
+        name={burndownOf?.name ?? ''}
+        onClose={() => setBurndownOf(null)}
+      />
     </div>
   );
 }

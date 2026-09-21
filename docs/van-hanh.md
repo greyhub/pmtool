@@ -130,7 +130,7 @@ Chạy `pnpm audit --prod` định kỳ (mỗi tuần và trước mỗi lần p
 
 ### 7.2 Tác vụ chạy nền
 
-Trong tiến trình `api` (chạy **một** bản): 23:55 giờ VN chốt báo cáo ngày cho mọi dự án; mỗi giờ phút :10 (từ 08:00) gửi thông báo báo cáo sáng; 08:00 nhắc hạn Telegram. Nếu máy chủ tắt đúng 23:55 thì ngày đó không có bản chốt (biểu đồ xu hướng thiếu một điểm); thông báo sáng thì tự bù khi máy chủ chạy lại. Kiểm tra: `docker compose ... logs api | grep "Daily snapshot"` sau nửa đêm — phải thấy dòng `Daily snapshot YYYY-MM-DD: N/N projects`. Bảng `project_daily_snapshots` nằm trong bản sao lưu thường lệ.
+Trong tiến trình `api` (chạy **một** bản): 23:55 giờ VN chốt báo cáo ngày cho mọi dự án **và điểm burndown của mọi sprint đang chạy**; mỗi giờ phút :10 (từ 08:00) gửi thông báo báo cáo sáng; 08:00 nhắc hạn Telegram. Nếu máy chủ tắt đúng 23:55 thì ngày đó không có bản chốt (biểu đồ xu hướng thiếu một điểm); thông báo sáng thì tự bù khi máy chủ chạy lại. Kiểm tra: `docker compose ... logs api | grep "Daily snapshot"` sau nửa đêm — phải thấy dòng `Daily snapshot YYYY-MM-DD: N/N projects`. Bảng `project_daily_snapshots` nằm trong bản sao lưu thường lệ.
 
 ## 8. Xử lý sự cố nhanh
 

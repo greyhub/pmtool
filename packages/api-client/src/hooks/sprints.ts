@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  BurndownDto,
   CloseSprintInput,
   CreateSprintInput,
   SprintDto,
@@ -88,5 +89,18 @@ export function useDeleteSprint(orgSlug: string | undefined, projectKey: string 
     mutationFn: (sprintId: string) =>
       apiRequest<void>(`${base(orgSlug!, projectKey!)}/${sprintId}`, { method: 'DELETE' }),
     onSuccess: () => refresh(queryClient, orgSlug ?? '', projectKey ?? ''),
+  });
+}
+
+export function useSprintBurndown(
+  orgSlug: string | undefined,
+  projectKey: string | undefined,
+  sprintId: string | undefined,
+) {
+  return useQuery({
+    // Under the sprints prefix so any sprint or task change refreshes it.
+    queryKey: [...sprintKeys.list(orgSlug ?? '', projectKey ?? ''), 'burndown', sprintId ?? ''] as const,
+    queryFn: () => apiRequest<BurndownDto>(`${base(orgSlug!, projectKey!)}/${sprintId}/burndown`),
+    enabled: Boolean(orgSlug) && Boolean(projectKey) && Boolean(sprintId),
   });
 }

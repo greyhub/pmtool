@@ -1273,6 +1273,47 @@
       "PLANNED": "Kế hoạch",
       "ACTIVE": "Đang chạy",
       "CLOSED": "Đã đóng"
+    },
+    "burndown": {
+      "open": "Burndown",
+      "title": "Burndown — {name}",
+      "close": "Đóng",
+      "loading": "Đang tải biểu đồ…",
+      "error": "Không tải được biểu đồ.",
+      "points": "điểm",
+      "hours": "giờ",
+      "status": {
+        "not_started": "Chưa bắt đầu",
+        "ahead": "Nhanh hơn kế hoạch",
+        "on_track": "Đúng kế hoạch",
+        "behind": "Chậm hơn kế hoạch",
+        "closed": "Đã đóng"
+      },
+      "verdict": {
+        "behind": "Còn nhiều hơn đường lý tưởng {value} {unit} so với hôm nay.",
+        "ahead": "Còn ít hơn đường lý tưởng {value} {unit} so với hôm nay.",
+        "onTrack": "Tiến độ bám sát đường lý tưởng.",
+        "closed": "Kết thúc: xong {done} / {planned} {unit}.",
+        "notStarted": "Sprint chưa bắt đầu."
+      },
+      "stats": {
+        "committed": "Cam kết lúc bắt đầu",
+        "done": "Đã xong",
+        "remaining": "Còn lại",
+        "scope": "Phạm vi thay đổi"
+      },
+      "chartLabel": "Biểu đồ burndown: khối lượng còn lại theo ngày so với đường lý tưởng",
+      "legend": {
+        "ideal": "Đường lý tưởng",
+        "actual": "Thực tế còn lại",
+        "estimated": "Ngày không có số liệu (lấy giá trị trước đó)",
+        "scope": "việc thêm giữa sprint"
+      },
+      "forecast": "Với tốc độ hiện tại ({rate} {unit}/ngày), cuối sprint còn khoảng {left} {unit}.",
+      "overrun": "Sprint đã quá hạn {days} ngày.",
+      "notStartedHint": "Biểu đồ xuất hiện khi sprint bắt đầu.",
+      "footnote": "Số liệu được chốt lúc 23:55 mỗi đêm (hôm nay tính trực tiếp). Đường lý tưởng giảm đều theo ngày lịch, kể cả cuối tuần. Việc thêm vào sprint sau khi bắt đầu làm đường thực tế đi lên.",
+      "today": "Hôm nay"
     }
   },
   "palette": {

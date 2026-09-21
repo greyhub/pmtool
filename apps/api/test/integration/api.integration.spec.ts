@@ -15,6 +15,7 @@ import { GoogleClient } from '../../src/modules/auth/google-client';
 import { MailService } from '../../src/modules/mail/mail.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { ReportsService } from '../../src/modules/reports/reports.service';
+import { SprintsService } from '../../src/modules/sprints/sprints.service';
 import { addDaysKey } from '../../src/modules/reports/report-math';
 import { vnDateKey } from '../../src/modules/gamification/streak-date.util';
 import { hashLinkCode } from '../../src/modules/telegram/link-code.util';
@@ -4096,5 +4097,151 @@ describe('Task list payload', () => {
         .expect(200)
     ).body.data;
     expect(detail.description).toBe('Long **rich** description');
+  });
+});
+
+describe('Sprint burndown', () => {
+  const http = () => request(app.getHttpServer());
+  const iso = (key: string) => `${key}T00:00:00.000Z`;
+
+  it('records the commitment on start, follows progress and scope changes, and keeps the outcome after closing', async () => {
+    const owner = await registerUser('Burn Owner');
+    const org = await createOrg(owner.accessToken, 'Burn Org');
+    const project = await createProject(owner.accessToken, org.slug, 'BRN');
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Burn Viewer',
+    );
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const p = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const today = vnDateKey();
+    await http().patch(p).set(auth).send({ sprintsEnabled: true }).expect(200);
+    const sprint = (
+      await http()
+        .post(`${p}/sprints`)
+        .set(auth)
+        .send({
+          name: 'S1',
+          startDate: iso(today),
+          endDate: iso(addDaysKey(today, 4)),
+        })
+        .expect(201)
+    ).body.data;
+    const later = (
+      await http()
+        .post(`${p}/sprints`)
+        .set(auth)
+        .send({
+          name: 'S2',
+          startDate: iso(addDaysKey(today, 5)),
+          endDate: iso(addDaysKey(today, 9)),
+        })
+        .expect(201)
+    ).body.data;
+    const mk = async (title: string, sprintId: string | null = sprint.id) =>
+      (
+        await http()
+          .post(`${p}/tasks`)
+          .set(auth)
+          .send({ title, storyPoints: 5, ...(sprintId ? { sprintId } : {}) })
+          .expect(201)
+      ).body.data;
+    const a = await mk('A');
+    await mk('B');
+    await mk('C');
+    const get = async (id: string, headers = auth) =>
+      (await http().get(`${p}/sprints/${id}/burndown`).set(headers).expect(200))
+        .body.data;
+
+    // Not started: nothing to plot.
+    const planned = await get(sprint.id);
+    expect(planned.pace.status).toBe('not_started');
+    expect(
+      planned.days.every(
+        (d: { remaining: number | null }) => d.remaining === null,
+      ),
+    ).toBe(true);
+
+    await http().post(`${p}/sprints/${sprint.id}/start`).set(auth).expect(200);
+    let b = await get(sprint.id);
+    expect(b).toMatchObject({
+      committed: 15,
+      planned: 15,
+      done: 0,
+      remaining: 15,
+      scopeChange: 0,
+      today,
+    });
+    expect(b.days).toHaveLength(5);
+    expect(b.days.map((d: { ideal: number }) => d.ideal)).toEqual([
+      15, 11.3, 7.5, 3.8, 0,
+    ]);
+    expect(b.days[0]).toMatchObject({ date: today, remaining: 15 });
+    expect(b.days[1].remaining).toBeNull(); // tomorrow has not happened
+
+    // Finish one task and add another mid-sprint: remaining 15 - 5 + 5 = 15, scope +5.
+    await http()
+      .patch(`${p}/tasks/${a.id}`)
+      .set(auth)
+      .send({ status: 'DONE' })
+      .expect(200);
+    await mk('D');
+    b = await get(sprint.id);
+    expect(b).toMatchObject({
+      planned: 20,
+      done: 5,
+      remaining: 15,
+      scopeChange: 5,
+    });
+
+    // The nightly job writes the same point (idempotent), and a viewer can read the chart.
+    expect(await app.get(SprintsService).snapshotActive()).toBeGreaterThan(0);
+    expect(
+      (await get(sprint.id, { Authorization: `Bearer ${viewer.accessToken}` }))
+        .remaining,
+    ).toBe(15);
+
+    // Close it, carrying unfinished work to S2: the burndown still shows how it ended.
+    await http()
+      .post(`${p}/sprints/${sprint.id}/close`)
+      .set(auth)
+      .send({ moveUnfinishedTo: later.id })
+      .expect(200);
+    const closed = await get(sprint.id);
+    expect(closed.pace.status).toBe('closed');
+    expect(closed).toMatchObject({ planned: 20, done: 5, remaining: 15 });
+    expect(closed.days[0].remaining).toBe(15); // ends the day it began: same-day close overwrote today's point
+  });
+
+  it('will not show another project’s sprint', async () => {
+    const owner = await registerUser('Burn Iso');
+    const org = await createOrg(owner.accessToken, 'Burn Iso Org');
+    const one = await createProject(owner.accessToken, org.slug, 'ONE');
+    const two = await createProject(owner.accessToken, org.slug, 'TWO');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const base = (k: string) =>
+      `${API_PREFIX}/organizations/${org.slug}/projects/${k}`;
+    await http()
+      .patch(base(one.key))
+      .set(auth)
+      .send({ sprintsEnabled: true })
+      .expect(200);
+    const s = (
+      await http()
+        .post(`${base(one.key)}/sprints`)
+        .set(auth)
+        .send({
+          name: 'S',
+          startDate: iso(vnDateKey()),
+          endDate: iso(addDaysKey(vnDateKey(), 3)),
+        })
+        .expect(201)
+    ).body.data;
+    await http()
+      .get(`${base(two.key)}/sprints/${s.id}/burndown`)
+      .set(auth)
+      .expect(404);
   });
 });

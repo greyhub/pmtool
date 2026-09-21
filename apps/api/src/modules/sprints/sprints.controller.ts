@@ -13,6 +13,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Project } from '@prisma/client';
 import {
+  BurndownDto,
   closeSprintSchema,
   CloseSprintInput,
   createSprintSchema,
@@ -76,6 +77,16 @@ export class SprintsController {
     @Body(new ZodValidationPipe(updateSprintSchema)) body: UpdateSprintInput,
   ): Promise<{ data: SprintDto }> {
     return { data: await this.sprints.update(project, sprintId, body) };
+  }
+
+  /** Anyone who can see the project can see how its sprints are going. */
+  @Get(':sprintId/burndown')
+  @ProjectEntity('sprint', 'sprintId')
+  async burndown(
+    @CurrentProject() project: Project,
+    @Param('sprintId') sprintId: string,
+  ): Promise<{ data: BurndownDto }> {
+    return { data: await this.sprints.burndown(project, sprintId) };
   }
 
   @Post(':sprintId/start')

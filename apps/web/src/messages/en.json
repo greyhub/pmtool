@@ -1273,6 +1273,47 @@
       "PLANNED": "Planned",
       "ACTIVE": "Active",
       "CLOSED": "Closed"
+    },
+    "burndown": {
+      "open": "Burndown",
+      "title": "Burndown — {name}",
+      "close": "Close",
+      "loading": "Loading chart…",
+      "error": "Could not load the chart.",
+      "points": "points",
+      "hours": "hours",
+      "status": {
+        "not_started": "Not started",
+        "ahead": "Ahead of plan",
+        "on_track": "On track",
+        "behind": "Behind plan",
+        "closed": "Closed"
+      },
+      "verdict": {
+        "behind": "{value} {unit} more left than the ideal line today.",
+        "ahead": "{value} {unit} less left than the ideal line today.",
+        "onTrack": "Tracking the ideal line closely.",
+        "closed": "Finished: {done} of {planned} {unit} done.",
+        "notStarted": "The sprint has not started."
+      },
+      "stats": {
+        "committed": "Committed at start",
+        "done": "Done",
+        "remaining": "Remaining",
+        "scope": "Scope change"
+      },
+      "chartLabel": "Burndown chart: remaining load per day against the ideal line",
+      "legend": {
+        "ideal": "Ideal line",
+        "actual": "Actual remaining",
+        "estimated": "Day without a snapshot (previous value carried over)",
+        "scope": "work added mid-sprint"
+      },
+      "forecast": "At the current pace ({rate} {unit}/day), about {left} {unit} will be left at the end of the sprint.",
+      "overrun": "The sprint is {days} days past its end date.",
+      "notStartedHint": "The chart appears once the sprint starts.",
+      "footnote": "Numbers are locked in at 23:55 each night (today is measured live). The ideal line falls evenly by calendar day, weekends included. Work added after the start pushes the actual line up.",
+      "today": "Today"
     }
   },
   "palette": {

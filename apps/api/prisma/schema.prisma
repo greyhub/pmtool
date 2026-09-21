@@ -98,6 +98,7 @@ model Organization {
   sprints          Sprint[]
   notifications    Notification[]
   dailySnapshots   ProjectDailySnapshot[]
+  sprintSnapshots  SprintDailySnapshot[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
   artifacts        Artifact[]
@@ -875,6 +876,7 @@ model Sprint {
   project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks        Task[]
 
+  dailySnapshots SprintDailySnapshot[]
   @@index([organizationId])
   @@index([projectId, status])
   @@map("sprints")
@@ -915,4 +917,24 @@ model ProjectDailySnapshot {
   @@unique([projectId, date])
   @@index([organizationId])
   @@map("project_daily_snapshots")
+}
+
+/// End-of-day state of a sprint, for the burndown chart (remaining = planned - done).
+model SprintDailySnapshot {
+  id             String   @id @default(cuid())
+  organizationId String
+  sprintId       String
+  date           DateTime @db.Date // Vietnam calendar day
+  planned        Float // total load in the sprint that day (rises when work is added mid-sprint)
+  done           Float // load of finished tasks
+  taskCount      Int
+  doneCount      Int
+  generatedAt    DateTime
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sprint       Sprint       @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+
+  @@unique([sprintId, date])
+  @@index([organizationId])
+  @@map("sprint_daily_snapshots")
 }

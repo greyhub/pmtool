@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { Prisma, Project, Sprint } from '@prisma/client';
 import {
+  BurndownDto,
   CloseSprintInput,
   CreateSprintInput,
   SprintDto,
@@ -12,6 +14,8 @@ import {
 } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { totals } from './sprint-load';
+import { vnDateKey } from '../gamification/streak-date.util';
+import { buildBurndown } from './burndown-math';
 
 const TASK_LOAD = {
   status: true,
@@ -21,6 +25,8 @@ const TASK_LOAD = {
 
 @Injectable()
 export class SprintsService {
+  private readonly logger = new Logger(SprintsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   private assertEnabled(project: Project) {
@@ -159,6 +165,8 @@ export class SprintsService {
       }
       throw err;
     }
+    // Day one of the burndown: the commitment, with nothing burned yet.
+    await this.writeSnapshot(sprint.id, project, sprint.tasks, vnDateKey());
     return this.one(project, id);
   }
 
@@ -189,6 +197,8 @@ export class SprintsService {
       .filter((t) => t.status !== 'DONE')
       .map((t) => t.id);
     const completedLoad = totals(sprint.tasks, project.estimationUnit).doneLoad;
+    // The outcome, recorded before unfinished work leaves the sprint.
+    await this.writeSnapshot(sprint.id, project, sprint.tasks, vnDateKey());
     await this.prisma.db.$transaction([
       this.prisma.db.task.updateMany({
         where: { id: { in: unfinished } },
@@ -200,6 +210,106 @@ export class SprintsService {
       }),
     ]);
     return this.one(project, id);
+  }
+
+  private async writeSnapshot(
+    sprintId: string,
+    project: Project,
+    tasks: {
+      status: string;
+      storyPoints: number | null;
+      estimateHours: number | null;
+    }[],
+    dateKey: string,
+  ): Promise<void> {
+    const t = totals(tasks, project.estimationUnit);
+    const generatedAt = new Date();
+    const date = new Date(`${dateKey}T00:00:00Z`);
+    const data = {
+      planned: t.plannedLoad,
+      done: t.doneLoad,
+      taskCount: t.taskCount,
+      doneCount: t.doneCount,
+      generatedAt,
+    };
+    await this.prisma.db.sprintDailySnapshot.upsert({
+      where: { sprintId_date: { sprintId, date } },
+      create: {
+        organizationId: project.organizationId,
+        sprintId,
+        date,
+        ...data,
+      },
+      update: data,
+    });
+  }
+
+  /** Nightly: fix today's point of every running sprint's burndown. */
+  async snapshotActive(now: Date = new Date()): Promise<number> {
+    const dateKey = vnDateKey(now);
+    const sprints = await this.prisma.db.sprint.findMany({
+      where: { status: 'ACTIVE', project: { status: { not: 'ARCHIVED' } } },
+      include: { project: true, tasks: { select: TASK_LOAD } },
+    });
+    let n = 0;
+    for (const sprint of sprints) {
+      try {
+        await this.writeSnapshot(
+          sprint.id,
+          sprint.project,
+          sprint.tasks,
+          dateKey,
+        );
+        n += 1;
+      } catch (err) {
+        this.logger.warn(
+          `Sprint snapshot failed for ${sprint.id}: ${(err as Error).message}`,
+        );
+      }
+    }
+    return n;
+  }
+
+  /** The burndown of a running or finished sprint; a running sprint's today is measured live. */
+  async burndown(project: Project, id: string): Promise<BurndownDto> {
+    const sprint = await this.prisma.db.sprint.findUniqueOrThrow({
+      where: { id },
+      include: { tasks: { select: TASK_LOAD } },
+    });
+    const todayKey = vnDateKey();
+    if (sprint.status === 'ACTIVE') {
+      await this.writeSnapshot(sprint.id, project, sprint.tasks, todayKey);
+    }
+    const rows = await this.prisma.db.sprintDailySnapshot.findMany({
+      where: { sprintId: id },
+      orderBy: { date: 'asc' },
+    });
+    const startKey = vnDateKey(sprint.startDate);
+    const endKey = vnDateKey(sprint.endDate);
+    const built = buildBurndown({
+      startKey,
+      endKey,
+      todayKey,
+      status: sprint.status,
+      committed: sprint.committedLoad,
+      closedKey: sprint.closedAt ? vnDateKey(sprint.closedAt) : null,
+      snapshots: rows.map((r) => ({
+        date: r.date.toISOString().slice(0, 10),
+        planned: r.planned,
+        done: r.done,
+      })),
+    });
+    const { endKey: _lastKey, ...rest } = built;
+    return {
+      sprintId: sprint.id,
+      name: sprint.name,
+      status: sprint.status,
+      unit: project.estimationUnit,
+      startDate: startKey,
+      endDate: endKey,
+      today: todayKey,
+      ...rest,
+    };
   }
 
   async remove(id: string): Promise<void> {
