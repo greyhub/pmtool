@@ -7,7 +7,7 @@
 //   EMAIL=... ORG=... KEY=... node infra/dogfood/seed.mjs
 //   node infra/dogfood/seed.mjs --reset          # delete the project this script made (only) and stop
 //
-// DEV DATABASE ONLY. It acts through the running API as the given user (a short-lived token signed with the dev JWT secret,
+// Dev database by default. It acts through the running API as the given user (a short-lived token signed with the dev JWT secret,
 // no password needed), so history, activity and notifications are produced by the product itself; then it corrects timestamps
 // (task completion, sprint start/close, daily snapshots) so the charts and reports show the real timeline.
 import { execFileSync } from 'node:child_process';
@@ -23,9 +23,15 @@ const EMAIL = process.env.EMAIL ?? 'grey@gmail.com';
 const ORG = process.env.ORG ?? 'dgna';
 const KEY = process.env.KEY ?? 'PMT';
 const MARK = '[dogfood-seed]';
+// Defaults target the dev database. Another target (e.g. production) is chosen only through these variables:
+//   PG_CONTAINER=pmtool-postgres-1 PG_DB=pmtool JWT_ENV_FILE=infra/.env.prod API=https://pm.dgna.vn/api/v1 EMAIL=... node infra/dogfood/seed.mjs
+const PG_CONTAINER = process.env.PG_CONTAINER ?? 'infra-postgres-1';
+const PG_USER = process.env.PG_USER ?? 'pmtool';
+const PG_DB = process.env.PG_DB ?? 'pmtool_dev';
+const JWT_ENV_FILE = path.resolve(ROOT, process.env.JWT_ENV_FILE ?? 'apps/api/.env');
 const DOCKER_ENV = { ...process.env, PATH: `/Applications/Docker.app/Contents/Resources/bin:${process.env.PATH}` };
 
-const psql = (sql) => execFileSync('docker', ['exec', 'infra-postgres-1', 'psql', '-U', 'pmtool', '-d', 'pmtool_dev', '-tA', '-v', 'ON_ERROR_STOP=1', '-c', sql], { env: DOCKER_ENV }).toString().trim();
+const psql = (sql) => execFileSync('docker', ['exec', PG_CONTAINER, 'psql', '-U', PG_USER, '-d', PG_DB, '-tA', '-v', 'ON_ERROR_STOP=1', '-c', sql], { env: DOCKER_ENV }).toString().trim();
 const lit = (v) => (v === null || v === undefined ? 'NULL' : `'${String(v).replace(/'/g, "''")}'`);
 const ts = (d) => `'${d.toISOString()}'::timestamp`;
 const day = (d) => new Date(d.getTime() + 7 * 3_600_000).toISOString().slice(0, 10); // Vietnam calendar day of an instant
@@ -33,15 +39,15 @@ const addDays = (key, n) => new Date(Date.parse(`${key}T00:00:00Z`) + n * 86_400
 
 // ---- who we act as ------------------------------------------------------------------------------------------------
 const userId = psql(`select id from users where email = ${lit(EMAIL)}`);
-if (!userId) throw new Error(`No user ${EMAIL} in the dev database.`);
+if (!userId) throw new Error(`No user ${EMAIL} in the target database.`);
 const req = createRequire(path.join(ROOT, 'apps/api/package.json'));
 const jwt = req(req.resolve('jsonwebtoken', { paths: [req.resolve('@nestjs/jwt')] }));
 // .env values may be quoted; dotenv strips the quotes, so do the same.
 const secret = /^JWT_ACCESS_SECRET=(.*)$/m
-  .exec(readFileSync(path.join(ROOT, 'apps/api/.env'), 'utf8'))?.[1]
+  .exec(readFileSync(JWT_ENV_FILE, 'utf8'))?.[1]
   ?.trim()
   .replace(/^(['"])(.*)\1$/, '$2');
-if (!secret) throw new Error('JWT_ACCESS_SECRET not found in apps/api/.env');
+if (!secret) throw new Error(`JWT_ACCESS_SECRET not found in ${JWT_ENV_FILE}`);
 const token = jwt.sign({ sub: userId, email: EMAIL }, secret, { expiresIn: '1h' });
 
 async function call(method, url, body, ok = [200, 201, 204]) {
