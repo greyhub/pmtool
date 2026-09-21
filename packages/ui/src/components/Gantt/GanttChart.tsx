@@ -234,7 +234,7 @@ function CharacterIcon({
         onBlur={() => setTip(null)}
         className={cn(
           'shrink-0 rounded-full bg-surface-subtle',
-          primary ? 'h-8 w-8 ring-2 ring-action-primary' : 'h-6 w-6 opacity-75',
+          primary ? 'h-8 w-8' : 'h-6 w-6 opacity-70',
         )}
         style={{
           backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
@@ -261,7 +261,7 @@ function CharacterIcon({
 }
 
 /**
- * The accountable person as a larger, ringed character icon, then supporters
+ * The accountable person as a larger character icon, then supporters
  * as smaller, dimmer ones — at most 2 icons in total plus a "+N" tail.
  * `roleLabels` (optional) is appended to each icon's tooltip. Exported so the
  * cell renderer used inside `columns` stays unit-testable.
