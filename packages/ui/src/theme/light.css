@@ -11,6 +11,9 @@
  */
 :root {
   --color-bg: #f9fafb; /* gray.50 */
+  --ambient-a: rgba(245, 158, 11, 0.22);
+  --ambient-b: rgba(107, 114, 128, 0.16);
+  --ambient-c: rgba(251, 191, 36, 0.14);
   --gradient-canvas:
     radial-gradient(ellipse 900px 500px at 8% -10%, rgba(245, 158, 11, 0.12), transparent 60%),
     radial-gradient(ellipse 700px 500px at 100% 0%, rgba(107, 114, 128, 0.08), transparent 55%);

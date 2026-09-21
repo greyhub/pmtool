@@ -1,5 +1,8 @@
 [data-theme='dark'] {
   --color-bg: #0a0e14; /* gray.950 */
+  --ambient-a: rgba(251, 191, 36, 0.16);
+  --ambient-b: rgba(148, 163, 184, 0.1);
+  --ambient-c: rgba(245, 158, 11, 0.1);
   --gradient-canvas:
     radial-gradient(ellipse 900px 500px at 8% -10%, rgba(251, 191, 36, 0.1), transparent 60%),
     radial-gradient(ellipse 700px 500px at 100% 0%, rgba(255, 255, 255, 0.04), transparent 55%);

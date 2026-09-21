@@ -32,6 +32,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
+        <div className="ambient-bg" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
             <QueryProvider>{children}</QueryProvider>
