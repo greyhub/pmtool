@@ -234,7 +234,7 @@ function CharacterIcon({
         onBlur={() => setTip(null)}
         className={cn(
           'shrink-0 rounded-full bg-surface-subtle',
-          primary ? 'h-6 w-6 ring-2 ring-action-primary' : 'h-4 w-4 opacity-70',
+          primary ? 'h-8 w-8 ring-2 ring-action-primary' : 'h-6 w-6 opacity-75',
         )}
         style={{
           backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
@@ -280,7 +280,7 @@ export function AssigneeIcons({
   ];
   const shown = ordered.slice(0, 2);
   return (
-    <span className="flex items-center gap-1">
+    <span className="flex items-center gap-1.5">
       {shown.map((a, i) => {
         const primary = a.role === 'PRIMARY';
         const label = roleLabels ? roleLabels[primary ? 'primary' : 'support'] : '';
@@ -440,7 +440,7 @@ export function GanttChart({
       {
         id: 'assignee',
         header: { text: labels.columnAssignee, css: 'pm-gantt-header-nowrap' },
-        width: 90,
+        width: 140,
         cell: ({ row }) => (
           <AssigneeIcons
             assignees={(row.assignees ?? []) as GanttAssignee[]}
@@ -547,6 +547,7 @@ export function GanttChart({
                 scales={SCALE_PRESETS[zoom]}
                 columns={columns}
                 gridWidth={gridWidth}
+                cellHeight={44}
                 taskTemplate={BarLabel}
                 highlightTime={ganttHighlightTime}
                 init={handleInit}
