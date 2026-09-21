@@ -19,3 +19,4 @@ export * from './hooks/stakeholders';
 export * from './hooks/documents';
 export * from './hooks/artifacts';
 export * from './hooks/deliverables';
+export * from './hooks/sprints';

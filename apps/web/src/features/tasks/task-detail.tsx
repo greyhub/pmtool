@@ -9,10 +9,18 @@ import {
   useSummarizeTask,
   useTask,
   useTasks,
+  useProject,
+  useSprints,
   useUpdateTask,
 } from '@pmtool/api-client';
 import type { TaskSuggestionDto, WbsNodeType } from '@pmtool/shared-types';
-import { canContain, computeWbsCodes, TASK_PRIORITIES, TASK_STATUSES, WBS_NODE_TYPES } from '@pmtool/shared-types';
+import {
+  canContain,
+  computeWbsCodes,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  WBS_NODE_TYPES,
+} from '@pmtool/shared-types';
 import { Avatar, Button, Card, Input, Modal, Select } from '@pmtool/ui';
 import { Link, useRouter } from '../../i18n/navigation';
 import { dateInputToIso, isoToDateInput } from '../../lib/date-input';
@@ -30,7 +38,11 @@ import { SuggestionsModal } from '../ai/suggestions-modal';
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 /** Turns a mutation's lifecycle into a visible "saving / saved / failed" state — edits here save on their own, so silence reads as "did it work?". */
-function useSaveStatus(m: { isPending: boolean; isSuccess: boolean; isError: boolean }): SaveStatus {
+function useSaveStatus(m: {
+  isPending: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+}): SaveStatus {
   const [showSaved, setShowSaved] = useState(false);
   const wasPending = useRef(false);
   useEffect(() => {
@@ -51,7 +63,15 @@ function useSaveStatus(m: { isPending: boolean; isSuccess: boolean; isError: boo
   return showSaved ? 'saved' : 'idle';
 }
 
-function EditableTitle({ value, label, onSave }: { value: string; label: string; onSave: (title: string) => void }) {
+function EditableTitle({
+  value,
+  label,
+  onSave,
+}: {
+  value: string;
+  label: string;
+  onSave: (title: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
@@ -96,7 +116,15 @@ function EditableTitle({ value, label, onSave }: { value: string; label: string;
   );
 }
 
-export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; projectKey: string; taskId: string }) {
+export function TaskDetail({
+  orgSlug,
+  projectKey,
+  taskId,
+}: {
+  orgSlug: string;
+  projectKey: string;
+  taskId: string;
+}) {
   const t = useTranslations('tasks.detail');
   const tStatus = useTranslations('tasks.status');
   const tPriority = useTranslations('tasks.priority');
@@ -109,6 +137,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
   const { data: task } = useTask(orgSlug, projectKey, taskId);
   const { data: allTasks } = useTasks(orgSlug, projectKey);
   const updateTask = useUpdateTask(orgSlug, projectKey, taskId);
+  const { data: project } = useProject(orgSlug, projectKey);
+  const sprintsOn = Boolean(project?.sprintsEnabled);
+  const { data: sprints } = useSprints(orgSlug, projectKey, sprintsOn);
+  const tSprint = useTranslations('sprints');
   const deleteTask = useDeleteTask(orgSlug, projectKey);
   const summarizeTask = useSummarizeTask(orgSlug, projectKey);
   const suggestSubtasks = useSuggestSubtasks(orgSlug, projectKey);
@@ -148,7 +180,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
       const el = e.target as HTMLElement | null;
       if (
         el &&
-        (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)
+        (el.tagName === 'INPUT' ||
+          el.tagName === 'TEXTAREA' ||
+          el.tagName === 'SELECT' ||
+          el.isContentEditable)
       )
         return;
       if (e.key === 'j' && nextHref) router.push(nextHref);
@@ -161,18 +196,24 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
   if (!task) return null;
 
   const subtasks = (allTasks ?? []).filter((tsk) => tsk.parentTaskId === task.id);
-  const parent = task.parentTaskId ? (allTasks ?? []).find((tsk) => tsk.id === task.parentTaskId) : undefined;
+  const parent = task.parentTaskId
+    ? (allTasks ?? []).find((tsk) => tsk.id === task.parentTaskId)
+    : undefined;
   const wbsCode = computeWbsCodes(allTasks ?? []).get(task.id) ?? '';
   // A type is offered only if it still fits under the parent and above every child.
   const legalNodeTypes = WBS_NODE_TYPES.filter(
     (type: WbsNodeType) =>
-      (!parent || canContain(parent.nodeType, type)) && subtasks.every((sub) => canContain(type, sub.nodeType)),
+      (!parent || canContain(parent.nodeType, type)) &&
+      subtasks.every((sub) => canContain(type, sub.nodeType)),
   );
 
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <Link href={`/${orgSlug}/projects/${projectKey}/tasks`} className="text-sm text-ink-secondary hover:underline">
+        <Link
+          href={`/${orgSlug}/projects/${projectKey}/tasks`}
+          className="text-sm text-ink-secondary hover:underline"
+        >
           ← {t('backToList')}
         </Link>
         <nav aria-label={t('navigate')} className="flex items-center gap-1 text-sm">
@@ -205,7 +246,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
 
       {parent && (
         <p className="mt-2 text-xs text-ink-muted">
-          <Link href={`/${orgSlug}/projects/${projectKey}/tasks/${parent.id}`} className="hover:underline">
+          <Link
+            href={`/${orgSlug}/projects/${projectKey}/tasks/${parent.id}`}
+            className="hover:underline"
+          >
             {parent.humanKey} — {parent.title}
           </Link>
         </p>
@@ -226,7 +270,11 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
           </span>
         )}
         <NodeTypeBadge type={task.nodeType} />
-        <EditableTitle value={task.title} label={t('editTitle')} onSave={(title) => updateTask.mutate({ title })} />
+        <EditableTitle
+          value={task.title}
+          label={t('editTitle')}
+          onSave={(title) => updateTask.mutate({ title })}
+        />
         <span role="status" aria-live="polite" className="text-xs">
           {saveStatus === 'saving' && <span className="text-ink-muted">{t('saving')}</span>}
           {saveStatus === 'saved' && <span className="text-success">✓ {t('saved')}</span>}
@@ -267,12 +315,16 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
             />
             {summarizeTask.isError && (
               <p role="alert" className="mt-2 text-sm text-danger">
-                {summarizeTask.error instanceof ApiError ? summarizeTask.error.message : 'Có lỗi xảy ra'}
+                {summarizeTask.error instanceof ApiError
+                  ? summarizeTask.error.message
+                  : 'Có lỗi xảy ra'}
               </p>
             )}
             {summarizeTask.data && (
               <div className="mt-2 rounded-md bg-surface-subtle p-3 text-sm text-ink-secondary">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-muted">{tAi('summaryLabel')}</p>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-muted">
+                  {tAi('summaryLabel')}
+                </p>
                 {summarizeTask.data.summary}
               </div>
             )}
@@ -302,18 +354,27 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
                 >
                   {tAi('suggestSubtasks')}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setAddingSubtask(true)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setAddingSubtask(true)}
+                >
                   {tListLabels('addSubtask')}
                 </Button>
               </div>
             </div>
             {suggestSubtasks.isError && (
               <p role="alert" className="mt-2 text-sm text-danger">
-                {suggestSubtasks.error instanceof ApiError ? suggestSubtasks.error.message : 'Có lỗi xảy ra'}
+                {suggestSubtasks.error instanceof ApiError
+                  ? suggestSubtasks.error.message
+                  : 'Có lỗi xảy ra'}
               </p>
             )}
             <div className="mt-2 flex flex-col">
-              {subtasks.length === 0 && <p className="py-2 text-sm text-ink-muted">{tListLabels('empty')}</p>}
+              {subtasks.length === 0 && (
+                <p className="py-2 text-sm text-ink-muted">{tListLabels('empty')}</p>
+              )}
               {subtasks.map((sub) => (
                 <Link
                   key={sub.id}
@@ -343,7 +404,13 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
           </Card>
 
           {(task.nodeType === 'WORK_PACKAGE' || task.nodeType === 'DELIVERABLE') && (
-            <WbsDictionaryPanel orgSlug={orgSlug} projectKey={projectKey} task={task} code={wbsCode} hideOpenLink />
+            <WbsDictionaryPanel
+              orgSlug={orgSlug}
+              projectKey={projectKey}
+              task={task}
+              code={wbsCode}
+              hideOpenLink
+            />
           )}
 
           <Card className="p-6">
@@ -364,7 +431,9 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
                 <Select
                   className="mt-2"
                   value={task.status}
-                  onChange={(e) => updateTask.mutate({ status: e.target.value as (typeof TASK_STATUSES)[number] })}
+                  onChange={(e) =>
+                    updateTask.mutate({ status: e.target.value as (typeof TASK_STATUSES)[number] })
+                  }
                 >
                   {TASK_STATUSES.map((s) => (
                     <option key={s} value={s}>
@@ -431,7 +500,8 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
                       const next = e.target.value;
                       setDueDate(next);
                       if (task.isMilestone && !next) return;
-                      if (next && startDate && !task.isMilestone && startDate > next) return setDateError(true);
+                      if (next && startDate && !task.isMilestone && startDate > next)
+                        return setDateError(true);
                       setDateError(false);
                       updateTask.mutate({ dueDate: next ? dateInputToIso(next) : null });
                     }}
@@ -455,7 +525,10 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
                   value={percentComplete}
                   onChange={(e) => setPercentComplete(e.target.value)}
                   onBlur={() => {
-                    const clamped = Math.min(100, Math.max(0, Math.round(Number(percentComplete) || 0)));
+                    const clamped = Math.min(
+                      100,
+                      Math.max(0, Math.round(Number(percentComplete) || 0)),
+                    );
                     if (clamped !== task.percentComplete) {
                       updateTask.mutate({ percentComplete: clamped });
                     }
@@ -466,9 +539,54 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
                 <span className="text-sm text-ink-secondary">%</span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-subtle">
-                <div className="h-full rounded-full bg-action-primary" style={{ width: `${task.percentComplete}%` }} />
+                <div
+                  className="h-full rounded-full bg-action-primary"
+                  style={{ width: `${task.percentComplete}%` }}
+                />
               </div>
             </div>
+
+            {sprintsOn && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="task-sprint" className="text-sm font-semibold text-ink-secondary">
+                    {tSprint('sprint')}
+                  </label>
+                  <Select
+                    id="task-sprint"
+                    className="mt-1"
+                    value={task.sprintId ?? ''}
+                    onChange={(e) => updateTask.mutate({ sprintId: e.target.value || null })}
+                  >
+                    <option value="">{tSprint('backlog')}</option>
+                    {(sprints ?? [])
+                      .filter((s) => s.status !== 'CLOSED' || s.id === task.sprintId)
+                      .map((s) => (
+                        <option key={s.id} value={s.id} disabled={s.status === 'CLOSED'}>
+                          {s.name}
+                        </option>
+                      ))}
+                  </Select>
+                </div>
+                <div>
+                  <label htmlFor="task-points" className="text-sm font-semibold text-ink-secondary">
+                    {tSprint('storyPoints')}
+                  </label>
+                  <Input
+                    id="task-points"
+                    type="number"
+                    min={0}
+                    className="mt-1"
+                    key={task.storyPoints ?? 'none'}
+                    defaultValue={task.storyPoints ?? ''}
+                    onBlur={(e) => {
+                      const v = e.target.value === '' ? null : Number(e.target.value);
+                      if (v !== task.storyPoints) updateTask.mutate({ storyPoints: v });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             <div>
               <label htmlFor="task-node-type" className="text-sm font-semibold text-ink-secondary">
@@ -501,16 +619,24 @@ export function TaskDetail({ orgSlug, projectKey, taskId }: { orgSlug: string; p
                 {t('isMilestone')}
               </label>
               <p className="mt-1 text-xs text-ink-muted">
-                {!task.isMilestone && !task.dueDate ? t('isMilestoneNeedsDue') : t('isMilestoneHint')}
+                {!task.isMilestone && !task.dueDate
+                  ? t('isMilestoneNeedsDue')
+                  : t('isMilestoneHint')}
               </p>
               {updateTask.isError && (
                 <p role="alert" className="mt-1 text-xs text-danger">
-                  {updateTask.error instanceof ApiError ? updateTask.error.message : 'Có lỗi xảy ra'}
+                  {updateTask.error instanceof ApiError
+                    ? updateTask.error.message
+                    : 'Có lỗi xảy ra'}
                 </p>
               )}
             </div>
 
-            <AssigneesEditor orgSlug={orgSlug} task={task} onChange={(change) => updateTask.mutate(change)} />
+            <AssigneesEditor
+              orgSlug={orgSlug}
+              task={task}
+              onChange={(change) => updateTask.mutate(change)}
+            />
           </Card>
 
           <Card className="p-6">

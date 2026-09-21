@@ -213,6 +213,8 @@ export class ProjectsService {
         name: input.name,
         description: input.description,
         status: input.status,
+        sprintsEnabled: input.sprintsEnabled,
+        estimationUnit: input.estimationUnit,
         startDate:
           input.startDate === undefined
             ? undefined

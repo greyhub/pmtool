@@ -261,7 +261,8 @@
       "deliverables": "Deliverables",
       "scope": "Scope",
       "wbs": "WBS",
-      "viewerNotice": "You have view-only access to this project. Ask a PM or admin if you need to edit."
+      "viewerNotice": "You have view-only access to this project. Ask a PM or admin if you need to edit.",
+      "sprints": "Sprints"
     },
     "settings": {
       "title": "Project settings",
@@ -290,6 +291,15 @@
         "removeHint": "Removing an override reverts the member to their default org role — it does not revoke project access.",
         "empty": "No project role overrides yet — everyone is using their org role.",
         "actionError": "Something went wrong, please try again"
+      },
+      "sprints": {
+        "title": "Sprints",
+        "subtitle": "Turn on to plan in short iterations (Scrum): backlog, sprints, story points.",
+        "enable": "Work in sprints",
+        "unit": "Estimation unit",
+        "unitHint": "Story points (relative) or hours (uses the existing hour estimate).",
+        "points": "Story points",
+        "hours": "Hours"
       }
     }
   },
@@ -1202,6 +1212,49 @@
     "roles": {
       "PRIMARY": "Owner",
       "SUPPORT": "Support"
+    }
+  },
+  "sprints": {
+    "title": "Sprints",
+    "subtitle": "Plan in short iterations. Load is measured in {unit}.",
+    "disabled": "Sprints are not enabled for this project.",
+    "goSettings": "Enable in project settings",
+    "sprint": "Sprint",
+    "backlog": "Backlog",
+    "storyPoints": "Points",
+    "points": "points",
+    "hours": "hours",
+    "moveTo": "Move \"{title}\" to sprint",
+    "create": "New sprint",
+    "createSubmit": "Create",
+    "cancel": "Cancel",
+    "name": "Sprint name",
+    "goal": "Sprint goal",
+    "startDate": "Start",
+    "endDate": "End",
+    "start": "Start sprint",
+    "close": "Close sprint",
+    "delete": "Delete",
+    "closeTitle": "Close {name}",
+    "closeSummary": "{done} of {total} items done. Unfinished items will be moved.",
+    "carryOver": "Move unfinished items to",
+    "closeSubmit": "Close sprint",
+    "backlogTotal": "{count} items · {load} {unit}",
+    "backlogEmpty": "Backlog is empty — everything is in a sprint or done.",
+    "noSprints": "No sprints yet. Create the first one, then drag items in from the backlog.",
+    "sprintEmpty": "Drag items here from the backlog.",
+    "loadLine": "Planned {planned} · done {done} {unit}",
+    "velocityLine": "avg velocity {value} {unit}",
+    "velocity": "Average velocity of recent sprints",
+    "overCapacity": "Over capacity",
+    "history": "Closed sprints",
+    "committedVsDone": "committed {committed} → done {done} {unit}",
+    "boardOnlyActive": "Only show items of {name}",
+    "genericError": "Could not complete that, try again.",
+    "status": {
+      "PLANNED": "Planned",
+      "ACTIVE": "Active",
+      "CLOSED": "Closed"
     }
   }
 }

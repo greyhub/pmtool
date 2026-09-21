@@ -56,6 +56,8 @@ export function useTaskHistory(orgSlug: string | undefined, projectKey: string |
 
 function invalidateProjectTasks(queryClient: ReturnType<typeof useQueryClient>, orgSlug: string, projectKey: string) {
   queryClient.invalidateQueries({ queryKey: ['organizations', orgSlug, 'projects', projectKey, 'tasks'] });
+  // Sprint load totals are derived from tasks.
+  queryClient.invalidateQueries({ queryKey: ['organizations', orgSlug, 'projects', projectKey, 'sprints'] });
 }
 
 export function useCreateTask(orgSlug: string | undefined, projectKey: string | undefined) {

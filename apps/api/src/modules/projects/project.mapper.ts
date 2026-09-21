@@ -11,6 +11,8 @@ export function toProjectDto(project: Project): ProjectDto {
     status: project.status,
     startDate: project.startDate?.toISOString() ?? null,
     targetEndDate: project.targetEndDate?.toISOString() ?? null,
+    sprintsEnabled: project.sprintsEnabled,
+    estimationUnit: project.estimationUnit,
     createdById: project.createdById,
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString(),

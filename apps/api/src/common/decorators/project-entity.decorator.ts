@@ -7,6 +7,7 @@ export interface ProjectEntityMeta {
   model:
     | 'riskIssue'
     | 'projectDocument'
+    | 'sprint'
     | 'stakeholder'
     | 'artifact'
     | 'task'

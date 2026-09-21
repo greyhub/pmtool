@@ -26,6 +26,8 @@ export function toTaskDto(task: TaskWithRelations): TaskDto {
     percentComplete: task.percentComplete,
     isMilestone: task.isMilestone,
     nodeType: task.nodeType,
+    storyPoints: task.storyPoints,
+    sprintId: task.sprintId,
     orderIndex: task.orderIndex,
     boardColumnId: task.boardColumnId,
     createdById: task.createdById,

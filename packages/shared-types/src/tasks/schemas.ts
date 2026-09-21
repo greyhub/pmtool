@@ -11,6 +11,9 @@ export const createTaskSchema = z.object({
   estimateHours: z.number().min(0).max(10_000).optional(),
   /** A zero-duration checkpoint; requires dueDate, and startDate is forced equal to it. */
   isMilestone: z.boolean().optional(),
+  /** Relative size for sprint planning. */
+  storyPoints: z.number().int().min(0).max(1000).optional(),
+  sprintId: z.string().optional(),
   /** PMBOK role in the WBS; defaults to the legal level under the parent. */
   nodeType: z.enum(WBS_NODE_TYPES).optional(),
   /** The one accountable person; everyone else helping goes in supporterIds. */
@@ -30,6 +33,9 @@ export const updateTaskSchema = z.object({
   percentComplete: z.number().int().min(0).max(100).optional(),
   isMilestone: z.boolean().optional(),
   nodeType: z.enum(WBS_NODE_TYPES).optional(),
+  storyPoints: z.number().int().min(0).max(1000).nullable().optional(),
+  /** null moves the task back to the backlog. */
+  sprintId: z.string().nullable().optional(),
   /** null clears the primary assignee; omitted leaves it unchanged. */
   assigneeId: z.string().nullable().optional(),
   /** Replaces the supporter list when present. */
@@ -68,6 +74,8 @@ export const taskSchema = z.object({
   percentComplete: z.number(),
   isMilestone: z.boolean(),
   nodeType: z.enum(WBS_NODE_TYPES),
+  storyPoints: z.number().nullable(),
+  sprintId: z.string().nullable(),
   orderIndex: z.number(),
   boardColumnId: z.string().nullable(),
   createdById: z.string(),

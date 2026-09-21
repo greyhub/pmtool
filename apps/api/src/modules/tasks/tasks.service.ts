@@ -115,6 +115,7 @@ export class TasksService {
         )?.nodeType ?? null)
       : null;
     const placement = placeChild(parentType, input.nodeType);
+    await this.assertSprintUsable(organizationId, projectId, input.sprintId);
 
     const initialAssignees = toAssigneeRows(
       input.assigneeId,
@@ -168,6 +169,8 @@ export class TasksService {
           dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
           isMilestone: input.isMilestone,
           estimateHours: input.estimateHours,
+          storyPoints: input.storyPoints,
+          sprintId: input.sprintId,
           orderIndex: Date.now(),
           boardColumnId: firstColumn?.id,
           createdById,
@@ -244,6 +247,11 @@ export class TasksService {
     actingUserId: string,
   ) {
     const existing = await this.findByIdOrThrow(organizationId, taskId);
+    await this.assertSprintUsable(
+      organizationId,
+      existing.projectId,
+      input.sprintId,
+    );
 
     // Either field present means "rewrite the assignment"; whichever half
     // wasn't sent keeps its current value.
@@ -343,6 +351,8 @@ export class TasksService {
           telegramReminderSentAt:
             input.dueDate === undefined ? undefined : null,
           estimateHours: input.estimateHours,
+          storyPoints: input.storyPoints,
+          sprintId: input.sprintId,
           percentComplete: input.percentComplete,
         },
         include: TASK_INCLUDE,
@@ -468,6 +478,31 @@ export class TasksService {
         orderIndex: input.orderIndex,
       },
     });
+  }
+
+  /** A sprint may only be used from its own project, and a closed sprint takes no more work. */
+  private async assertSprintUsable(
+    organizationId: string,
+    projectId: string,
+    sprintId: string | null | undefined,
+  ): Promise<void> {
+    if (!sprintId) return;
+    const sprint = await this.prisma.db.sprint.findUnique({
+      where: { id: sprintId },
+      select: { organizationId: true, projectId: true, status: true },
+    });
+    if (
+      !sprint ||
+      sprint.organizationId !== organizationId ||
+      sprint.projectId !== projectId
+    ) {
+      throw new BadRequestException('Sprint không thuộc dự án này');
+    }
+    if (sprint.status === 'CLOSED') {
+      throw new BadRequestException(
+        'Sprint đã đóng, không thể thêm công việc vào',
+      );
+    }
   }
 
   private async assertTaskInProject(

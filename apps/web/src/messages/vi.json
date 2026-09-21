@@ -261,7 +261,8 @@
       "deliverables": "Giao phẩm",
       "scope": "Phạm vi",
       "wbs": "WBS",
-      "viewerNotice": "Bạn chỉ có quyền xem trong dự án này. Liên hệ PM hoặc quản trị viên nếu cần chỉnh sửa."
+      "viewerNotice": "Bạn chỉ có quyền xem trong dự án này. Liên hệ PM hoặc quản trị viên nếu cần chỉnh sửa.",
+      "sprints": "Sprint"
     },
     "settings": {
       "title": "Cài đặt dự án",
@@ -290,6 +291,15 @@
         "removeHint": "Xoá vai trò riêng sẽ đưa thành viên về vai trò mặc định theo tổ chức, không xoá quyền truy cập dự án.",
         "empty": "Chưa có thành viên nào có vai trò riêng — mọi người đang dùng vai trò tổ chức của họ.",
         "actionError": "Có lỗi xảy ra, vui lòng thử lại"
+      },
+      "sprints": {
+        "title": "Sprint",
+        "subtitle": "Bật để lập kế hoạch theo vòng lặp ngắn (Scrum): backlog, sprint, điểm công việc.",
+        "enable": "Làm việc theo sprint",
+        "unit": "Đơn vị ước lượng",
+        "unitHint": "Điểm câu chuyện (tương đối) hoặc giờ (dùng ước tính giờ sẵn có).",
+        "points": "Điểm (story points)",
+        "hours": "Giờ"
       }
     }
   },
@@ -1202,6 +1212,49 @@
     "roles": {
       "PRIMARY": "Phụ trách",
       "SUPPORT": "Hỗ trợ"
+    }
+  },
+  "sprints": {
+    "title": "Sprint",
+    "subtitle": "Lập kế hoạch theo vòng lặp ngắn. Khối lượng tính bằng {unit}.",
+    "disabled": "Dự án này chưa bật chế độ sprint.",
+    "goSettings": "Bật trong Cài đặt dự án",
+    "sprint": "Sprint",
+    "backlog": "Backlog",
+    "storyPoints": "Điểm",
+    "points": "điểm",
+    "hours": "giờ",
+    "moveTo": "Chuyển \"{title}\" tới sprint",
+    "create": "Tạo sprint",
+    "createSubmit": "Tạo",
+    "cancel": "Hủy",
+    "name": "Tên sprint",
+    "goal": "Mục tiêu sprint",
+    "startDate": "Bắt đầu",
+    "endDate": "Kết thúc",
+    "start": "Bắt đầu sprint",
+    "close": "Đóng sprint",
+    "delete": "Xoá",
+    "closeTitle": "Đóng {name}",
+    "closeSummary": "Hoàn thành {done}/{total} việc. Việc chưa xong sẽ được chuyển đi.",
+    "carryOver": "Việc chưa xong chuyển tới",
+    "closeSubmit": "Đóng sprint",
+    "backlogTotal": "{count} việc · {load} {unit}",
+    "backlogEmpty": "Backlog trống — mọi việc đã vào sprint hoặc hoàn thành.",
+    "noSprints": "Chưa có sprint nào. Tạo sprint đầu tiên rồi kéo việc từ backlog vào.",
+    "sprintEmpty": "Kéo việc từ backlog vào đây.",
+    "loadLine": "Kế hoạch {planned} · xong {done} {unit}",
+    "velocityLine": "tốc độ TB {value} {unit}",
+    "velocity": "Tốc độ trung bình các sprint gần nhất",
+    "overCapacity": "Vượt sức chứa",
+    "history": "Sprint đã đóng",
+    "committedVsDone": "cam kết {committed} → xong {done} {unit}",
+    "boardOnlyActive": "Chỉ hiện việc của {name}",
+    "genericError": "Không thực hiện được, thử lại.",
+    "status": {
+      "PLANNED": "Kế hoạch",
+      "ACTIVE": "Đang chạy",
+      "CLOSED": "Đã đóng"
     }
   }
 }

@@ -3397,3 +3397,208 @@ describe('Artifacts', () => {
     expect(detail.body.data.htmlContent).toBe('<h1 id="hello">Xin chào</h1>');
   });
 });
+
+describe('Sprints', () => {
+  it('runs the sprint lifecycle: gate, sizing, one active sprint, snapshot on start/close, carry-over, roles', async () => {
+    const owner = await registerUser('Sprint Owner');
+    const org = await createOrg(owner.accessToken, 'Sprint Org');
+    const project = await createProject(owner.accessToken, org.slug, 'SPR');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Sprint Member',
+    );
+    const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
+    const p = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const dates = {
+      startDate: '2026-10-01T00:00:00.000Z',
+      endDate: '2026-10-14T00:00:00.000Z',
+    };
+
+    // Off by default: creating a sprint is refused until the project opts in.
+    await request(app.getHttpServer())
+      .post(`${p}/sprints`)
+      .set(auth(owner.accessToken))
+      .send({ name: 'S1', ...dates })
+      .expect(409);
+    await request(app.getHttpServer())
+      .patch(p)
+      .set(auth(owner.accessToken))
+      .send({ sprintsEnabled: true })
+      .expect(200);
+
+    // Only managers plan sprints.
+    await request(app.getHttpServer())
+      .post(`${p}/sprints`)
+      .set(auth(member.accessToken))
+      .send({ name: 'Nope', ...dates })
+      .expect(403);
+    await request(app.getHttpServer())
+      .post(`${p}/sprints`)
+      .set(auth(owner.accessToken))
+      .send({
+        name: 'Bad',
+        startDate: '2026-10-14T00:00:00.000Z',
+        endDate: '2026-10-01T00:00:00.000Z',
+      })
+      .expect(400);
+
+    const s1 = (
+      await request(app.getHttpServer())
+        .post(`${p}/sprints`)
+        .set(auth(owner.accessToken))
+        .send({ name: 'S1', goal: 'Ship it', ...dates })
+        .expect(201)
+    ).body.data;
+    const s2 = (
+      await request(app.getHttpServer())
+        .post(`${p}/sprints`)
+        .set(auth(owner.accessToken))
+        .send({
+          name: 'S2',
+          startDate: '2026-10-15T00:00:00.000Z',
+          endDate: '2026-10-28T00:00:00.000Z',
+        })
+        .expect(201)
+    ).body.data;
+    expect(s1.status).toBe('PLANNED');
+
+    const mk = async (
+      title: string,
+      storyPoints: number | null,
+      sprintId: string | null,
+    ) =>
+      (
+        await request(app.getHttpServer())
+          .post(`${p}/tasks`)
+          .set(auth(member.accessToken))
+          .send({
+            title,
+            ...(storyPoints ? { storyPoints } : {}),
+            ...(sprintId ? { sprintId } : {}),
+          })
+          .expect(201)
+      ).body.data;
+    const a = await mk('A', 5, s1.id);
+    const b = await mk('B', 3, s1.id);
+    await mk('Backlog item', 8, null);
+
+    const list = (
+      await request(app.getHttpServer())
+        .get(`${p}/sprints`)
+        .set(auth(member.accessToken))
+        .expect(200)
+    ).body.data;
+    expect(list.find((s: { id: string }) => s.id === s1.id)).toMatchObject({
+      plannedLoad: 8,
+      taskCount: 2,
+      doneLoad: 0,
+    });
+
+    // Start snapshots the commitment; a second active sprint is refused.
+    const started = (
+      await request(app.getHttpServer())
+        .post(`${p}/sprints/${s1.id}/start`)
+        .set(auth(owner.accessToken))
+        .expect(200)
+    ).body.data;
+    expect(started).toMatchObject({ status: 'ACTIVE', committedLoad: 8 });
+    await request(app.getHttpServer())
+      .post(`${p}/sprints/${s2.id}/start`)
+      .set(auth(owner.accessToken))
+      .expect(409);
+    await request(app.getHttpServer())
+      .delete(`${p}/sprints/${s1.id}`)
+      .set(auth(owner.accessToken))
+      .expect(409);
+
+    // Finish A, then close carrying B over to S2.
+    await request(app.getHttpServer())
+      .patch(`${p}/tasks/${a.id}`)
+      .set(auth(member.accessToken))
+      .send({ status: 'DONE' })
+      .expect(200);
+    const closed = (
+      await request(app.getHttpServer())
+        .post(`${p}/sprints/${s1.id}/close`)
+        .set(auth(owner.accessToken))
+        .send({ moveUnfinishedTo: s2.id })
+        .expect(200)
+    ).body.data;
+    expect(closed).toMatchObject({
+      status: 'CLOSED',
+      committedLoad: 8,
+      completedLoad: 5,
+    });
+    const moved = (
+      await request(app.getHttpServer())
+        .get(`${p}/tasks/${b.id}`)
+        .set(auth(member.accessToken))
+        .expect(200)
+    ).body.data;
+    expect(moved.sprintId).toBe(s2.id);
+
+    // A closed sprint takes no more work and cannot be edited.
+    await request(app.getHttpServer())
+      .post(`${p}/tasks`)
+      .set(auth(member.accessToken))
+      .send({ title: 'Late', sprintId: s1.id })
+      .expect(400);
+    await request(app.getHttpServer())
+      .patch(`${p}/sprints/${s1.id}`)
+      .set(auth(owner.accessToken))
+      .send({ name: 'x' })
+      .expect(409);
+
+    // Deleting a planned sprint returns its tasks to the backlog.
+    await request(app.getHttpServer())
+      .delete(`${p}/sprints/${s2.id}`)
+      .set(auth(owner.accessToken))
+      .expect(204);
+    const back = (
+      await request(app.getHttpServer())
+        .get(`${p}/tasks/${b.id}`)
+        .set(auth(member.accessToken))
+        .expect(200)
+    ).body.data;
+    expect(back.sprintId).toBeNull();
+  });
+
+  it('does not let a sprint of one project or org be addressed through another', async () => {
+    const owner = await registerUser('Sprint Iso');
+    const org = await createOrg(owner.accessToken, 'Sprint Iso Org');
+    const one = await createProject(owner.accessToken, org.slug, 'ONE');
+    const two = await createProject(owner.accessToken, org.slug, 'TWO');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const base = (k: string) =>
+      `${API_PREFIX}/organizations/${org.slug}/projects/${k}`;
+    for (const k of [one.key, two.key])
+      await request(app.getHttpServer())
+        .patch(base(k))
+        .set(auth)
+        .send({ sprintsEnabled: true })
+        .expect(200);
+    const s = (
+      await request(app.getHttpServer())
+        .post(`${base(one.key)}/sprints`)
+        .set(auth)
+        .send({
+          name: 'S',
+          startDate: '2026-10-01T00:00:00.000Z',
+          endDate: '2026-10-02T00:00:00.000Z',
+        })
+        .expect(201)
+    ).body.data;
+
+    await request(app.getHttpServer())
+      .post(`${base(two.key)}/sprints/${s.id}/start`)
+      .set(auth)
+      .expect(404);
+    await request(app.getHttpServer())
+      .post(`${base(two.key)}/tasks`)
+      .set(auth)
+      .send({ title: 'x', sprintId: s.id })
+      .expect(400);
+  });
+});

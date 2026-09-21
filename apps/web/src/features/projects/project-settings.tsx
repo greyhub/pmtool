@@ -26,6 +26,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@pmtool/ui';
+import { usePermissions } from './use-permissions';
 
 const PROJECT_STATUSES = ['PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'ARCHIVED'] as const;
 const ORG_ROLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
@@ -65,8 +66,9 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
   function field<K extends keyof FormState>(key: K) {
     return {
       value: form![key],
-      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-        setForm((f) => (f ? { ...f, [key]: e.target.value } : f)),
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+      ) => setForm((f) => (f ? { ...f, [key]: e.target.value } : f)),
     };
   }
 
@@ -118,7 +120,9 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
 
       {updateProject.isError && (
         <p role="alert" className="text-sm text-danger">
-          {updateProject.error instanceof ApiError ? updateProject.error.message : t('genericError')}
+          {updateProject.error instanceof ApiError
+            ? updateProject.error.message
+            : t('genericError')}
         </p>
       )}
 
@@ -127,6 +131,48 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
           {t('save')}
         </Button>
       </div>
+    </Card>
+  );
+}
+
+function SprintsCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: string }) {
+  const t = useTranslations('projects.settings.sprints');
+  const { data: project } = useProject(orgSlug, projectKey);
+  const updateProject = useUpdateProject(orgSlug, projectKey);
+  const { canManage } = usePermissions(orgSlug, projectKey);
+  if (!project) return null;
+
+  return (
+    <Card className="flex flex-col gap-4 p-6">
+      <div>
+        <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
+        <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
+      </div>
+      <label className="flex items-center gap-2 text-sm text-ink-primary">
+        <input
+          type="checkbox"
+          checked={project.sprintsEnabled}
+          disabled={!canManage || updateProject.isPending}
+          onChange={(e) => updateProject.mutate({ sprintsEnabled: e.target.checked })}
+        />
+        {t('enable')}
+      </label>
+      {project.sprintsEnabled && (
+        <FormField label={t('unit')} htmlFor="project-estimation-unit" hint={t('unitHint')}>
+          <Select
+            id="project-estimation-unit"
+            className="w-48"
+            value={project.estimationUnit}
+            disabled={!canManage || updateProject.isPending}
+            onChange={(e) =>
+              updateProject.mutate({ estimationUnit: e.target.value as 'POINTS' | 'HOURS' })
+            }
+          >
+            <option value="POINTS">{t('points')}</option>
+            <option value="HOURS">{t('hours')}</option>
+          </Select>
+        </FormField>
+      )}
     </Card>
   );
 }
@@ -238,11 +284,7 @@ function MembersCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeMember.mutate(o.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => removeMember.mutate(o.id)}>
                       {t('remove')}
                     </Button>
                   </div>
@@ -274,6 +316,7 @@ export function ProjectSettings({ orgSlug, projectKey }: { orgSlug: string; proj
         {project && <Badge variant="neutral">{project.key}</Badge>}
       </div>
       <GeneralCard orgSlug={orgSlug} projectKey={projectKey} />
+      <SprintsCard orgSlug={orgSlug} projectKey={projectKey} />
       <MembersCard orgSlug={orgSlug} projectKey={projectKey} />
     </div>
   );

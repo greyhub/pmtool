@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LOCALES, ORG_ROLES, PROJECT_STATUSES } from '../common/enums';
+import { ESTIMATION_UNITS } from '../sprints/schemas';
 import { templateIdSchema } from '../templates/catalog';
 
 export const projectKeySchema = z
@@ -27,6 +28,8 @@ export const updateProjectSchema = z.object({
   status: z.enum(PROJECT_STATUSES).optional(),
   startDate: z.string().datetime().nullable().optional(),
   targetEndDate: z.string().datetime().nullable().optional(),
+  sprintsEnabled: z.boolean().optional(),
+  estimationUnit: z.enum(ESTIMATION_UNITS).optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
@@ -39,6 +42,8 @@ export const projectSchema = z.object({
   status: z.enum(PROJECT_STATUSES),
   startDate: z.string().nullable(),
   targetEndDate: z.string().nullable(),
+  sprintsEnabled: z.boolean(),
+  estimationUnit: z.enum(ESTIMATION_UNITS),
   createdById: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),

@@ -330,3 +330,19 @@ Chỉ cột `title` là bắt buộc. Các cột khác (tên cột tiếng Việ
 Bấm một thông báo để mở đúng công việc/giao phẩm và tự đánh dấu đã đọc; **Đánh dấu đã đọc hết** ở đầu danh sách. Mỗi người chỉ thấy thông báo của chính mình. Thông báo Telegram (nếu đã liên kết) vẫn hoạt động song song.
 
 **Việc của tôi** (menu trái): mọi việc bạn phụ trách hoặc hỗ trợ, **xuyên mọi dự án** của tổ chức, gom theo hạn: *Trễ hạn*, *Hôm nay*, *7 ngày tới*, *Sau đó*, *Chưa có hạn*; mỗi dòng cho biết dự án, vai trò (Phụ trách/Hỗ trợ), trạng thái, % hoàn thành. Mặc định ẩn việc đã xong (có ô bật lên).
+
+## 25. Làm việc theo sprint (Scrum)
+
+Sprint là một lớp lập kế hoạch đặt **lên trên chính các công việc bạn đã có** — không có danh sách công việc thứ hai. Mặc định tắt; bật theo từng dự án.
+
+**Bật:** Cài đặt dự án → thẻ *Sprint* → tick "Làm việc theo sprint" (PM trở lên). Chọn đơn vị ước lượng: **điểm** (story points, tương đối, mặc định) hoặc **giờ** (dùng ước tính giờ sẵn có). Tab **Sprint** xuất hiện.
+
+**Trang Sprint (Backlog):** bên trái là *Backlog* — các việc chưa vào sprint và chưa xong. Bên phải là các sprint đang chạy / kế hoạch, mỗi sprint có mục tiêu, ngày, thanh khối lượng (kế hoạch, đã xong, và vạch tốc độ trung bình các sprint gần nhất; vượt vạch thì cảnh báo "Vượt sức chứa"). **Kéo việc** từ backlog thả vào sprint (hoặc dùng ô chọn sprint trên từng dòng nếu không kéo thả được). Sửa điểm ngay trên dòng.
+
+**Vòng đời:** *Kế hoạch* → **Bắt đầu sprint** (chỉ một sprint chạy tại một thời điểm; hệ thống ghi lại khối lượng cam kết) → **Đóng sprint** (chọn việc chưa xong chuyển sang sprint kế hoạch khác hoặc về backlog; hệ thống ghi khối lượng hoàn thành). Sprint đã đóng không nhận thêm việc và không sửa được; chỉ xoá được sprint còn ở trạng thái Kế hoạch (việc về backlog).
+
+**Bảng (Kanban):** khi có sprint đang chạy, bảng mặc định chỉ hiện việc của sprint đó (bỏ tick để xem tất cả).
+
+**Quyền:** tạo/sửa/bắt đầu/đóng/xoá sprint — Owner, Admin, PM. Gán việc vào sprint và sửa điểm — mọi vai trò được sửa công việc (Member trở lên); Viewer chỉ xem.
+
+Chưa có (sẽ bổ sung): biểu đồ burndown, báo cáo review sprint, cảnh báo phình phạm vi, retrospective, tự lặp sprint.

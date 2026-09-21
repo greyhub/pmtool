@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.10 Sprint (Scrum)
+
+Lớp lập kế hoạch tuỳ chọn trên cùng bảng `tasks`: `projects.sprintsEnabled` + `estimationUnit` (POINTS|HOURS); `tasks.sprintId` (null = backlog, FK `ON DELETE SET NULL`) + `tasks.storyPoints`; bảng `sprints` (tenant-scoped) với chỉ mục duy nhất một phần `sprints_one_active_per_project` (`WHERE status='ACTIVE'`) để chặn hai sprint chạy cùng lúc ngay ở tầng dữ liệu. Khối lượng kế hoạch/đã xong được **tính khi đọc** từ các task (không lưu), chỉ `committedLoad` (lúc bắt đầu) và `completedLoad` (lúc đóng) được chụp lại để làm cơ sở cho tốc độ (velocity) và báo cáo sau này. Đóng sprint chuyển việc chưa xong trong một giao dịch. Gán việc vào sprint đã đóng hoặc thuộc dự án khác bị từ chối (`assertSprintUsable`). Module: `apps/api/src/modules/sprints`; giao diện: `apps/web/src/features/sprints`.
+
 ### 1.9 Kéo thả sắp xếp
 
 Dùng HTML5 drag-and-drop gốc (không thêm thư viện) cho danh sách phẳng/cây; nút ↑↓←→ là đường đi bằng bàn phím. `planMove()` (`features/wbs/wbs-move.ts`, hàm thuần có unit test) đổi vị trí thả (trước/sau/vào trong) thành `{parentTaskId, orderIndex}`: `orderIndex` là số thực nằm giữa hai anh em (hoặc ±1 ở đầu/cuối), nên **không phải đánh số lại các mục khác**; từ chối thả vào chính nó/con cháu và các vị trí phá thứ bậc cấp WBS (trừ hoạt động nhận con → được nâng thành gói, khớp `placeChild` phía API). Gọi `PATCH tasks/:id/move` sẵn có (API kiểm tra lại toàn bộ và là nơi quyết định) với cập nhật lạc quan và hoàn tác khi lỗi (`useMoveTask`).
