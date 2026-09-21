@@ -1,9 +1,15 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // A self-contained server for the Docker image: only the files the app actually uses are copied (tens of MB, not the whole
+  // monorepo's node_modules). The tracing root is the repo root so the workspace packages are found.
+  output: 'standalone',
+  outputFileTracingRoot: path.join(path.dirname(fileURLToPath(import.meta.url)), '../..'),
   // Workspace packages must go through Next's own webpack build (not be
   // treated as external `require()`s) so React context providers (e.g.
   // QueryClientProvider) share a single module instance with the app.

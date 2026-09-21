@@ -105,6 +105,8 @@ Dịch vụ chép 30 phút sau lần sao lưu ban đêm và một lần khi kh�
 
 ## 9. Nâng cấp
 
+> Các image đã được làm gọn (mỗi cái ≈ 0,5 GB thay vì 2 GB) nên lần build và kéo nhanh hơn, ít tốn đĩa hơn. Sau vài lần nâng cấp, dọn bản cũ bằng `docker image prune -f` và `docker builder prune -f`.
+
 ```bash
 cd ~/pmtool-prod && git pull
 $DC exec backup sh /usr/local/bin/backup.sh     # sao lưu ngay trước khi nâng cấp

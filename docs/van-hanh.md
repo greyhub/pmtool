@@ -4,9 +4,7 @@ Hướng dẫn triển khai, sao lưu, khôi phục, giám sát và xử lý s�
 
 > **Mức đã kiểm chứng (2026-09-21, cập nhật).** *Đã chạy thật trên máy phát triển, đúng file `infra/docker-compose.prod.yml`:* `docker build` cả hai image (api, web) thành công với Next 15/React 19; cả stack (Postgres, Redis, API, web, Caddy HTTPS, backup) khởi động, **22 migration áp dụng sạch trên cơ sở dữ liệu trống**, `health/ready` trả `ok`, tiêu đề HSTS/nosniff/referrer có mặt, cookie làm mới là `HttpOnly` + `Secure`; đăng ký → tổ chức → dự án mẫu (35 công việc) qua HTTPS; đăng ký trên giao diện rồi tải lại trang vẫn giữ phiên; `backup.sh` tạo tệp hợp lệ và **khôi phục vào cơ sở dữ liệu tạm khớp số dòng** ở các bảng đối chiếu. *Chưa kiểm chứng:* chạy trên **máy chủ thật với tên miền thật** (chứng chỉ Let's Encrypt, DNS, tường lửa), vòng lặp sao lưu qua đêm, gửi email thật (SMTP), đăng nhập Google thật, và khôi phục trên dữ liệu thật. Hãy chạy mục 3 và diễn tập mục 5 trên máy chủ thật trước khi mở đăng ký.
 
-**Việc nên cải thiện:** mỗi image nặng ≈ 2,15 GB vì chứa cả gói phát triển và mã nguồn; nên tách giai đoạn chạy chỉ giữ gói production để nhẹ hơn và giảm bề mặt tấn công.
-
-> **Đặt máy chủ tại nhà/văn phòng (Mac mini)?** Dùng Cloudflare Tunnel thay vì mở cổng router và bật sao lưu ra ngoài máy — xem [trien-khai-mac-mini.md](trien-khai-mac-mini.md).
+**Image Docker (đã làm gọn 2026-09-22):** build nhiều giai đoạn — mỗi image chạy chỉ chứa gói production và mã đã biên dịch, không còn gói phát triển/mã nguồn: **API 2,15 GB → 571 MB, web 2,15 GB → 518 MB** (nén khi kéo: ≈ 126 MB và ≈ 128 MB; phần lớn còn lại là ảnh nền `node:20.18-slim` 312 MB). Web chạy bằng máy chủ `standalone` của Next; cả hai chạy bằng người dùng `node` (không phải root). Đã kiểm chứng lại đủ luồng trên stack thật: 24 migration, HTTPS, đăng ký/tổ chức/dự án, giao diện, sao lưu và khôi phục khớp số dòng. Có thể nhẹ thêm ~200 MB nếu chuyển sang ảnh nền Alpine, nhưng cần cấu hình Prisma/argon2 cho musl và thử lại — chưa cần thiết.
 
 ## 1. Thành phần
 

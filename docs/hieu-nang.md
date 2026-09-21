@@ -44,10 +44,18 @@ Các API nhẹ (chi tiết công việc, dashboard, hoạt động, danh sách d
 | Bộ nhớ đệm phía máy chủ / kiểm tra phiên bản để trả 304 mà không dựng lại | ETag đã tiết kiệm băng thông; tiết kiệm CPU cần phiên bản danh sách chính xác, dễ lỗi khi đổi tên người phụ trách. Chỉ đáng làm khi tải thật đòi hỏi. |
 | Bỏ bớt trường lặp trong JSON danh sách (`organizationId`, `projectId`, `createdById`) | Đổi hợp đồng API; ~15% dung lượng, mà Caddy/Cloudflare đã nén. |
 | Nén ở tầng Node | Caddy (`encode zstd gzip`) và Cloudflare đã nén ở tầng ngoài. |
-| Image Docker nhẹ hơn (hiện ≈ 2,15 GB) | Ảnh hưởng thời gian kéo/triển khai, không ảnh hưởng tốc độ chạy. Việc riêng (van-hanh.md). |
 
 ## 5. Giới hạn của các con số
 
 - Máy phát triển, một tiến trình API (Node đơn luồng), Postgres cục bộ; không có độ trễ mạng thật. Trên VPS nhỏ hoặc qua Cloudflare Tunnel, độ trễ mạng cộng thêm nhưng chênh lệch giữa trước/sau vẫn giữ nguyên.
 - Thông lượng bị giới hạn bởi một luồng Node: ~1.100 yêu cầu/giây với API nhẹ, ~40 với danh sách 2.500 công việc. Với nhiều người dùng đồng thời trên dự án rất lớn, cần nhiều bản API (khi đó phải chuyển bộ giới hạn tốc độ sang Redis — xem van-hanh.md §7).
 - Chưa đo trên thiết bị di động thật hoặc mạng chậm.
+
+## 6. Kích thước image Docker (2026-09-22)
+
+| Image | Trước | Sau (nén khi kéo) |
+|---|---|---|
+| api | 2,15 GB | 571 MB (126 MB) |
+| web | 2,15 GB | 518 MB (128 MB) |
+
+Build nhiều giai đoạn (`Dockerfile`): giai đoạn chạy của API chỉ có gói production (`pnpm deploy --prod`; `prisma` chuyển sang `dependencies` vì cần `migrate deploy` khi khởi động) và của web dùng `output: 'standalone'`. Ảnh không ảnh hưởng tốc độ chạy mà ảnh hưởng thời gian build/kéo/triển khai và bề mặt tấn công.
