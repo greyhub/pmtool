@@ -8,6 +8,7 @@ import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
 } from '@testcontainers/postgresql';
+import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
 import { findTemplate, templateStats } from '@pmtool/shared-types';
 import { AiQuotaService } from '../../src/modules/ai/ai-quota.service';
@@ -4243,5 +4244,264 @@ describe('Sprint burndown', () => {
       .get(`${base(two.key)}/sprints/${s.id}/burndown`)
       .set(auth)
       .expect(404);
+  });
+});
+
+describe('Sprint review', () => {
+  const http = () => request(app.getHttpServer());
+  const iso = (key: string) => `${key}T00:00:00.000Z`;
+
+  const setup = async (label: string) => {
+    const owner = await registerUser(`${label} Owner`);
+    const org = await createOrg(owner.accessToken, `${label} Org`);
+    const project = await createProject(owner.accessToken, org.slug, 'REV');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const p = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    await http().patch(p).set(auth).send({ sprintsEnabled: true }).expect(200);
+    const today = vnDateKey();
+    const sprint = async (name: string, from: number, to: number) =>
+      (
+        await http()
+          .post(`${p}/sprints`)
+          .set(auth)
+          .send({
+            name,
+            goal: `Goal of ${name}`,
+            startDate: iso(addDaysKey(today, from)),
+            endDate: iso(addDaysKey(today, to)),
+          })
+          .expect(201)
+      ).body.data;
+    const task = async (title: string, sprintId: string | null, points = 5) =>
+      (
+        await http()
+          .post(`${p}/tasks`)
+          .set(auth)
+          .send({
+            title,
+            storyPoints: points,
+            ...(sprintId ? { sprintId } : {}),
+          })
+          .expect(201)
+      ).body.data;
+    const review = async (id: string, headers = auth) =>
+      (await http().get(`${p}/sprints/${id}/review`).set(headers)).body.data;
+    return { owner, org, project, auth, p, sprint, task, review, today };
+  };
+
+  it('previews a running sprint, freezes the outcome at closing (what was delivered, left over and added), and keeps it after the work moves on', async () => {
+    const { owner, org, auth, p, sprint, task, review } = await setup('Rev');
+    const s1 = await sprint('S1', 0, 4);
+    const s2 = await sprint('S2', 5, 9);
+    const me = (await http().get(`${API_PREFIX}/auth/me`).set(auth).expect(200))
+      .body.data;
+    const a = await task('Alpha', s1.id);
+    await http()
+      .patch(`${p}/tasks/${a.id}`)
+      .set(auth)
+      .send({ assigneeId: me.id })
+      .expect(200);
+    await task('Beta', s1.id);
+    await task('Gamma', s1.id, 3);
+    await http().post(`${p}/sprints/${s1.id}/start`).set(auth).expect(200);
+    await http()
+      .patch(`${p}/tasks/${a.id}`)
+      .set(auth)
+      .send({ status: 'DONE' })
+      .expect(200);
+    await task('Delta (added mid-sprint)', s1.id, 2);
+
+    const preview = await review(s1.id);
+    expect(preview).toMatchObject({ isPreview: true, detailsAvailable: true });
+    expect(preview.summary).toMatchObject({
+      committed: 13,
+      added: 2,
+      finalPlanned: 15,
+      completed: 5,
+      unfinished: 10,
+      completionPct: 33,
+      doneCount: 1,
+      unfinishedCount: 3,
+      addedCount: 1,
+    });
+    expect(preview.delivered.map((i: { title: string }) => i.title)).toEqual([
+      'Alpha',
+    ]);
+    expect(
+      preview.unfinished.find((i: { title: string }) =>
+        i.title.startsWith('Delta'),
+      ).addedMidSprint,
+    ).toBe(true);
+    expect(preview.people).toEqual([
+      expect.objectContaining({ id: me.id, doneLoad: 5, doneCount: 1 }),
+    ]);
+
+    await http()
+      .post(`${p}/sprints/${s1.id}/close`)
+      .set(auth)
+      .send({ moveUnfinishedTo: s2.id })
+      .expect(200);
+    // The unfinished work has left the sprint...
+    const tasks = (await http().get(`${p}/tasks`).set(auth).expect(200)).body
+      .data;
+    expect(
+      tasks
+        .filter((t: { sprintId: string | null }) => t.sprintId === s1.id)
+        .map((t: { title: string }) => t.title),
+    ).toEqual(['Alpha']);
+    // ...but the review still knows what the sprint held and where each leftover went.
+    const closed = await review(s1.id);
+    expect(closed).toMatchObject({ isPreview: false, detailsAvailable: true });
+    expect(closed.summary).toMatchObject({
+      committed: 13,
+      finalPlanned: 15,
+      completed: 5,
+      unfinishedCount: 3,
+    });
+    expect(closed.unfinished).toHaveLength(3);
+    expect(
+      closed.unfinished.every(
+        (i: { carriedTo: { kind: string; name: string } }) =>
+          i.carriedTo.kind === 'sprint' && i.carriedTo.name === 'S2',
+      ),
+    ).toBe(true);
+    expect(closed.history).toEqual([
+      expect.objectContaining({
+        id: s1.id,
+        committed: 13,
+        completed: 5,
+        isCurrent: true,
+      }),
+    ]);
+    expect(closed.velocityAvg).toBeNull(); // nothing before it to compare with
+
+    // A second sprint that closes with leftovers sent to the backlog compares with the first.
+    await http().post(`${p}/sprints/${s2.id}/start`).set(auth).expect(200);
+    await http()
+      .post(`${p}/sprints/${s2.id}/close`)
+      .set(auth)
+      .send({ moveUnfinishedTo: null })
+      .expect(200);
+    const second = await review(s2.id);
+    expect(second.velocityAvg).toBe(5);
+    expect(
+      second.unfinished.every(
+        (i: { carriedTo: { kind: string } }) => i.carriedTo.kind === 'backlog',
+      ),
+    ).toBe(true);
+    expect(second.history.map((h: { name: string }) => h.name)).toEqual([
+      'S1',
+      'S2',
+    ]);
+    void owner;
+    void org;
+  });
+
+  it('lets managers record the goal result and notes; others can read but not write; a sprint that has not started has no review', async () => {
+    const { owner, org, p, sprint, task, review, auth } = await setup('Rev2');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Rev PM',
+    );
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Rev Member',
+    );
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Rev Viewer',
+    );
+    const as = (t: string) => ({ Authorization: `Bearer ${t}` });
+    const s = await sprint('S', 0, 3);
+    await task('One', s.id);
+
+    await http().get(`${p}/sprints/${s.id}/review`).set(auth).expect(409); // planned
+    await http()
+      .put(`${p}/sprints/${s.id}/review`)
+      .set(auth)
+      .send({ goalResult: 'MET' })
+      .expect(409);
+    await http().post(`${p}/sprints/${s.id}/start`).set(auth).expect(200);
+
+    await http()
+      .put(`${p}/sprints/${s.id}/review`)
+      .set(as(member.accessToken))
+      .send({ goalResult: 'MET' })
+      .expect(403);
+    await http()
+      .put(`${p}/sprints/${s.id}/review`)
+      .set(as(viewer.accessToken))
+      .send({ goalResult: 'MET' })
+      .expect(403);
+    await http()
+      .put(`${p}/sprints/${s.id}/review`)
+      .set(auth)
+      .send({ goalResult: 'GREAT' })
+      .expect(400);
+    await http()
+      .put(`${p}/sprints/${s.id}/review`)
+      .set(auth)
+      .send({ reviewNotes: 'x'.repeat(5001) })
+      .expect(400);
+
+    const saved = (
+      await http()
+        .put(`${p}/sprints/${s.id}/review`)
+        .set(as(pm.accessToken))
+        .send({ goalResult: 'PARTIAL', reviewNotes: '  Demo went well.  ' })
+        .expect(200)
+    ).body.data;
+    expect(saved).toMatchObject({
+      goalResult: 'PARTIAL',
+      reviewNotes: 'Demo went well.',
+    });
+    expect((await review(s.id, as(viewer.accessToken))).reviewNotes).toBe(
+      'Demo went well.',
+    );
+    // Clearing works, and leaving a field out leaves it alone.
+    await http()
+      .put(`${p}/sprints/${s.id}/review`)
+      .set(auth)
+      .send({ goalResult: null })
+      .expect(200);
+    const after = await review(s.id);
+    expect(after).toMatchObject({
+      goalResult: null,
+      reviewNotes: 'Demo went well.',
+    });
+  });
+
+  it('degrades honestly for a sprint closed before reviews existed: totals only, no invented detail', async () => {
+    const { auth, p, sprint, task, review, today } = await setup('Rev3');
+    const s = await sprint('Old', 0, 3);
+    await task('Kept', s.id);
+    await http().post(`${p}/sprints/${s.id}/start`).set(auth).expect(200);
+    await http()
+      .post(`${p}/sprints/${s.id}/close`)
+      .set(auth)
+      .send({ moveUnfinishedTo: null })
+      .expect(200);
+    await app.get(PrismaService).db.sprint.update({
+      where: { id: s.id },
+      data: { outcome: Prisma.DbNull, committedLoad: 20, completedLoad: 15 },
+    });
+    const r = await review(s.id);
+    expect(r.detailsAvailable).toBe(false);
+    expect(r.summary).toMatchObject({
+      committed: 20,
+      finalPlanned: 20,
+      completed: 15,
+      unfinished: 5,
+      completionPct: 75,
+      addedCount: 0,
+    });
+    expect(r.people).toEqual([]);
+    void today;
   });
 });

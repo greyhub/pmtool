@@ -14,7 +14,7 @@ export function EmailVerificationBanner() {
   return (
     <div
       role="status"
-      className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-warning-bg px-4 py-2 text-sm text-warning"
+      className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-warning-bg px-4 py-2 text-sm text-warning print:hidden"
     >
       <span>{t('message', { email: me.email })}</span>
       {resend.isSuccess ? (

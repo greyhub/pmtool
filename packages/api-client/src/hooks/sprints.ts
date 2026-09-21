@@ -4,6 +4,8 @@ import type {
   CloseSprintInput,
   CreateSprintInput,
   SprintDto,
+  SprintReviewDto,
+  UpdateReviewInput,
   UpdateSprintInput,
 } from '@pmtool/shared-types';
 import { apiRequest } from '../http-client';
@@ -102,5 +104,27 @@ export function useSprintBurndown(
     queryKey: [...sprintKeys.list(orgSlug ?? '', projectKey ?? ''), 'burndown', sprintId ?? ''] as const,
     queryFn: () => apiRequest<BurndownDto>(`${base(orgSlug!, projectKey!)}/${sprintId}/burndown`),
     enabled: Boolean(orgSlug) && Boolean(projectKey) && Boolean(sprintId),
+  });
+}
+
+export function useSprintReview(
+  orgSlug: string | undefined,
+  projectKey: string | undefined,
+  sprintId: string | undefined,
+) {
+  return useQuery({
+    // Under the sprints prefix so any sprint or task change refreshes it.
+    queryKey: [...sprintKeys.list(orgSlug ?? '', projectKey ?? ''), 'review', sprintId ?? ''] as const,
+    queryFn: () => apiRequest<SprintReviewDto>(`${base(orgSlug!, projectKey!)}/${sprintId}/review`),
+    enabled: Boolean(orgSlug) && Boolean(projectKey) && Boolean(sprintId),
+  });
+}
+
+export function useUpdateSprintReview(orgSlug: string | undefined, projectKey: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sprintId, input }: { sprintId: string; input: UpdateReviewInput }) =>
+      apiRequest<SprintReviewDto>(`${base(orgSlug!, projectKey!)}/${sprintId}/review`, { method: 'PUT', body: input }),
+    onSuccess: () => refresh(queryClient, orgSlug ?? '', projectKey ?? ''),
   });
 }

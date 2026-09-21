@@ -8,11 +8,15 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Project } from '@prisma/client';
 import {
+  updateReviewSchema,
+  UpdateReviewInput,
+  SprintReviewDto,
   BurndownDto,
   closeSprintSchema,
   CloseSprintInput,
@@ -87,6 +91,30 @@ export class SprintsController {
     @Param('sprintId') sprintId: string,
   ): Promise<{ data: BurndownDto }> {
     return { data: await this.sprints.burndown(project, sprintId) };
+  }
+
+  /** The sprint review (a live preview while the sprint runs). Anyone who can see the project can read it. */
+  @Get(':sprintId/review')
+  @ProjectEntity('sprint', 'sprintId')
+  async review(
+    @CurrentProject() project: Project,
+    @Param('sprintId') sprintId: string,
+  ): Promise<{ data: SprintReviewDto }> {
+    return { data: await this.sprints.review(project, sprintId) };
+  }
+
+  /** Managers record the verdict on the sprint goal and the notes from the review meeting. */
+  @Put(':sprintId/review')
+  @ProjectEntity('sprint', 'sprintId')
+  @UseGuards(ProjectRolesGuard)
+  @Roles(...CAN_MANAGE_SPRINTS)
+  @LogActivity('Sprint', 'reviewed', 'sprintId')
+  async updateReview(
+    @CurrentProject() project: Project,
+    @Param('sprintId') sprintId: string,
+    @Body(new ZodValidationPipe(updateReviewSchema)) body: UpdateReviewInput,
+  ): Promise<{ data: SprintReviewDto }> {
+    return { data: await this.sprints.updateReview(project, sprintId, body) };
   }
 
   @Post(':sprintId/start')

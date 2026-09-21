@@ -89,3 +89,23 @@ body {
     opacity: 1;
   }
 }
+
+/* Printing a report (e.g. the sprint review): no chrome, no glass, no animated background, black on white. */
+@media print {
+  .ambient-bg {
+    display: none;
+  }
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .glass,
+  .glass-strong,
+  .glass-bar,
+  .glass-field {
+    background: #fff !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}

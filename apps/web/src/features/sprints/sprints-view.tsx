@@ -327,9 +327,17 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                       </>
                     )}
                     {s.status === 'ACTIVE' && (
-                      <Button size="sm" variant="ghost" onClick={() => setBurndownOf(s)}>
-                        {t('burndown.open')}
-                      </Button>
+                      <>
+                        <Button size="sm" variant="ghost" onClick={() => setBurndownOf(s)}>
+                          {t('burndown.open')}
+                        </Button>
+                        <Link
+                          href={`/${orgSlug}/projects/${projectKey}/sprints/${s.id}/review`}
+                          className="inline-flex h-8 items-center rounded-md px-3 text-sm font-medium text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary"
+                        >
+                          {t('review.open')}
+                        </Link>
+                      </>
                     )}
                     {canManage && s.status === 'ACTIVE' && (
                       <Button
@@ -379,6 +387,12 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                     >
                       {t('burndown.open')}
                     </button>
+                    <Link
+                      href={`/${orgSlug}/projects/${projectKey}/sprints/${s.id}/review`}
+                      className="text-xs text-ink-secondary underline hover:text-ink-primary"
+                    >
+                      {t('review.open')}
+                    </Link>
                     <span className="ml-auto text-xs text-ink-muted">
                       {t('committedVsDone', {
                         committed: fmtLoad(s.committedLoad ?? 0),

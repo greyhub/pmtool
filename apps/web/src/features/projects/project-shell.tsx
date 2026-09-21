@@ -89,7 +89,7 @@ export function ProjectShell({
 
   return (
     <div>
-      <BackHomeLinksWidget homeHref={`/${orgSlug}/dashboard`} className="mb-3" />
+      <BackHomeLinksWidget homeHref={`/${orgSlug}/dashboard`} className="mb-3 print:hidden" />
       {project && (
         <div className="mb-4 flex items-center gap-3">
           <span className="font-mono text-xs font-semibold text-ink-muted">{project.key}</span>
@@ -99,7 +99,7 @@ export function ProjectShell({
       )}
       <nav
         aria-label={tGroups('aria')}
-        className="mb-4 flex gap-1 overflow-x-auto border-b border-line"
+        className="mb-4 flex gap-1 overflow-x-auto border-b border-line print:hidden"
       >
         {groups.map((g) => {
           const active = g === activeGroup;
@@ -121,7 +121,7 @@ export function ProjectShell({
       </nav>
       {activeGroup && activeGroup.items.length > 1 && (
         <div
-          className="mb-6 flex gap-1 overflow-x-auto"
+          className="mb-6 flex gap-1 overflow-x-auto print:hidden"
           role="group"
           aria-label={activeGroup.label}
         >

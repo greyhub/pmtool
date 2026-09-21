@@ -9,9 +9,20 @@ import {
   BurndownDto,
   CloseSprintInput,
   CreateSprintInput,
+  GoalResult,
+  ReviewItemDto,
   SprintDto,
+  SprintReviewDto,
+  UpdateReviewInput,
   UpdateSprintInput,
 } from '@pmtool/shared-types';
+import {
+  buildItems,
+  byPerson,
+  ReviewTask,
+  summarize,
+  velocityBefore,
+} from './review-math';
 import { PrismaService } from '../../prisma/prisma.service';
 import { totals } from './sprint-load';
 import { vnDateKey } from '../gamification/streak-date.util';
@@ -22,6 +33,44 @@ const TASK_LOAD = {
   storyPoints: true,
   estimateHours: true,
 } as const;
+
+/** What the review needs from each task: size, status, when it joined, and who is accountable. */
+const REVIEW_TASK_SELECT = {
+  id: true,
+  humanKey: true,
+  title: true,
+  status: true,
+  storyPoints: true,
+  estimateHours: true,
+  sprintAddedAt: true,
+  assignees: {
+    where: { role: 'PRIMARY' as const },
+    select: {
+      user: { select: { id: true, fullName: true, mascotCharacter: true } },
+    },
+  },
+} as const;
+
+type ReviewTaskRow = Prisma.TaskGetPayload<{
+  select: typeof REVIEW_TASK_SELECT;
+}>;
+
+const toReviewTask = (t: ReviewTaskRow): ReviewTask => ({
+  id: t.id,
+  humanKey: t.humanKey,
+  title: t.title,
+  status: t.status,
+  storyPoints: t.storyPoints,
+  estimateHours: t.estimateHours,
+  sprintAddedAt: t.sprintAddedAt,
+  assignee: t.assignees[0]
+    ? {
+        id: t.assignees[0].user.id,
+        name: t.assignees[0].user.fullName,
+        character: t.assignees[0].user.mascotCharacter,
+      }
+    : null,
+});
 
 @Injectable()
 export class SprintsService {
@@ -177,16 +226,18 @@ export class SprintsService {
   ): Promise<SprintDto> {
     const sprint = await this.prisma.db.sprint.findUniqueOrThrow({
       where: { id },
-      include: { tasks: { select: { id: true, ...TASK_LOAD } } },
+      include: { tasks: { select: REVIEW_TASK_SELECT } },
     });
     if (sprint.status !== 'ACTIVE')
       throw new ConflictException('Chỉ sprint đang chạy mới đóng được');
 
     const target = input.moveUnfinishedTo ?? null;
+    let targetName: string | null = null;
     if (target) {
       const t = await this.prisma.db.sprint.findUnique({
         where: { id: target },
       });
+      targetName = t?.name ?? null;
       if (!t || t.projectId !== project.id || t.status !== 'PLANNED') {
         throw new BadRequestException(
           'Chỉ chuyển việc dở sang một sprint đang ở trạng thái Kế hoạch của cùng dự án',
@@ -199,14 +250,33 @@ export class SprintsService {
     const completedLoad = totals(sprint.tasks, project.estimationUnit).doneLoad;
     // The outcome, recorded before unfinished work leaves the sprint.
     await this.writeSnapshot(sprint.id, project, sprint.tasks, vnDateKey());
+    // What the sprint held when it closed, frozen: the unfinished work is about to move away.
+    const items: ReviewItemDto[] = buildItems(
+      sprint.tasks.map(toReviewTask),
+      project.estimationUnit,
+      sprint.startedAt,
+    ).map((i) => ({
+      ...i,
+      carriedTo:
+        i.status === 'DONE'
+          ? null
+          : target
+            ? { kind: 'sprint' as const, name: targetName }
+            : { kind: 'backlog' as const, name: null },
+    }));
     await this.prisma.db.$transaction([
       this.prisma.db.task.updateMany({
         where: { id: { in: unfinished } },
-        data: { sprintId: target },
+        data: { sprintId: target, sprintAddedAt: target ? new Date() : null },
       }),
       this.prisma.db.sprint.update({
         where: { id },
-        data: { status: 'CLOSED', closedAt: new Date(), completedLoad },
+        data: {
+          status: 'CLOSED',
+          closedAt: new Date(),
+          completedLoad,
+          outcome: { items },
+        },
       }),
     ]);
     return this.one(project, id);
@@ -310,6 +380,128 @@ export class SprintsService {
       today: todayKey,
       ...rest,
     };
+  }
+
+  /**
+   * The sprint review: what was promised, delivered and left over, who did what, and how this sprint compares with the
+   * ones before. A running sprint gets a live preview to prepare with; a closed one reads the outcome frozen at closing.
+   */
+  async review(project: Project, id: string): Promise<SprintReviewDto> {
+    const sprint = await this.prisma.db.sprint.findUniqueOrThrow({
+      where: { id },
+      include: { tasks: { select: REVIEW_TASK_SELECT } },
+    });
+    if (sprint.status === 'PLANNED') {
+      throw new ConflictException('Sprint chưa bắt đầu nên chưa có review');
+    }
+    const unit = project.estimationUnit;
+    const isPreview = sprint.status === 'ACTIVE';
+    const stored = (sprint.outcome as { items?: ReviewItemDto[] } | null)
+      ?.items;
+    const detailsAvailable = isPreview || Array.isArray(stored);
+    const items: ReviewItemDto[] = isPreview
+      ? buildItems(sprint.tasks.map(toReviewTask), unit, sprint.startedAt)
+      : (stored ??
+        buildItems(sprint.tasks.map(toReviewTask), unit, sprint.startedAt));
+
+    let summary = summarize(items, sprint.committedLoad);
+    if (!detailsAvailable) {
+      // Closed before reviews existed: only the two totals recorded at closing are known.
+      const planned = sprint.committedLoad ?? summary.finalPlanned;
+      const completed = sprint.completedLoad ?? summary.completed;
+      summary = {
+        ...summary,
+        finalPlanned: planned,
+        completed,
+        unfinished: Math.max(0, Math.round((planned - completed) * 10) / 10),
+        completionPct:
+          planned === 0 ? 0 : Math.round((completed / planned) * 100),
+        added: 0,
+        addedCount: 0,
+      };
+    }
+
+    const closed = await this.prisma.db.sprint.findMany({
+      where: { projectId: project.id, status: 'CLOSED' },
+      orderBy: { closedAt: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        committedLoad: true,
+        completedLoad: true,
+      },
+    });
+    const closedRows = closed.map((c) => ({
+      id: c.id,
+      name: c.name,
+      committed: c.committedLoad ?? 0,
+      completed: c.completedLoad ?? 0,
+    }));
+    const recent = closedRows.slice(-5);
+    const history = [
+      ...(recent.some((r) => r.id === id) ? recent : recent.slice(-4)).map(
+        (r) => ({ ...r, isCurrent: r.id === id }),
+      ),
+      ...(isPreview
+        ? [
+            {
+              id,
+              name: sprint.name,
+              committed: sprint.committedLoad ?? 0,
+              completed: summary.completed,
+              isCurrent: true,
+            },
+          ]
+        : []),
+    ];
+
+    return {
+      sprint: {
+        id: sprint.id,
+        name: sprint.name,
+        goal: sprint.goal,
+        status: sprint.status,
+        startDate: vnDateKey(sprint.startDate),
+        endDate: vnDateKey(sprint.endDate),
+        closedAt: sprint.closedAt?.toISOString() ?? null,
+      },
+      unit,
+      isPreview,
+      detailsAvailable,
+      summary,
+      delivered: items.filter((i) => i.status === 'DONE'),
+      unfinished: items.filter((i) => i.status !== 'DONE'),
+      people: detailsAvailable ? byPerson(items) : [],
+      history,
+      velocityAvg: velocityBefore(closedRows, isPreview ? null : id),
+      goalResult: (sprint.goalResult as GoalResult | null) ?? null,
+      reviewNotes: sprint.reviewNotes,
+    };
+  }
+
+  /** The team's conclusions from the review meeting: a verdict on the sprint goal and free-form notes. */
+  async updateReview(
+    project: Project,
+    id: string,
+    input: UpdateReviewInput,
+  ): Promise<SprintReviewDto> {
+    const sprint = await this.prisma.db.sprint.findUniqueOrThrow({
+      where: { id },
+    });
+    if (sprint.status === 'PLANNED') {
+      throw new ConflictException('Sprint chưa bắt đầu nên chưa có review');
+    }
+    await this.prisma.db.sprint.update({
+      where: { id },
+      data: {
+        reviewNotes:
+          input.reviewNotes === undefined
+            ? undefined
+            : input.reviewNotes?.trim() || null,
+        goalResult: input.goalResult,
+      },
+    });
+    return this.review(project, id);
   }
 
   async remove(id: string): Promise<void> {

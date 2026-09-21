@@ -257,6 +257,7 @@ model Task {
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
   completedAt            DateTime? // when it last became DONE; cleared if it is reopened
+  sprintAddedAt          DateTime? // when it joined its current sprint; work added after the sprint started is scope added
 
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -868,6 +869,9 @@ model Sprint {
   completedLoad   Float?
   startedAt       DateTime?
   closedAt        DateTime?
+  reviewNotes String? // the team's notes from the sprint review
+  goalResult  String? // MET | PARTIAL | MISSED, set at the review
+  outcome     Json? // what the sprint contained when it closed (frozen: unfinished work moves away)
   createdById     String
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

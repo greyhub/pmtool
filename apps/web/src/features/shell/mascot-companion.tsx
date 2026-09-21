@@ -23,7 +23,7 @@ export function MascotCompanion() {
     // viewport heights (~720px). Bottom-left is consistently empty
     // whitespace in every shell (below the sidebar nav, or on chrome-less
     // pages with no content down there).
-    <div className="fixed bottom-4 left-4 z-30 hidden drop-shadow-md sm:block">
+    <div className="fixed bottom-4 left-4 z-30 hidden drop-shadow-md sm:block print:hidden">
       <Mascot
         directions={`/mascots/${me.data.mascotCharacter}-directions.webp`}
         reactions={`/mascots/${me.data.mascotCharacter}-reactions.webp`}

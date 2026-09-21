@@ -345,7 +345,7 @@ Sprint là một lớp lập kế hoạch đặt **lên trên chính các công 
 
 **Quyền:** tạo/sửa/bắt đầu/đóng/xoá sprint — Owner, Admin, PM. Gán việc vào sprint và sửa điểm — mọi vai trò được sửa công việc (Member trở lên); Viewer chỉ xem.
 
-**Burndown:** bấm **Burndown** trên thẻ sprint đang chạy (hoặc ở mục "Sprint đã đóng") — xem mục 31. Chưa có (sẽ bổ sung): báo cáo review sprint, retrospective, tự lặp sprint.
+**Burndown:** bấm **Burndown** trên thẻ sprint đang chạy (hoặc ở mục "Sprint đã đóng") — xem mục 31. **Review sprint:** bấm **Review** trên thẻ sprint — xem mục 32. Chưa có (sẽ bổ sung): retrospective, tự lặp sprint.
 
 ## 26. Dự án riêng tư
 
@@ -401,3 +401,16 @@ Biểu đồ cho thấy **khối lượng còn lại mỗi ngày** so với **đ
 - **Kết luận nhanh:** *Nhanh hơn kế hoạch / Đúng kế hoạch / Chậm hơn kế hoạch* (so với đường lý tưởng hôm nay, dung sai 10% mức cam kết), cùng dự báo: với tốc độ đã làm được, cuối sprint còn khoảng bao nhiêu. Sprint quá hạn vẫn được vẽ tiếp và báo số ngày quá hạn. Sprint đã đóng hiện kết quả cuối cùng.
 - **Số liệu:** chốt lúc 23:55 mỗi đêm (giờ Việt Nam), riêng hôm nay tính trực tiếp; điểm đầu tiên ghi khi bấm **Bắt đầu sprint**, điểm cuối ghi khi đóng. Dùng đúng đơn vị của dự án (điểm hoặc giờ).
 - **Giới hạn:** đường lý tưởng tính theo **ngày lịch** (kể cả cuối tuần, chưa loại ngày nghỉ). Sprint đã chạy **trước khi có tính năng** chỉ có dữ liệu từ ngày này trở đi (ngày đầu lấy mức cam kết đã lưu).
+
+## 32. Báo cáo review sprint
+
+Dùng cho buổi **sprint review**: nhìn lại sprint đã cam kết gì, giao được gì, còn gì dở, ai làm bao nhiêu, và so với các sprint trước. Mở bằng **Review** trên thẻ sprint đang chạy hoặc trong "Sprint đã đóng" (ai xem được dự án đều xem được).
+
+- **Bản xem trước:** sprint đang chạy có review tạm theo trạng thái hiện tại để chuẩn bị buổi họp (nhãn "Bản xem trước"). **Kết quả cuối cùng được chốt khi bạn đóng sprint** (nhãn "Đã chốt").
+- **Con số chính:** cam kết lúc bắt đầu; hoàn thành / tổng kế hoạch cuối cùng và tỷ lệ %; **phát sinh** (việc thêm vào sprint sau khi bắt đầu, có nhãn "phát sinh"); còn dở; và tốc độ trung bình so với các sprint trước. Tỷ lệ tính trên **mọi việc cuối cùng nằm trong sprint** — sprint nhận thêm việc và làm xong hết vẫn đạt 100%.
+- **Việc đã hoàn thành** và **việc chưa xong**; việc dở ghi rõ đã chuyển đi đâu ("→ Sprint 4" hoặc "→ backlog"). Danh sách này được **lưu cố định lúc đóng sprint**, nên vẫn còn nguyên dù việc dở đã sang sprint khác.
+- **Đóng góp theo người phụ trách:** số điểm/giờ và số việc mỗi người đã xong (việc chưa giao cho ai không tính vào từng người).
+- **So với các sprint trước:** biểu đồ cột cam kết và hoàn thành của các sprint gần nhất, kèm đường tốc độ trung bình.
+- **PM trở lên** ghi **đánh giá mục tiêu sprint** (Đạt / Đạt một phần / Không đạt — bấm lại để bỏ chọn) và **nhận xét buổi review** rồi bấm **Lưu nhận xét**. Người khác chỉ đọc.
+- **Chia sẻ:** **Sao chép văn bản** (dán vào chat, email, biên bản) hoặc **In / PDF** (bản in bỏ thanh điều hướng, nền trắng).
+- **Giới hạn:** sprint đã đóng **trước khi có tính năng** chỉ còn hai con số tổng (cam kết, đã xong) — không còn danh sách việc, và trang nói rõ điều đó. Việc "phát sinh" chỉ nhận biết được với việc vào sprint từ khi có tính năng. Đóng góp tính theo **người phụ trách chính** lúc đóng sprint, không chia theo người hỗ trợ.

@@ -5,7 +5,7 @@ import { fromRichText } from './rich-text.util';
 // The list query does not load every column (no reminder marker, no completedAt), so only what the DTO needs is required.
 type TaskWithRelations = Omit<
   Task,
-  'telegramReminderSentAt' | 'completedAt'
+  'telegramReminderSentAt' | 'completedAt' | 'sprintAddedAt'
 > & {
   assignees?: (Pick<TaskAssignee, 'role'> & {
     user: Pick<User, 'id' | 'fullName' | 'avatarUrl' | 'mascotCharacter'>;

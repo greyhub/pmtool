@@ -196,6 +196,7 @@ export class TasksService {
           estimateHours: input.estimateHours,
           storyPoints: input.storyPoints,
           sprintId: input.sprintId,
+          sprintAddedAt: input.sprintId ? new Date() : undefined,
           orderIndex: Date.now(),
           boardColumnId: firstColumn?.id,
           createdById,
@@ -435,6 +436,13 @@ export class TasksService {
           estimateHours: input.estimateHours,
           storyPoints: input.storyPoints,
           sprintId: input.sprintId,
+          // The moment it joined (or left) a sprint: work that joins after the sprint started is scope added.
+          sprintAddedAt:
+            input.sprintId === undefined || input.sprintId === existing.sprintId
+              ? undefined
+              : input.sprintId
+                ? new Date()
+                : null,
           percentComplete: input.percentComplete,
         },
         include: TASK_INCLUDE,
