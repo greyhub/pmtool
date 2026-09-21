@@ -65,6 +65,7 @@ export function CommandPalette({ orgSlug }: { orgSlug: string }) {
       const base = `/${orgSlug}/projects/${projectKey}`;
       const views: [string, string][] = [
         ['dashboard', tGroups('overview')],
+        ['reports', tGroups('report')],
         ['tasks', tGroups('list')],
         ['board', tTabs('board')],
         ...(project?.sprintsEnabled ? ([['sprints', tTabs('sprints')]] as [string, string][]) : []),

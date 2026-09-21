@@ -12,7 +12,7 @@ export interface NotifyInput {
   userIds: Iterable<string | null | undefined>;
   type: NotificationType;
   actorId?: string | null;
-  entityKind: 'task' | 'deliverable';
+  entityKind: 'task' | 'deliverable' | 'report';
   entityId: string;
   projectKey: string;
   entityTitle: string;

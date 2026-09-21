@@ -97,6 +97,7 @@ model Organization {
   aiUsage          AiUsageDaily[]
   sprints          Sprint[]
   notifications    Notification[]
+  dailySnapshots   ProjectDailySnapshot[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
   artifacts        Artifact[]
@@ -180,6 +181,7 @@ model Project {
 
   organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members      ProjectMember[]
+  dailySnapshots ProjectDailySnapshot[]
   tasks        Task[]
   boardColumns BoardColumn[]
   risks        RiskIssue[]
@@ -252,6 +254,7 @@ model Task {
   telegramReminderSentAt DateTime? // dedup marker for the daily due-date reminder cron; reset to null whenever dueDate changes
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
+  completedAt            DateTime? // when it last became DONE; cleared if it is reopened
 
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -270,6 +273,7 @@ model Task {
   @@unique([projectId, humanKey])
   @@index([organizationId])
   @@index([projectId, status])
+  @@index([projectId, completedAt])
   @@index([parentTaskId])
   @@index([sprintId])
   @@map("tasks")
@@ -864,4 +868,41 @@ model Sprint {
   @@index([organizationId])
   @@index([projectId, status])
   @@map("sprints")
+}
+
+/// End-of-day state of a project, taken automatically each night (and live for today), so any day can be compared with an earlier one.
+model ProjectDailySnapshot {
+  id                   String    @id @default(cuid())
+  organizationId       String
+  projectId            String
+  date                 DateTime  @db.Date // Vietnam calendar day
+  tasksTotal           Int
+  todo                 Int
+  inProgress           Int
+  inReview             Int
+  done                 Int
+  blocked              Int
+  overdue              Int
+  progressPct          Float // mean percentComplete over all tasks
+  createdCount         Int // tasks created that day
+  completedCount       Int // tasks completed that day
+  openRisks            Int
+  openIssues           Int
+  deliverablesTotal    Int
+  deliverablesAccepted Int
+  milestonesTotal      Int
+  milestonesDone       Int
+  sprintPlanned        Float? // load of the running sprint, if any
+  sprintDone           Float?
+  activityCount        Int // logged changes that day
+  activeUsers          Int // distinct people who made them
+  generatedAt          DateTime
+  notifiedAt           DateTime? // when the morning summary went to managers
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+  @@index([organizationId])
+  @@map("project_daily_snapshots")
 }

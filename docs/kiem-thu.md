@@ -6,11 +6,11 @@ Cập nhật 2026-09-20. Mô tả chiến lược kiểm thử, kết quả lầ
 
 | Tầng | Công cụ | Số lượng | Kết quả |
 |---|---|---|---|
-| Unit — API | Vitest (Prisma mock) | 250 test / 37 file | ✅ đạt |
-| Unit — Web | Vitest + jsdom | 36 test | ✅ đạt |
+| Unit — API | Vitest (Prisma mock) | 255 test / 38 file | ✅ đạt |
+| Unit — Web | Vitest + jsdom | 40 test | ✅ đạt |
 | Unit — UI (design system, Gantt) | Vitest + Testing Library | 52 test | ✅ đạt |
-| Tích hợp — API qua HTTP thật | Supertest + Postgres ephemeral (Testcontainers), toàn bộ guard/interceptor thật | 67 test | ✅ đạt (đã thấy 1 lần một test tên-nhân-vật-đã-dùng lỗi ngẫu nhiên, chạy lại 9 lần liên tiếp đều đạt — chưa tái hiện được, đang theo dõi) |
-| End-to-end — trình duyệt thật | Playwright (Chromium), build dev thật của web + api | 39 test / 30 file | ✅ 38 đạt, 1 tự bỏ qua vì chưa cấu hình Telegram trong môi trường này, 1,8 phút |
+| Tích hợp — API qua HTTP thật | Supertest + Postgres ephemeral (Testcontainers), toàn bộ guard/interceptor thật | 72 test | ✅ đạt (đã thấy 1 lần một test tên-nhân-vật-đã-dùng lỗi ngẫu nhiên, chạy lại 9 lần liên tiếp đều đạt — chưa tái hiện được, đang theo dõi) |
+| End-to-end — trình duyệt thật | Playwright (Chromium), build dev thật của web + api | 40 test / 31 file | ✅ 39 đạt, 1 tự bỏ qua vì chưa cấu hình Telegram trong môi trường này, 1,8 phút |
 | Tĩnh | ESLint, `tsc --noEmit`, `next build`, `nest build` (Turborepo 18 tác vụ) | 18 tác vụ | ✅ đạt, 0 cảnh báo |
 
 Đợt kiểm thử này **tìm ra và sửa** 5 lỗi bảo mật/phân quyền thật (mục 3) — đó là lý do có thêm test ma trận.
@@ -52,7 +52,7 @@ Cùng đợt: giao diện hiểu vai trò — nút không dùng được bị �
 | J2 Mời & tham gia | E2E `org-invite-login-redirect`, `roles-and-characters`; integration "Organization invite management" | Gửi email chưa có nên chưa thể kiểm thử |
 | J3 Lập kế hoạch PMBOK | E2E `wbs-scope`, `pm-artifacts`; integration "WBS, scope statement and dictionary", "Project Charter" | |
 | J4 Thực thi | E2E `task-ux`, `kanban-drag`, `sprints`, `gamification`; integration "Task history", "Quests", "Task assignees", "Sprints" | Telegram thật không kiểm thử E2E (cần webhook công khai) |
-| J5 Giám sát | E2E `wbs-scope` (sơ đồ + độ phủ), `gantt`; unit dựng đồ thị/bố cục | Đã xem trực tiếp ảnh chụp sáng/tối |
+| J5 Giám sát | E2E `wbs-scope` (sơ đồ + độ phủ), `gantt`, `daily-report`; integration "Daily reports"; unit dựng đồ thị/bố cục | Đã xem trực tiếp ảnh chụp sáng/tối |
 | J6 Nghiệm thu | E2E `deliverables-milestones`; integration "Deliverables and milestones" | |
 | J7 Gắn kết | E2E `gamification`, `settings`, `roles-and-characters`; integration "User preferences" | |
 | J8 Quản trị | Integration "Organization archive", "Project-level RBAC overrides", ma trận; E2E `org-settings`, `project-settings` | |

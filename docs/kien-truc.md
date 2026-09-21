@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.12 Báo cáo ngày
+
+`project_daily_snapshots` (tenant-scoped, duy nhất theo `(projectId, date)`, `date` là ngày lịch giờ Việt Nam): ảnh chụp cuối ngày của dự án (số việc theo trạng thái, quá hạn, tiến độ trung bình, rủi ro/vấn đề mở, giao phẩm/mốc, tải sprint, số việc tạo/xong trong ngày, số thay đổi và số người hoạt động). Để biết "việc xong vào ngày nào" thêm `tasks.completedAt` (ghi khi chuyển sang DONE, xoá khi mở lại; dữ liệu cũ điền từ `updatedAt`). `ReportsScheduler`: **23:55 giờ VN** chốt mọi dự án chưa lưu trữ (`snapshotAll`, idempotent bằng upsert); **mỗi giờ phút :10 từ 08:00** gửi thông báo `DAILY_REPORT` cho ngày đã kết thúc (`notifyPending`) — mỗi dòng ảnh chụp chỉ gửi một lần (`notifiedAt`), nên tự bù khi máy chủ tắt lúc 08:00. Người nhận: OWNER/ADMIN của tổ chức, PM của tổ chức (trừ khi bị hạ vai trò ở dự án hoặc dự án riêng tư) và thành viên dự án vai trò OWNER/ADMIN/PM. Hôm nay được tính trực tiếp khi có yêu cầu (`GET projects/:key/reports/daily?date=&compareTo=`) và upsert, ngày cũ chỉ đọc bản đã chốt; ngày không có bản chốt trả `current: null` thay vì tính lại từ trạng thái hiện tại (sẽ sai). Phần thuần (diff, ngày, điều kiện gửi, payload) ở `report-math.ts`. Múi giờ cố định UTC+7 như các phần khác.
+
 ### 1.11 Dự án riêng tư
 
 `projects.isPrivate`. Một dự án riêng tư chỉ tồn tại với OWNER/ADMIN của tổ chức và những người có dòng `project_members`. Thực thi ở **hai lớp**: (1) `ProjectGuard` trả 404 cho mọi route theo dự án; (2) các đọc xuyên dự án (danh sách dự án, dashboard tổ chức, "Việc của tôi", dòng hoạt động) loại các dự án ẩn qua `hiddenProjectIds()` (`common/project-visibility.ts`). `activity_logs.projectId` được thêm để lọc dòng hoạt động. Thêm một đọc xuyên dự án mới thì **bắt buộc** dùng `hiddenProjectIds`. Các route AI theo task đã được ràng buộc vào dự án của URL (`ProjectEntityGuard`).

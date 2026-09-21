@@ -316,7 +316,8 @@
       "list": "Danh sách",
       "schedule": "Lịch trình",
       "plan": "Kế hoạch",
-      "governance": "Quản trị"
+      "governance": "Quản trị",
+      "report": "Báo cáo ngày"
     }
   },
   "board": {
@@ -1210,7 +1211,8 @@
       "TASK_COMMENT": "{actor} bình luận trong: {title}",
       "DELIVERABLE_SUBMITTED": "{actor} nộp giao phẩm chờ nghiệm thu: {title}",
       "DELIVERABLE_ACCEPTED": "{actor} đã nghiệm thu giao phẩm: {title}",
-      "DELIVERABLE_REJECTED": "{actor} từ chối giao phẩm: {title}"
+      "DELIVERABLE_REJECTED": "{actor} từ chối giao phẩm: {title}",
+      "DAILY_REPORT": "Báo cáo ngày: {title}"
     }
   },
   "myTasks": {
@@ -1285,5 +1287,62 @@
       "tasks": "Công việc",
       "projects": "Dự án"
     }
+  },
+  "reports": {
+    "title": "Báo cáo ngày",
+    "subtitle": "Hệ thống tự chốt số liệu mỗi đêm; chọn một ngày và so với ngày trước để thấy dự án tiến hay lùi.",
+    "date": "Ngày báo cáo",
+    "prevDay": "Ngày trước",
+    "nextDay": "Ngày sau",
+    "today": "Hôm nay",
+    "compareWith": "So với",
+    "comparePrev": "Ngày hôm trước",
+    "compareWeek": "7 ngày trước",
+    "compareCustom": "Chọn ngày…",
+    "compareDate": "Ngày so sánh",
+    "loading": "Đang tải báo cáo…",
+    "error": "Không tải được báo cáo.",
+    "live": "Đang cập nhật",
+    "closed": "Đã chốt",
+    "comparedWith": "so với {date}",
+    "noData": "Chưa có số liệu đã chốt cho ngày này. Hệ thống ghi lại từ ngày bắt đầu có báo cáo; những ngày trước đó sẽ trống.",
+    "noPrevious": "Chưa có số liệu ngày {date} để so sánh, nên chưa tính được thay đổi. Hãy chọn ngày khác ở ô \"So với\".",
+    "noCompare": "chưa có ngày so sánh",
+    "unchanged": "không đổi",
+    "kpi": {
+      "progress": "Tiến độ chung",
+      "done": "Hoàn thành",
+      "overdue": "Quá hạn",
+      "blocked": "Bị chặn",
+      "inProgress": "Đang làm",
+      "openRisks": "Rủi ro đang mở",
+      "issuesSub": "· {count} vấn đề",
+      "deliverables": "Giao phẩm đã nghiệm thu",
+      "milestones": "Mốc đã đạt",
+      "completedToday": "Xong trong ngày",
+      "createdToday": "Tạo mới trong ngày",
+      "activity": "Thay đổi trong ngày",
+      "people": "Người hoạt động"
+    },
+    "sprintLine": "Sprint đang chạy: đã xong {done} / kế hoạch {planned}.",
+    "trend": {
+      "title": "Xu hướng 14 ngày",
+      "metric": "Chỉ số",
+      "few": "Cần ít nhất 2 ngày số liệu để vẽ xu hướng."
+    },
+    "lists": {
+      "completed": "Việc xong trong ngày",
+      "completedEmpty": "Không có việc nào hoàn thành.",
+      "dueNotDone": "Đến hạn nhưng chưa xong",
+      "dueNotDoneEmpty": "Không có việc nào trễ.",
+      "blocked": "Đang bị chặn (hiện tại)",
+      "blockedEmpty": "Không có việc nào bị chặn."
+    },
+    "footnote": "Số liệu của ngày hôm nay được tính trực tiếp và chốt lúc 23:55 (giờ Việt Nam). \"Đến hạn nhưng chưa xong\" tính theo trạng thái hiện tại.",
+    "notification": {
+      "line": "Báo cáo ngày {date}: {title}",
+      "summary": "Xong {completed} · quá hạn {overdue}{overdueDelta} · tiến độ {progress}%"
+    },
+    "navLabel": "Báo cáo ngày"
   }
 }

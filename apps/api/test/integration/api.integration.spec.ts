@@ -14,6 +14,9 @@ import { AiQuotaService } from '../../src/modules/ai/ai-quota.service';
 import { GoogleClient } from '../../src/modules/auth/google-client';
 import { MailService } from '../../src/modules/mail/mail.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { ReportsService } from '../../src/modules/reports/reports.service';
+import { addDaysKey } from '../../src/modules/reports/report-math';
+import { vnDateKey } from '../../src/modules/gamification/streak-date.util';
 import { hashLinkCode } from '../../src/modules/telegram/link-code.util';
 
 /**
@@ -3772,5 +3775,247 @@ describe('Private projects', () => {
       .get(`${base}/OPEN`)
       .set('Authorization', `Bearer ${pm.accessToken}`)
       .expect(200);
+  });
+});
+
+describe('Daily reports', () => {
+  const http = () => request(app.getHttpServer());
+  const setup = async (label: string) => {
+    const owner = await registerUser(`${label} Owner`);
+    const org = await createOrg(owner.accessToken, `${label} Org`);
+    const project = await createProject(owner.accessToken, org.slug, 'DRP');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    return { owner, org, project, auth, base };
+  };
+  const dbOf = () => app.get(PrismaService).db;
+  const today = () => vnDateKey();
+
+  it('measures today live, counts work completed today, and un-counts it when reopened', async () => {
+    const { auth, base } = await setup('Live');
+    const mk = async (title: string) =>
+      (await http().post(`${base}/tasks`).set(auth).send({ title }).expect(201))
+        .body.data;
+    const a = await mk('A');
+    await mk('B');
+    await http()
+      .patch(`${base}/tasks/${a.id}`)
+      .set(auth)
+      .send({ status: 'DONE' })
+      .expect(200);
+
+    let r = (await http().get(`${base}/reports/daily`).set(auth).expect(200))
+      .body.data;
+    expect(r).toMatchObject({
+      date: today(),
+      isLive: true,
+      previous: null,
+      deltas: {},
+    });
+    expect(r.current).toMatchObject({
+      tasksTotal: 2,
+      done: 1,
+      todo: 1,
+      completedCount: 1,
+      createdCount: 2,
+      progressPct: 50,
+    });
+    expect(
+      r.highlights.completed.map((t: { title: string }) => t.title),
+    ).toEqual(['A']);
+
+    await http()
+      .patch(`${base}/tasks/${a.id}`)
+      .set(auth)
+      .send({ status: 'IN_PROGRESS' })
+      .expect(200);
+    r = (await http().get(`${base}/reports/daily`).set(auth).expect(200)).body
+      .data;
+    expect(r.current).toMatchObject({
+      done: 0,
+      inProgress: 1,
+      completedCount: 0,
+    });
+    expect(r.highlights.completed).toEqual([]);
+  });
+
+  it('compares with the previous day (or any earlier day) and returns the trend', async () => {
+    const { project, auth, base, org } = await setup('Compare');
+    const t = today();
+    const row = (date: string, over: Record<string, number>) => ({
+      organizationId: org.id,
+      projectId: project.id,
+      date: new Date(`${date}T00:00:00Z`),
+      generatedAt: new Date(),
+      tasksTotal: 10,
+      todo: 5,
+      inProgress: 2,
+      inReview: 0,
+      done: 3,
+      blocked: 0,
+      overdue: 1,
+      progressPct: 30,
+      createdCount: 0,
+      completedCount: 0,
+      openRisks: 2,
+      openIssues: 0,
+      deliverablesTotal: 0,
+      deliverablesAccepted: 0,
+      milestonesTotal: 0,
+      milestonesDone: 0,
+      activityCount: 0,
+      activeUsers: 0,
+      ...over,
+    });
+    await dbOf().projectDailySnapshot.createMany({
+      data: [
+        row(addDaysKey(t, -1), {}),
+        row(addDaysKey(t, -7), { done: 1, overdue: 4, progressPct: 10 }),
+      ],
+    });
+    for (const title of ['x', 'y'])
+      await http().post(`${base}/tasks`).set(auth).send({ title }).expect(201);
+
+    const r = (await http().get(`${base}/reports/daily`).set(auth).expect(200))
+      .body.data;
+    expect(r.comparedTo).toBe(addDaysKey(t, -1));
+    expect(r.previous.done).toBe(3);
+    expect(r.deltas.tasksTotal).toBe(-8); // 2 live tasks vs 10 yesterday
+    expect(r.deltas.done).toBe(-3);
+    expect(r.trend.map((s: { date: string }) => s.date)).toEqual([
+      addDaysKey(t, -7),
+      addDaysKey(t, -1),
+      t,
+    ]);
+
+    const week = (
+      await http()
+        .get(`${base}/reports/daily?compareTo=${addDaysKey(t, -7)}`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    expect(week.previous.overdue).toBe(4);
+
+    // A day nobody snapshotted has no data, not made-up data.
+    const gap = (
+      await http()
+        .get(`${base}/reports/daily?date=${addDaysKey(t, -3)}`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    expect(gap).toMatchObject({ isLive: false, current: null, deltas: {} });
+    const stored = (
+      await http()
+        .get(`${base}/reports/daily?date=${addDaysKey(t, -1)}`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    expect(stored).toMatchObject({ isLive: false });
+    expect(stored.current.done).toBe(3);
+  });
+
+  it('rejects impossible dates', async () => {
+    const { auth, base } = await setup('Dates');
+    const get = (q: string) =>
+      http().get(`${base}/reports/daily?${q}`).set(auth);
+    await get(`date=${addDaysKey(today(), 1)}`).expect(400);
+    await get('date=2026-02-30').expect(400);
+    await get('date=nope').expect(400);
+    await get(
+      `date=${addDaysKey(today(), -2)}&compareTo=${addDaysKey(today(), -2)}`,
+    ).expect(400);
+    await get(
+      `date=${addDaysKey(today(), -2)}&compareTo=${addDaysKey(today(), -1)}`,
+    ).expect(400);
+  });
+
+  it('hides a private project from people who cannot see it', async () => {
+    const { owner, org } = await setup('Private');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Report PM',
+    );
+    const sec = `${API_PREFIX}/organizations/${org.slug}/projects/SEC`;
+    await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects`)
+      .set({ Authorization: `Bearer ${owner.accessToken}` })
+      .send({ key: 'SEC', name: 'Secret', isPrivate: true })
+      .expect(201);
+    await http()
+      .get(`${sec}/reports/daily`)
+      .set({ Authorization: `Bearer ${pm.accessToken}` })
+      .expect(404);
+    await http()
+      .get(`${sec}/reports/daily`)
+      .set({ Authorization: `Bearer ${owner.accessToken}` })
+      .expect(200);
+  });
+
+  it('fixes a snapshot for every live project at night, and tells managers once in the morning', async () => {
+    const { owner, org, project, auth, base } = await setup('Night');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Night PM',
+    );
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Night Member',
+    );
+    const svc = app.get(ReportsService);
+    await http()
+      .post(`${base}/tasks`)
+      .set(auth)
+      .send({ title: 'Late', dueDate: '2020-01-01T00:00:00.000Z' })
+      .expect(201);
+
+    expect(await svc.snapshotAll()).toBeGreaterThan(0);
+    const snap = await dbOf().projectDailySnapshot.findUniqueOrThrow({
+      where: {
+        projectId_date: {
+          projectId: project.id,
+          date: new Date(`${today()}T00:00:00Z`),
+        },
+      },
+    });
+    expect(snap).toMatchObject({ tasksTotal: 1, overdue: 1 });
+
+    // Pretend that snapshot was yesterday's: the morning job reports days that have ended.
+    await dbOf().projectDailySnapshot.update({
+      where: { id: snap.id },
+      data: {
+        date: new Date(`${addDaysKey(today(), -1)}T00:00:00Z`),
+        activityCount: 4,
+      },
+    });
+    await svc.notifyPending();
+    const inbox = async (t: string) =>
+      (
+        await http()
+          .get(`${API_PREFIX}/organizations/${org.slug}/notifications`)
+          .set({ Authorization: `Bearer ${t}` })
+          .expect(200)
+      ).body.data.items.filter(
+        (n: { type: string; projectKey: string }) =>
+          n.type === 'DAILY_REPORT' && n.projectKey === project.key,
+      );
+    const ownerMail = await inbox(owner.accessToken);
+    expect(ownerMail).toHaveLength(1);
+    expect(ownerMail[0]).toMatchObject({
+      entityKind: 'report',
+      entityId: addDaysKey(today(), -1),
+    });
+    expect(JSON.parse(ownerMail[0].detail)).toMatchObject({ overdue: 1 });
+    expect(await inbox(pm.accessToken)).toHaveLength(1);
+    expect(await inbox(member.accessToken)).toHaveLength(0);
+
+    // Running it again (or after a restart) must not repeat itself.
+    await svc.notifyPending();
+    expect(await inbox(owner.accessToken)).toHaveLength(1);
   });
 });

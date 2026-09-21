@@ -22,3 +22,4 @@ export * from './common/permissions';
 export * from './templates/catalog';
 export * from './notifications/schemas';
 export * from './sprints/schemas';
+export * from './reports/schemas';

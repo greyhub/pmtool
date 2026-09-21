@@ -21,6 +21,7 @@ import { TelegramModule } from './modules/telegram/telegram.module';
 import { CharterModule } from './modules/charter/charter.module';
 import { ScopeModule } from './modules/scope/scope.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { SprintsModule } from './modules/sprints/sprints.module';
 import { PrivacyModule } from './modules/privacy/privacy.module';
 import { MailModule } from './modules/mail/mail.module';
@@ -61,6 +62,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     MailModule,
     PrivacyModule,
     SprintsModule,
+    ReportsModule,
     NotificationsModule,
     StakeholdersModule,
     DocumentsModule,

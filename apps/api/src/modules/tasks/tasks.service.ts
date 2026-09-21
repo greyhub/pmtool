@@ -331,6 +331,13 @@ export class TasksService {
                 ? Prisma.JsonNull
                 : toRichText(input.description),
           status: input.status,
+          // Reaching DONE stamps the moment (daily reports count work finished per day); leaving DONE clears it.
+          completedAt:
+            input.status === undefined || input.status === existing.status
+              ? undefined
+              : input.status === 'DONE'
+                ? new Date()
+                : null,
           priority: input.priority,
           startDate: milestoneStart
             ? milestoneStart

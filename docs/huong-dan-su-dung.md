@@ -380,3 +380,14 @@ Bấm một mục sẽ mở màn hình đầu tiên của nó. Địa chỉ (URL
 ## 29. Nhân vật đại diện
 
 Mỗi người được hiển thị bằng **nhân vật** mà họ đã chọn (Cài đặt cá nhân → Nhân vật), đồng nhất ở mọi màn hình: bình luận, lịch sử thay đổi, dòng hoạt động, bảng Kanban, danh sách công việc, bảng xếp hạng, người phụ trách/hỗ trợ, chủ sở hữu rủi ro, giao phẩm, tài liệu, mốc và menu người dùng. Ảnh đại diện Google **không còn được dùng để hiển thị**; nếu chưa chọn nhân vật thì dùng nhân vật mặc định. Người không còn là thành viên tổ chức hiện bằng chữ cái đầu. Các bên liên quan bên ngoài (không có tài khoản) cũng hiện bằng chữ cái đầu.
+
+## 30. Báo cáo ngày (tự động) và so sánh với ngày trước
+
+Vào **Tổng quan → Báo cáo ngày** của một dự án.
+
+- **Tự động:** mỗi đêm lúc **23:55 (giờ Việt Nam)** hệ thống chốt số liệu của mọi dự án chưa lưu trữ. Sáng hôm sau (từ 08:00) **Chủ sở hữu, Quản trị viên và PM** của dự án nhận một **thông báo trên chuông**: "Báo cáo ngày 20/9: … Xong 5 · quá hạn 3 (+1) · tiến độ 62%"; bấm vào mở đúng ngày đó. Ngày yên ắng (không có thay đổi và không có việc quá hạn) thì không gửi, để không làm phiền. Dự án riêng tư chỉ báo cho người nhìn thấy nó.
+- **Nội dung:** tiến độ chung, số việc hoàn thành/đang làm/bị chặn/quá hạn, rủi ro và vấn đề đang mở, giao phẩm đã nghiệm thu, mốc đã đạt, số việc xong/tạo mới/số thay đổi và số người hoạt động trong ngày, và tải của sprint đang chạy. Kèm danh sách **việc xong trong ngày**, **việc đến hạn nhưng chưa xong** và (với hôm nay) **việc đang bị chặn**.
+- **So sánh:** mỗi con số có mũi tên ▲▼ so với **ngày hôm trước**, hoặc chọn **7 ngày trước** / **một ngày bất kỳ** ở ô "So với". Màu theo ý nghĩa: quá hạn tăng là đỏ, việc xong tăng là xanh; các số trung tính (ví dụ đang làm) để xám.
+- **Xu hướng 14 ngày:** biểu đồ đường cho tiến độ, số việc xong, số quá hạn hoặc rủi ro mở. Dùng ‹ › hoặc chọn ngày để xem báo cáo cũ.
+- **Hôm nay** được tính trực tiếp (nhãn "Đang cập nhật") rồi chốt lúc 23:55 (nhãn "Đã chốt").
+- **Giới hạn:** hệ thống chỉ có số liệu **từ ngày tính năng bắt đầu chạy**; ngày trước đó hiện "chưa có số liệu" và không thể so sánh (không bịa số). Nếu máy chủ tắt đúng lúc 23:55, ngày đó không có bản chốt (số liệu hôm nay vẫn xem trực tiếp được). "Đến hạn nhưng chưa xong" tính theo trạng thái hiện tại, không phải lúc đó. Người có quyền xem dự án đều xem được báo cáo (kể cả Viewer).

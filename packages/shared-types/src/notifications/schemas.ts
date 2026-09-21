@@ -7,6 +7,7 @@ export const NOTIFICATION_TYPES = [
   'DELIVERABLE_SUBMITTED',
   'DELIVERABLE_ACCEPTED',
   'DELIVERABLE_REJECTED',
+  'DAILY_REPORT',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -14,7 +15,7 @@ export const notificationSchema = z.object({
   id: z.string(),
   type: z.enum(NOTIFICATION_TYPES),
   actorName: z.string().nullable(),
-  entityKind: z.enum(['task', 'deliverable']),
+  entityKind: z.enum(['task', 'deliverable', 'report']),
   entityId: z.string(),
   projectKey: z.string(),
   entityTitle: z.string(),

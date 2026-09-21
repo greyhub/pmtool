@@ -196,6 +196,7 @@ export class TaskCsvService {
                 ? toRichText(t.description)
                 : undefined,
               status: t.status,
+              completedAt: t.status === 'DONE' ? new Date() : undefined,
               priority: t.priority,
               nodeType: t.nodeType,
               isMilestone: t.isMilestone,

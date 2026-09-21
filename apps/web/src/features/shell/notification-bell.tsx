@@ -8,6 +8,7 @@ import { Link } from '../../i18n/navigation';
 import { formatRelativeTime } from '../../lib/relative-time';
 
 function hrefOf(orgSlug: string, n: NotificationDto): string {
+  if (n.entityKind === 'report') return `/${orgSlug}/projects/${n.projectKey}/reports?date=${n.entityId}`;
   return n.entityKind === 'deliverable'
     ? `/${orgSlug}/projects/${n.projectKey}/deliverables`
     : `/${orgSlug}/projects/${n.projectKey}/tasks/${n.entityId}`;
@@ -39,6 +40,18 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
 
   // The type key is dynamic (one message per notification type), which next-intl 4 cannot type-check.
   const translateType = t as unknown as (key: string, values: Record<string, string>) => string;
+  const tReport = useTranslations('reports.notification');
+  const dateFmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', timeZone: 'UTC' });
+  /** The daily-report payload is language-neutral JSON; word it here in the reader's language. */
+  const reportSummary = (detail: string | null): string | null => {
+    try {
+      const d = JSON.parse(detail ?? '') as { completed: number; overdue: number; overdueDelta: number | null; progress: number };
+      const delta = d.overdueDelta ? ` (${d.overdueDelta > 0 ? '+' : ''}${d.overdueDelta})` : '';
+      return tReport('summary', { completed: d.completed, overdue: d.overdue, overdueDelta: delta, progress: d.progress });
+    } catch {
+      return null;
+    }
+  };
   const unread = data?.unreadCount ?? 0;
 
   return (
@@ -109,10 +122,14 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
                     />
                     <span className="min-w-0 text-sm">
                       <span className="block text-ink-primary">
-                        {translateType(`types.${n.type}`, { actor: n.actorName ?? t('someone'), title: n.entityTitle })}
+                        {n.type === 'DAILY_REPORT'
+                          ? tReport('line', { date: dateFmt.format(new Date(`${n.entityId}T00:00:00Z`)), title: n.entityTitle })
+                          : translateType(`types.${n.type}`, { actor: n.actorName ?? t('someone'), title: n.entityTitle })}
                       </span>
-                      {n.detail && (
-                        <span className="mt-0.5 block truncate text-xs text-ink-secondary">“{n.detail}”</span>
+                      {n.type === 'DAILY_REPORT' ? (
+                        <span className="mt-0.5 block truncate text-xs text-ink-secondary">{reportSummary(n.detail)}</span>
+                      ) : (
+                        n.detail && <span className="mt-0.5 block truncate text-xs text-ink-secondary">“{n.detail}”</span>
                       )}
                       <span className="mt-0.5 block text-xs text-ink-muted">
                         {formatRelativeTime(n.createdAt, locale)}

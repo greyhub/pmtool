@@ -316,7 +316,8 @@
       "list": "List",
       "schedule": "Schedule",
       "plan": "Plan",
-      "governance": "Governance"
+      "governance": "Governance",
+      "report": "Daily report"
     }
   },
   "board": {
@@ -1210,7 +1211,8 @@
       "TASK_COMMENT": "{actor} commented on: {title}",
       "DELIVERABLE_SUBMITTED": "{actor} submitted a deliverable for sign-off: {title}",
       "DELIVERABLE_ACCEPTED": "{actor} accepted the deliverable: {title}",
-      "DELIVERABLE_REJECTED": "{actor} rejected the deliverable: {title}"
+      "DELIVERABLE_REJECTED": "{actor} rejected the deliverable: {title}",
+      "DAILY_REPORT": "Daily report: {title}"
     }
   },
   "myTasks": {
@@ -1285,5 +1287,62 @@
       "tasks": "Tasks",
       "projects": "Projects"
     }
+  },
+  "reports": {
+    "title": "Daily report",
+    "subtitle": "The numbers are locked in every night; pick a day and compare it with an earlier one to see whether the project is moving forward.",
+    "date": "Report date",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "today": "Today",
+    "compareWith": "Compare with",
+    "comparePrev": "Previous day",
+    "compareWeek": "7 days earlier",
+    "compareCustom": "Pick a date…",
+    "compareDate": "Comparison date",
+    "loading": "Loading report…",
+    "error": "Could not load the report.",
+    "live": "Live",
+    "closed": "Closed",
+    "comparedWith": "vs {date}",
+    "noData": "No closed numbers for this day yet. The system records from the day reports began; earlier days stay empty.",
+    "noPrevious": "No numbers for {date} to compare with, so changes cannot be shown. Pick another day in \"Compare with\".",
+    "noCompare": "nothing to compare",
+    "unchanged": "no change",
+    "kpi": {
+      "progress": "Overall progress",
+      "done": "Done",
+      "overdue": "Overdue",
+      "blocked": "Blocked",
+      "inProgress": "In progress",
+      "openRisks": "Open risks",
+      "issuesSub": "· {count} issues",
+      "deliverables": "Deliverables accepted",
+      "milestones": "Milestones reached",
+      "completedToday": "Completed that day",
+      "createdToday": "Created that day",
+      "activity": "Changes that day",
+      "people": "People active"
+    },
+    "sprintLine": "Running sprint: {done} done of {planned} planned.",
+    "trend": {
+      "title": "14-day trend",
+      "metric": "Metric",
+      "few": "At least 2 days of numbers are needed to draw a trend."
+    },
+    "lists": {
+      "completed": "Completed that day",
+      "completedEmpty": "Nothing was completed.",
+      "dueNotDone": "Due but not done",
+      "dueNotDoneEmpty": "Nothing is late.",
+      "blocked": "Blocked (right now)",
+      "blockedEmpty": "Nothing is blocked."
+    },
+    "footnote": "Today's numbers are computed live and locked at 23:55 (Vietnam time). \"Due but not done\" reflects the current status.",
+    "notification": {
+      "line": "Daily report {date}: {title}",
+      "summary": "Done {completed} · overdue {overdue}{overdueDelta} · progress {progress}%"
+    },
+    "navLabel": "Daily report"
   }
 }

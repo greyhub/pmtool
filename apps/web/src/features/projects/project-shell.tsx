@@ -34,7 +34,14 @@ export function ProjectShell({
   const base = `/${orgSlug}/projects/${projectKey}`;
   // Six top-level groups instead of fourteen tabs; every view keeps its own URL and is one click away in the sub-navigation.
   const groups: { key: string; label: string; items: { href: string; label: string }[] }[] = [
-    { key: 'overview', label: tGroups('overview'), items: [{ href: `${base}/dashboard`, label: tGroups('overview') }] },
+    {
+      key: 'overview',
+      label: tGroups('overview'),
+      items: [
+        { href: `${base}/dashboard`, label: tGroups('overview') },
+        { href: `${base}/reports`, label: tGroups('report') },
+      ],
+    },
     {
       key: 'work',
       label: tGroups('work'),
@@ -72,7 +79,11 @@ export function ProjectShell({
         { href: `${base}/artifacts`, label: tTabs('artifacts') },
       ],
     },
-    { key: 'settings', label: tTabs('settings'), items: [{ href: `${base}/settings`, label: tTabs('settings') }] },
+    {
+      key: 'settings',
+      label: tTabs('settings'),
+      items: [{ href: `${base}/settings`, label: tTabs('settings') }],
+    },
   ];
   const activeGroup = groups.find((g) => g.items.some((i) => pathname.startsWith(i.href)));
 
@@ -86,7 +97,10 @@ export function ProjectShell({
           <Badge variant={STATUS_VARIANT[project.status]}>{tStatus(project.status)}</Badge>
         </div>
       )}
-      <nav aria-label={tGroups('aria')} className="mb-4 flex gap-1 overflow-x-auto border-b border-line">
+      <nav
+        aria-label={tGroups('aria')}
+        className="mb-4 flex gap-1 overflow-x-auto border-b border-line"
+      >
         {groups.map((g) => {
           const active = g === activeGroup;
           return (
@@ -106,7 +120,11 @@ export function ProjectShell({
         })}
       </nav>
       {activeGroup && activeGroup.items.length > 1 && (
-        <div className="mb-6 flex gap-1 overflow-x-auto" role="group" aria-label={activeGroup.label}>
+        <div
+          className="mb-6 flex gap-1 overflow-x-auto"
+          role="group"
+          aria-label={activeGroup.label}
+        >
           {activeGroup.items.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
