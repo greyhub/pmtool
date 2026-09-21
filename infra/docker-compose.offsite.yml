@@ -1,0 +1,19 @@
+# Optional: copy backups off the server with rclone.
+#   1. Configure a remote once:  docker run --rm -it -v ~/.config/pmtool-rclone:/config/rclone rclone/rclone config
+#   2. Put RCLONE_REMOTE=<name>:<folder> (and optionally OFFSITE_KEEP_DAYS) in infra/.env.prod
+#   3. docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.offsite.yml [-f infra/docker-compose.tunnel.yml] --env-file infra/.env.prod up -d
+services:
+  offsite:
+    image: rclone/rclone:latest
+    restart: unless-stopped
+    depends_on:
+      - backup
+    environment:
+      RCLONE_REMOTE: ${RCLONE_REMOTE:?set RCLONE_REMOTE, e.g. gdrive:pmtool-backups}
+      OFFSITE_KEEP_DAYS: ${OFFSITE_KEEP_DAYS:-60}
+      BACKUP_HOUR_UTC: ${BACKUP_HOUR_UTC:-20}
+    volumes:
+      - ./backup/offsite-loop.sh:/usr/local/bin/offsite-loop.sh:ro
+      - ${BACKUP_DIR:-./backup/data}:/backups:ro
+      - ${RCLONE_CONFIG_DIR:-~/.config/pmtool-rclone}:/config/rclone
+    entrypoint: ['sh', '/usr/local/bin/offsite-loop.sh']

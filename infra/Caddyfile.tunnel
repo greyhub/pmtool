@@ -1,0 +1,28 @@
+# Used with docker-compose.tunnel.yml. Cloudflare terminates HTTPS and its tunnel (cloudflared) is the ONLY thing
+# that can reach this Caddy (no published ports), so it is safe to trust CF-Connecting-IP here.
+# Without the header_up lines the API would see every visitor as cloudflared's container address and the
+# per-IP rate limits would treat the whole internet as one client.
+http://:80 {
+	encode zstd gzip
+
+	@api path /api/*
+	handle @api {
+		reverse_proxy api:3001 {
+			header_up X-Forwarded-For {header.CF-Connecting-IP}
+			header_up X-Forwarded-Proto https
+		}
+	}
+	handle {
+		reverse_proxy web:3000 {
+			header_up X-Forwarded-For {header.CF-Connecting-IP}
+			header_up X-Forwarded-Proto https
+		}
+	}
+
+	# HSTS is sent by Cloudflare (SSL/TLS -> Edge Certificates -> HSTS) once you enable it there.
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}

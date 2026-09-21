@@ -6,6 +6,8 @@ Hướng dẫn triển khai, sao lưu, khôi phục, giám sát và xử lý s�
 
 **Việc nên cải thiện:** mỗi image nặng ≈ 2,15 GB vì chứa cả gói phát triển và mã nguồn; nên tách giai đoạn chạy chỉ giữ gói production để nhẹ hơn và giảm bề mặt tấn công.
 
+> **Đặt máy chủ tại nhà/văn phòng (Mac mini)?** Dùng Cloudflare Tunnel thay vì mở cổng router và bật sao lưu ra ngoài máy — xem [trien-khai-mac-mini.md](trien-khai-mac-mini.md).
+
 ## 1. Thành phần
 
 ```

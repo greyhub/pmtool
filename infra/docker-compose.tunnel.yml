@@ -1,0 +1,20 @@
+# Publish the site through a Cloudflare Tunnel instead of opening ports on your router (home / office server).
+#   docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.tunnel.yml --env-file infra/.env.prod up -d --build
+# Needs CLOUDFLARE_TUNNEL_TOKEN in infra/.env.prod and SITE_URL=https://<your domain>. See docs/trien-khai-mac-mini.md.
+services:
+  caddy:
+    # Nothing is published to the host: only the tunnel (same Docker network) reaches Caddy.
+    ports: !reset []
+    volumes:
+      - ./Caddyfile.tunnel:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    depends_on:
+      - caddy
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN (Cloudflare Zero Trust -> Networks -> Tunnels)}
