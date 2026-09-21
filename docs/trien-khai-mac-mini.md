@@ -2,7 +2,7 @@
 
 Dành cho người vận hành đặt máy chủ tại nhà/văn phòng. Cách này **không mở cổng trên router**, không lộ IP nhà, HTTPS do Cloudflare lo. Phần chung về sao lưu, nâng cấp, giám sát xem [van-hanh.md](van-hanh.md).
 
-> **Mức kiểm chứng.** Đã chạy thật trên máy phát triển: dựng cả stack bằng `docker-compose.prod.yml`, kiểm tra `docker-compose.tunnel.yml` hợp lệ và Caddy chuyển đúng IP người truy cập (giả mạo `X-Forwarded-For` bị ghi đè). **Chưa** chạy với tài khoản Cloudflare và tên miền thật, và chưa thử `offsite` với một kho lưu trữ thật — hai bước đó bạn sẽ là người đầu tiên chạy; nếu lỗi, đối chiếu mục 8.
+> **Mức kiểm chứng.** Đã chạy thật trên máy phát triển: dựng cả stack bằng `docker-compose.prod.yml`, kiểm tra `docker-compose.tunnel.yml` hợp lệ và Caddy chuyển đúng IP người truy cập (giả mạo `X-Forwarded-For` bị ghi đè). Đã chạy thật với Cloudflare Tunnel và tên miền `pm.dgna.vn`, và với `offsite` lên Google Drive (chép bản sao lưu, tải về, khôi phục vào Postgres tạm: số liệu khớp prod). Nếu lỗi, đối chiếu mục 8.
 
 ## 1. Chuẩn bị máy
 
@@ -71,11 +71,18 @@ Rồi làm các việc sau khi lên của [van-hanh.md §3](van-hanh.md#3-triể
 
 Sao lưu nằm cùng máy sẽ mất cùng máy. Dùng `rclone` chép lên Google Drive, Backblaze B2, S3… (một lần cấu hình):
 
+Bước xác thực Google cần trình duyệt, mà rclone chạy trong container không mở được (cổng chỉ nghe ở 127.0.0.1 của container). Vì vậy cấu hình **trực tiếp trên máy**, ghi thẳng vào thư mục dịch vụ sẽ đọc:
+
 ```bash
+# cài rclone không cần brew/sudo (Mac Apple silicon; máy Intel thay arm64 bằng amd64)
+mkdir -p ~/.local/bin && cd /tmp && curl -fsSLO https://downloads.rclone.org/rclone-current-osx-arm64.zip \
+  && unzip -q -o rclone-current-osx-arm64.zip && cp rclone-*-osx-arm64/rclone ~/.local/bin/ && cd -
 mkdir -p ~/.config/pmtool-rclone
-docker run --rm -it -v ~/.config/pmtool-rclone:/config/rclone rclone/rclone config
-# n (new remote) → tên "gdrive" → chọn loại (drive / b2 / s3) → làm theo hướng dẫn xác thực
+RCLONE_CONFIG=~/.config/pmtool-rclone/rclone.conf ~/.local/bin/rclone config
+# n → tên "gdrive" → drive → client_id/secret để trống → y (client chung) → scope 3 (drive.file) → Enter... → trình duyệt tự mở, cho phép
 ```
+
+> **Lưu ý:** rclone báo client_id chung của nó sẽ **ngừng hoạt động trong năm 2026**. Khi đó tạo client_id riêng (Google Cloud Console → OAuth client, https://rclone.org/drive/#making-your-own-client-id) rồi chạy lại `rclone config` cho remote `gdrive`. Nếu `offsite` báo `FAILED` đột ngột, đây là nguyên nhân đầu tiên cần nghĩ tới.
 
 Thêm vào `infra/.env.prod`: `RCLONE_REMOTE=gdrive:pmtool-backups` (và `OFFSITE_KEEP_DAYS=60` nếu muốn đổi). Rồi chạy thêm tệp offsite:
 
