@@ -16,3 +16,7 @@ playwright-report/
 test-results/
 .vscode/*
 !.vscode/extensions.json
+
+# Real production secrets and rclone config: never commit
+infra/.env.prod
+.env.prod
