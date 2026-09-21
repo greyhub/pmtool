@@ -10,6 +10,7 @@ import { LocaleSwitcherWidget } from '../shell/locale-switcher-widget';
 import { UserMenu } from '../shell/user-menu';
 import { Link, useRouter, usePathname } from '../../i18n/navigation';
 import { NotificationBell } from '../shell/notification-bell';
+import { CommandPalette } from '../command-palette/command-palette';
 
 function SidebarLink({
   href,
@@ -196,6 +197,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
           }
           right={
             <>
+              <CommandPalette orgSlug={orgSlug} />
               <NotificationBell orgSlug={orgSlug} />
               <div className="hidden sm:block">
                 <LocaleSwitcherWidget />

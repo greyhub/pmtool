@@ -95,7 +95,7 @@ function TaskRow({
         {canEdit && (
           <Select
             aria-label={t('moveTo', { title: task.title })}
-            className="w-36"
+            className="row-actions w-36"
             value={task.sprintId ?? BACKLOG}
             onChange={(e) => onMove(e.target.value === BACKLOG ? null : e.target.value)}
           >

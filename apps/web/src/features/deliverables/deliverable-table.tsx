@@ -179,6 +179,7 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="row-actions"
                           onClick={() => {
                             setEditing(d);
                             setModalOpen(true);
@@ -188,7 +189,7 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                         </Button>
                       )}
                       {canManage && (
-                        <Button variant="ghost" size="sm" onClick={() => remove.mutate(d.id)}>
+                        <Button variant="ghost" size="sm" className="row-actions" onClick={() => remove.mutate(d.id)}>
                           {t('delete')}
                         </Button>
                       )}

@@ -37,7 +37,12 @@ const preset: Config = {
         },
         action: {
           primary: {
-            DEFAULT: 'var(--color-action-primary-bg)',
+            // A function so opacity modifiers work (`bg-action-primary/15`); a bare var() colour silently ignores them.
+            // Tailwind passes either a number or a CSS variable, so the percentage is computed in CSS.
+            DEFAULT: (({ opacityValue }: { opacityValue?: string }) =>
+              opacityValue === undefined
+                ? 'var(--color-action-primary-bg)'
+                : `color-mix(in srgb, var(--color-action-primary-bg) calc((${opacityValue}) * 100%), transparent)`) as unknown as string,
             hover: 'var(--color-action-primary-bg-hover)',
           },
           secondary: {

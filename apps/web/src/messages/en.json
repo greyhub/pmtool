@@ -1272,5 +1272,18 @@
       "ACTIVE": "Active",
       "CLOSED": "Closed"
     }
+  },
+  "palette": {
+    "title": "Quick search",
+    "open": "Open quick search (Ctrl K)",
+    "placeholder": "Search projects, tasks, screens…",
+    "placeholderShort": "Quick find",
+    "empty": "No results.",
+    "groups": {
+      "go": "Go to",
+      "views": "{key} screens",
+      "tasks": "Tasks",
+      "projects": "Projects"
+    }
   }
 }

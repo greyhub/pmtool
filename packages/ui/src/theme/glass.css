@@ -11,7 +11,7 @@
  */
 :root {
   --glass-fill: rgba(255, 255, 255, 0.55);
-  --glass-fill-strong: rgba(255, 255, 255, 0.78);
+  --glass-fill-strong: rgba(255, 255, 255, 0.95);
   --glass-field: rgba(255, 255, 255, 0.6);
   --glass-stroke: rgba(17, 24, 39, 0.08);
   --glass-sheen: rgba(255, 255, 255, 0.85);
@@ -22,7 +22,7 @@
 }
 [data-theme='dark'] {
   --glass-fill: rgba(30, 41, 59, 0.42);
-  --glass-fill-strong: rgba(17, 24, 39, 0.72);
+  --glass-fill-strong: rgba(17, 24, 39, 0.92);
   --glass-field: rgba(255, 255, 255, 0.05);
   --glass-stroke: rgba(255, 255, 255, 0.1);
   --glass-sheen: rgba(255, 255, 255, 0.09);

@@ -1272,5 +1272,18 @@
       "ACTIVE": "Đang chạy",
       "CLOSED": "Đã đóng"
     }
+  },
+  "palette": {
+    "title": "Tìm kiếm nhanh",
+    "open": "Mở tìm kiếm nhanh (Ctrl K)",
+    "placeholder": "Tìm dự án, công việc, màn hình…",
+    "placeholderShort": "Tìm nhanh",
+    "empty": "Không có kết quả.",
+    "groups": {
+      "go": "Đi tới",
+      "views": "Màn hình của {key}",
+      "tasks": "Công việc",
+      "projects": "Dự án"
+    }
   }
 }

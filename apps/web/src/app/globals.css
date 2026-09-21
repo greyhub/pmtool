@@ -73,3 +73,19 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Secondary row actions (edit, delete, move) stay out of the way until the row is hovered or focused; on touch screens there is no hover, so they stay visible. */
+.row-actions {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+:is(tr, li):hover .row-actions,
+:is(tr, li):focus-within .row-actions,
+.row-actions:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .row-actions {
+    opacity: 1;
+  }
+}

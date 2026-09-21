@@ -97,7 +97,7 @@ export function DocumentTable({ orgSlug, projectKey }: { orgSlug: string; projec
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       {canEdit && (
                         <>
                           <Button

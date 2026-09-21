@@ -146,7 +146,7 @@ export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; pro
                     {tEngagement(s.currentEngagement)} → {tEngagement(s.desiredEngagement)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       {canManage && (
                         <>
                           <Button

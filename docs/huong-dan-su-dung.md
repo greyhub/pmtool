@@ -371,3 +371,8 @@ Một dự án có **6 mục chính** trên thanh trên cùng; các màn hình c
 | **Cài đặt** | Thông tin, dự án riêng tư, sprint, thành viên |
 
 Bấm một mục sẽ mở màn hình đầu tiên của nó. Địa chỉ (URL) của từng màn hình không đổi nên liên kết đã lưu vẫn dùng được.
+
+## 28. Tìm kiếm nhanh (Ctrl K) và thao tác khi rê chuột
+
+- **Tìm kiếm nhanh:** bấm **Ctrl K** (Mac: **⌘ K**) ở bất kỳ đâu trong tổ chức, hoặc bấm ô "Tìm nhanh" trên thanh trên. Gõ để tìm **dự án**, **màn hình** và **công việc của dự án đang mở**; gõ không dấu cũng tìm được ("dang nhap" ra "Đăng nhập"), gõ nhiều từ theo thứ tự bất kỳ, gõ mã (như PRJ-12) cũng khớp. ↑/↓ để chọn, Enter để mở, Esc để đóng.
+- **Nút sửa/xoá ẩn cho đến khi rê chuột** (hoặc chọn dòng bằng bàn phím) trong bảng Tài liệu, Các bên liên quan, Giao phẩm và ô chuyển sprint; trên màn hình cảm ứng chúng luôn hiện. Các nút thuộc quy trình (Nộp, Nghiệm thu, Từ chối) luôn hiện.
