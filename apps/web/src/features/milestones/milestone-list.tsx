@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useMilestones } from '@pmtool/api-client';
-import { Avatar, Badge, Button, Card } from '@pmtool/ui';
+import { Badge, Button, Card } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { Link } from '../../i18n/navigation';
 import { formatDate } from '../../lib/date-input';
 import { DeliverableFormModal } from '../deliverables/deliverable-form-modal';
@@ -68,7 +69,7 @@ export function MilestoneList({ orgSlug, projectKey }: { orgSlug: string; projec
                     <p className="text-xs text-ink-muted">{t('assignee')}</p>
                     {m.assignee ? (
                       <span className="flex items-center gap-2 text-ink-primary">
-                        <Avatar name={m.assignee.fullName} src={m.assignee.avatarUrl} size="sm" />
+                        <UserAvatar userId={m.assignee.id} name={m.assignee.fullName} />
                         {m.assignee.fullName}
                       </span>
                     ) : (

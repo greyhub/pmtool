@@ -16,4 +16,12 @@ describe('Avatar', () => {
     render(<Avatar name="Nguyễn Văn A" src="https://example.com/a.png" />);
     expect(screen.getByRole('img', { name: 'Nguyễn Văn A' })).toBeInTheDocument();
   });
+
+  it('shows the mascot character instead of the photo or initials when one is given', () => {
+    render(<Avatar name="Nguyễn Văn A" src="https://example.com/a.png" character="fox" />);
+    const img = screen.getByRole('img', { name: 'Nguyễn Văn A' });
+    expect(img).toHaveStyle({ backgroundImage: 'url(/mascots/fox-directions.webp)' });
+    expect(screen.queryByText('NA')).not.toBeInTheDocument();
+    expect(img.querySelector('img')).toBeNull();
+  });
 });

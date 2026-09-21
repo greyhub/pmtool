@@ -11,18 +11,8 @@ import {
   useSubmitDeliverable,
 } from '@pmtool/api-client';
 import type { DeliverableDto } from '@pmtool/shared-types';
-import {
-  Avatar,
-  Button,
-  Card,
-  Modal,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from '@pmtool/ui';
+import { Button, Card, Modal, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { Link } from '../../i18n/navigation';
 import { formatDate } from '../../lib/date-input';
 import { DeliverableFormModal } from './deliverable-form-modal';
@@ -138,7 +128,7 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                   <TableCell>
                     {d.owner ? (
                       <span className="flex items-center gap-2">
-                        <Avatar name={d.owner.fullName} src={d.owner.avatarUrl} size="sm" />
+                        <UserAvatar userId={d.owner.id} name={d.owner.fullName} />
                         {d.owner.fullName}
                       </span>
                     ) : (

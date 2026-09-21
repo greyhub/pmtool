@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useOrgActivity } from '@pmtool/api-client';
-import { Avatar, Card, CardContent, CardHeader, CardTitle } from '@pmtool/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 
 export function ActivityFeed({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('activity.feed');
@@ -27,7 +28,7 @@ export function ActivityFeed({ orgSlug }: { orgSlug: string }) {
               return (
                 <li key={log.id} className="flex items-start gap-3 text-sm">
                   <span aria-hidden="true">
-                    <Avatar name={log.actor.fullName} src={log.actor.avatarUrl} size="sm" />
+                    <UserAvatar userId={log.actor.id} name={log.actor.fullName} />
                   </span>
                   <p className="text-ink-secondary">
                     <span className="font-medium text-ink-primary">{log.actor.fullName}</span>{' '}

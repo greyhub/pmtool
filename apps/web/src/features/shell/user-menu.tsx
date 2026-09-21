@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useMe, useLogout } from '@pmtool/api-client';
-import { Avatar } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { Link, useRouter } from '../../i18n/navigation';
 
 export function UserMenu() {
@@ -33,7 +33,7 @@ export function UserMenu() {
         aria-label={`Menu tài khoản (${user.fullName})`}
         className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
-        <Avatar name={user.fullName} src={user.avatarUrl} size="sm" />
+        <UserAvatar userId={user.id} name={user.fullName} character={user.mascotCharacter} />
       </button>
 
       {open && (

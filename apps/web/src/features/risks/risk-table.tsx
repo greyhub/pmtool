@@ -4,19 +4,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRiskIssues, useUpdateRiskIssue } from '@pmtool/api-client';
 import type { RiskIssueDto } from '@pmtool/shared-types';
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from '@pmtool/ui';
+import { Badge, Button, Card, Select, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { RiskTypeBadge, severityVariant } from './risk-badges';
 import { CreateRiskModal } from './create-risk-modal';
 import { usePermissions } from '../projects/use-permissions';
@@ -94,7 +83,7 @@ export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey
                   <TableCell>
                     {risk.owner ? (
                       <span className="flex items-center gap-2">
-                        <Avatar name={risk.owner.fullName} src={risk.owner.avatarUrl} size="sm" />
+                        <UserAvatar userId={risk.owner.id} name={risk.owner.fullName} />
                         {risk.owner.fullName}
                       </span>
                     ) : (

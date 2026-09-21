@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ORG_ROLES, ORGANIZATION_STATUSES } from '../common/enums';
+import { MASCOT_CHARACTERS, ORG_ROLES, ORGANIZATION_STATUSES } from '../common/enums';
 
 const slugSchema = z
   .string()
@@ -38,6 +38,7 @@ export const membershipSchema = z.object({
       email: z.string().email(),
       fullName: z.string(),
       avatarUrl: z.string().url().nullable(),
+      mascotCharacter: z.enum(MASCOT_CHARACTERS),
     })
     .optional(),
 });

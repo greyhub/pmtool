@@ -30,7 +30,13 @@ export class MembershipsService {
       where: { organizationId },
       include: {
         user: {
-          select: { id: true, email: true, fullName: true, avatarUrl: true },
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            avatarUrl: true,
+            mascotCharacter: true,
+          },
         },
       },
       orderBy: { createdAt: 'asc' },

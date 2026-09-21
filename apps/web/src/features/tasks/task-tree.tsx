@@ -4,7 +4,8 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useMoveTask, useUpdateTaskById } from '@pmtool/api-client';
 import { TASK_STATUSES, type TaskDto } from '@pmtool/shared-types';
-import { Avatar, Badge } from '@pmtool/ui';
+import { Badge } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { Link } from '../../i18n/navigation';
 import { formatDate } from '../../lib/date-input';
 import { TaskPriorityBadge } from './task-badges';
@@ -51,7 +52,7 @@ function AssigneeStack({ task }: { task: TaskDto }) {
     <span className="flex shrink-0 items-center gap-1">
       {primary && (
         <span title={`${primary.fullName} — ${tRoles('assignee')}`}>
-          <Avatar name={primary.fullName} src={primary.avatarUrl} size="sm" className="ring-2 ring-action-primary" />
+          <UserAvatar userId={primary.id} name={primary.fullName} character={primary.mascotCharacter} />
         </span>
       )}
       {supporters.length > 0 && (

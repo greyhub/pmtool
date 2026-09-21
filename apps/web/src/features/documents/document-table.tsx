@@ -4,18 +4,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDeleteProjectDocument, useProjectDocuments } from '@pmtool/api-client';
 import type { ProjectDocumentDto } from '@pmtool/shared-types';
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from '@pmtool/ui';
+import { Badge, Button, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { DocumentFormModal } from './document-form-modal';
 import { usePermissions } from '../projects/use-permissions';
 
@@ -89,7 +79,7 @@ export function DocumentTable({ orgSlug, projectKey }: { orgSlug: string; projec
                   <TableCell>
                     {doc.owner ? (
                       <span className="flex items-center gap-2">
-                        <Avatar name={doc.owner.fullName} size="sm" />
+                        <UserAvatar userId={doc.owner.id} name={doc.owner.fullName} />
                         {doc.owner.fullName}
                       </span>
                     ) : (

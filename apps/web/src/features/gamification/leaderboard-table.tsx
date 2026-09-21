@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useLeaderboard } from '@pmtool/api-client';
-import { Avatar, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 
 export function LeaderboardTable({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('gamification.leaderboard');
@@ -30,7 +31,7 @@ export function LeaderboardTable({ orgSlug }: { orgSlug: string }) {
                   <TableCell className="font-mono text-xs text-ink-muted">#{entry.rank}</TableCell>
                   <TableCell>
                     <span className="flex items-center gap-2">
-                      <Avatar name={entry.fullName} src={entry.avatarUrl} size="sm" />
+                      <UserAvatar userId={entry.userId} name={entry.fullName} />
                       {entry.fullName}
                     </span>
                   </TableCell>

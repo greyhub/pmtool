@@ -11,7 +11,8 @@ import {
   useSprints,
   useTasks,
 } from '@pmtool/api-client';
-import { Avatar, Button, Input, KanbanBoard } from '@pmtool/ui';
+import { Button, Input, KanbanBoard } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { Link } from '../../i18n/navigation';
 import { TaskPriorityBadge } from '../tasks/task-badges';
 
@@ -112,16 +113,12 @@ export function KanbanBoardWidget({
             {task.assignees.length > 0 && (
               <div className="flex -space-x-2">
                 {task.assignees.map((a) => (
-                  <Avatar
+                  <UserAvatar
                     key={a.id}
+                    userId={a.id}
                     name={a.fullName}
-                    src={a.avatarUrl}
-                    size="sm"
-                    className={
-                      a.role === 'PRIMARY'
-                        ? 'ring-2 ring-action-primary'
-                        : 'opacity-60 ring-2 ring-surface'
-                    }
+                    character={a.mascotCharacter}
+                    className={a.role === 'PRIMARY' ? 'ring-2 ring-surface' : 'opacity-60 ring-2 ring-surface'}
                   />
                 ))}
               </div>

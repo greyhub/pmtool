@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useOrganizationMembers } from '@pmtool/api-client';
 import type { TaskDto, UpdateTaskInput } from '@pmtool/shared-types';
-import { Avatar } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 
 type Assignment = Pick<UpdateTaskInput, 'assigneeId' | 'supporterIds'>;
 
@@ -44,7 +44,7 @@ function MemberPicker({
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
             >
               <span aria-hidden="true">
-                <Avatar name={m.user?.fullName ?? ''} src={m.user?.avatarUrl} size="sm" />
+                <UserAvatar userId={m.userId} name={m.user?.fullName ?? ''} />
               </span>
               {m.user?.fullName}
             </button>
@@ -70,7 +70,7 @@ function PersonChip({
         primary ? 'bg-action-primary/15 ring-1 ring-action-primary' : 'bg-surface-subtle'
       }`}
     >
-      <Avatar name={person.fullName} src={person.avatarUrl} size="sm" />
+      <UserAvatar userId={person.id} name={person.fullName} character={person.mascotCharacter} />
       {person.fullName}
       <button
         type="button"

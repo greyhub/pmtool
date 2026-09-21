@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useComments, useCreateComment, useMe } from '@pmtool/api-client';
-import { Avatar, Button } from '@pmtool/ui';
+import { Button } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { formatRelativeTime } from '../../lib/relative-time';
 
 export function CommentsSection({
@@ -35,7 +36,7 @@ export function CommentsSection({
         {(comments ?? []).length === 0 && <p className="text-sm text-ink-muted">{t('noComments')}</p>}
         {comments?.map((c) => (
           <div key={c.id} className="flex gap-3">
-            <Avatar name={c.author?.fullName ?? ''} src={c.author?.avatarUrl} size="sm" />
+            <UserAvatar userId={c.author?.id} name={c.author?.fullName ?? ''} />
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-medium text-ink-primary">{c.author?.fullName}</span>
@@ -54,7 +55,7 @@ export function CommentsSection({
       </div>
 
       <div className="mt-4 flex gap-3">
-        <Avatar name={me?.fullName ?? ''} src={me?.avatarUrl} size="sm" />
+        <UserAvatar userId={me?.id} name={me?.fullName ?? ''} />
         <div className="flex flex-1 flex-col gap-2">
           <textarea
             value={draft}

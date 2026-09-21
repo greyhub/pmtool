@@ -376,3 +376,7 @@ Bấm một mục sẽ mở màn hình đầu tiên của nó. Địa chỉ (URL
 
 - **Tìm kiếm nhanh:** bấm **Ctrl K** (Mac: **⌘ K**) ở bất kỳ đâu trong tổ chức, hoặc bấm ô "Tìm nhanh" trên thanh trên. Gõ để tìm **dự án**, **màn hình** và **công việc của dự án đang mở**; gõ không dấu cũng tìm được ("dang nhap" ra "Đăng nhập"), gõ nhiều từ theo thứ tự bất kỳ, gõ mã (như PRJ-12) cũng khớp. ↑/↓ để chọn, Enter để mở, Esc để đóng.
 - **Nút sửa/xoá ẩn cho đến khi rê chuột** (hoặc chọn dòng bằng bàn phím) trong bảng Tài liệu, Các bên liên quan, Giao phẩm và ô chuyển sprint; trên màn hình cảm ứng chúng luôn hiện. Các nút thuộc quy trình (Nộp, Nghiệm thu, Từ chối) luôn hiện.
+
+## 29. Nhân vật đại diện
+
+Mỗi người được hiển thị bằng **nhân vật** mà họ đã chọn (Cài đặt cá nhân → Nhân vật), đồng nhất ở mọi màn hình: bình luận, lịch sử thay đổi, dòng hoạt động, bảng Kanban, danh sách công việc, bảng xếp hạng, người phụ trách/hỗ trợ, chủ sở hữu rủi ro, giao phẩm, tài liệu, mốc và menu người dùng. Ảnh đại diện Google **không còn được dùng để hiển thị**; nếu chưa chọn nhân vật thì dùng nhân vật mặc định. Người không còn là thành viên tổ chức hiện bằng chữ cái đầu. Các bên liên quan bên ngoài (không có tài khoản) cũng hiện bằng chữ cái đầu.

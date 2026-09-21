@@ -4,18 +4,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDeleteStakeholder, useStakeholders } from '@pmtool/api-client';
 import type { StakeholderDto } from '@pmtool/shared-types';
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from '@pmtool/ui';
+import { Badge, Button, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { StakeholderFormModal } from './stakeholder-form-modal';
 import { usePermissions } from '../projects/use-permissions';
 
@@ -55,7 +45,7 @@ function PowerInterestGrid({ stakeholders }: { stakeholders: StakeholderDto[] })
                   >
                     {cell.map((s) => (
                       <span key={s.id} title={s.fullName}>
-                        <Avatar name={s.fullName} size="sm" />
+                        <UserAvatar userId={s.userId} name={s.fullName} />
                       </span>
                     ))}
                   </div>
@@ -128,7 +118,7 @@ export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; pro
                 <TableRow key={s.id}>
                   <TableCell>
                     <span className="flex items-center gap-2 font-medium">
-                      <Avatar name={s.fullName} size="sm" />
+                      <UserAvatar userId={s.userId} name={s.fullName} />
                       {s.fullName}
                     </span>
                   </TableCell>

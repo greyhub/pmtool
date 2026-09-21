@@ -21,7 +21,8 @@ import {
   TASK_STATUSES,
   WBS_NODE_TYPES,
 } from '@pmtool/shared-types';
-import { Avatar, Button, Card, Input, Modal, Select } from '@pmtool/ui';
+import { Button, Card, Input, Modal, Select } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { Link, useRouter } from '../../i18n/navigation';
 import { dateInputToIso, isoToDateInput } from '../../lib/date-input';
 import { neighbours } from './task-filters';
@@ -391,10 +392,10 @@ export function TaskDetail({
                     </span>
                   )}
                   {sub.assignees.find((a) => a.role === 'PRIMARY') && (
-                    <Avatar
+                    <UserAvatar
+                      userId={sub.assignees.find((a) => a.role === 'PRIMARY')!.id}
                       name={sub.assignees.find((a) => a.role === 'PRIMARY')!.fullName}
-                      src={sub.assignees.find((a) => a.role === 'PRIMARY')!.avatarUrl}
-                      size="sm"
+                      character={sub.assignees.find((a) => a.role === 'PRIMARY')!.mascotCharacter}
                     />
                   )}
                   <TaskStatusBadge status={sub.status} />

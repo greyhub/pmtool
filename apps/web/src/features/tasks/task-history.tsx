@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTaskHistory } from '@pmtool/api-client';
 import type { TaskChangeDto } from '@pmtool/shared-types';
-import { Avatar } from '@pmtool/ui';
+import { UserAvatar } from '../people/user-avatar';
 import { formatDate } from '../../lib/date-input';
 import { formatRelativeTime } from '../../lib/relative-time';
 
@@ -50,7 +50,7 @@ export function TaskHistory({ orgSlug, projectKey, taskId }: { orgSlug: string; 
       <ol className="mt-3 flex flex-col gap-3">
         {shown.map((entry) => (
           <li key={entry.id} className="flex gap-3">
-            <Avatar name={entry.actor.fullName} src={entry.actor.avatarUrl} size="sm" />
+            <UserAvatar userId={entry.actor.id} name={entry.actor.fullName} />
             <div className="min-w-0 text-sm">
               <p className="text-ink-primary">
                 <span className="font-medium">{entry.actor.fullName}</span>{' '}
