@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useDeleteStakeholder, useStakeholders } from '@pmtool/api-client';
 import type { StakeholderDto } from '@pmtool/shared-types';
 import { Badge, Button, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { HistoryButton } from '../history/history-modal';
 import { UserAvatar } from '../people/user-avatar';
 import { StakeholderFormModal } from './stakeholder-form-modal';
 import { usePermissions } from '../projects/use-permissions';
@@ -137,6 +138,7 @@ export function StakeholderTable({ orgSlug, projectKey }: { orgSlug: string; pro
                   </TableCell>
                   <TableCell>
                     <div className="row-actions flex justify-end gap-2">
+                      <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="Stakeholder" entityId={s.id} title={s.fullName} />
                       {canManage && (
                         <>
                           <Button

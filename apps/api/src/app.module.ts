@@ -21,6 +21,7 @@ import { TelegramModule } from './modules/telegram/telegram.module';
 import { CharterModule } from './modules/charter/charter.module';
 import { ScopeModule } from './modules/scope/scope.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { HistoryModule } from './modules/history/history.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { SprintsModule } from './modules/sprints/sprints.module';
 import { PrivacyModule } from './modules/privacy/privacy.module';
@@ -35,6 +36,7 @@ import { HealthModule } from './modules/health/health.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { HistoryFlushInterceptor } from './common/interceptors/history-flush.interceptor';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 @Module({
@@ -63,6 +65,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     PrivacyModule,
     SprintsModule,
     ReportsModule,
+    HistoryModule,
     NotificationsModule,
     StakeholdersModule,
     DocumentsModule,
@@ -75,6 +78,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_INTERCEPTOR, useClass: AuditLogInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: HistoryFlushInterceptor },
     RequestContextMiddleware,
   ],
 })

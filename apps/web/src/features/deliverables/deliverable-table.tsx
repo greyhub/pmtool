@@ -12,6 +12,7 @@ import {
 } from '@pmtool/api-client';
 import type { DeliverableDto } from '@pmtool/shared-types';
 import { Button, Card, Modal, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { HistoryButton } from '../history/history-modal';
 import { UserAvatar } from '../people/user-avatar';
 import { Link } from '../../i18n/navigation';
 import { formatDate } from '../../lib/date-input';
@@ -165,6 +166,7 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                           </Button>
                         </>
                       )}
+                      <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="Deliverable" entityId={d.id} title={d.name} className="row-actions" />
                       {canEdit && (
                         <Button
                           variant="ghost"

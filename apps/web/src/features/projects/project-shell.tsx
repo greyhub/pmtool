@@ -77,6 +77,7 @@ export function ProjectShell({
         { href: `${base}/stakeholders`, label: tTabs('stakeholders') },
         { href: `${base}/documents`, label: tTabs('documents') },
         { href: `${base}/artifacts`, label: tTabs('artifacts') },
+        { href: `${base}/history`, label: tGroups('history') },
       ],
     },
     {

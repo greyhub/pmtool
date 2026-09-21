@@ -65,6 +65,7 @@ model User {
   stakeholderProfiles   Stakeholder[]
   ownedProjectDocuments ProjectDocument[]
 
+  historyActed EntityHistory[] @relation("HistoryActor")
   @@map("users")
 }
 
@@ -99,6 +100,7 @@ model Organization {
   notifications    Notification[]
   dailySnapshots   ProjectDailySnapshot[]
   sprintSnapshots  SprintDailySnapshot[]
+  entityHistory    EntityHistory[]
   stakeholders     Stakeholder[]
   projectDocuments ProjectDocument[]
   artifacts        Artifact[]
@@ -941,4 +943,32 @@ model SprintDailySnapshot {
   @@unique([sprintId, date])
   @@index([organizationId])
   @@map("sprint_daily_snapshots")
+}
+
+/// Every change to a business entity: who, when, which fields (before -> after), and what a deleted row held.
+/// Written automatically by the history extension (see prisma/history.extension.ts) once the request succeeds.
+model EntityHistory {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String? // set when the entity belongs to a project
+  entityType     String // model name, e.g. "RiskIssue"
+  entityId       String
+  subjectType    String? // the entity this change should also show under (e.g. an assignee change belongs to its Task)
+  subjectId      String?
+  action         String // CREATE | UPDATE | DELETE
+  actorId        String? // null once that account is deleted (or for system work)
+  label          String? // the entity's title/name at the time, so a deleted item is still recognisable
+  changes        Json? // UPDATE: [{ field, from, to }]
+  snapshot       Json? // CREATE / DELETE: the row's fields
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("HistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, entityType, entityId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([subjectType, subjectId, createdAt])
+  @@index([actorId])
+  @@map("entity_history")
 }

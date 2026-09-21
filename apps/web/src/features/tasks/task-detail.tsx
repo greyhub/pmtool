@@ -22,6 +22,7 @@ import {
   WBS_NODE_TYPES,
 } from '@pmtool/shared-types';
 import { Button, Card, Input, Modal, Select } from '@pmtool/ui';
+import { HistoryButton } from '../history/history-modal';
 import { UserAvatar } from '../people/user-avatar';
 import { Link, useRouter } from '../../i18n/navigation';
 import { dateInputToIso, isoToDateInput } from '../../lib/date-input';
@@ -646,7 +647,8 @@ export function TaskDetail({
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex justify-end gap-2">
+        <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="Task" entityId={task.id} title={`${task.humanKey} ${task.title}`} variant="outline" />
         <Button
           type="button"
           variant="ghost"

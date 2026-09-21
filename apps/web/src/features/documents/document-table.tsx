@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useDeleteProjectDocument, useProjectDocuments } from '@pmtool/api-client';
 import type { ProjectDocumentDto } from '@pmtool/shared-types';
 import { Badge, Button, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { HistoryButton } from '../history/history-modal';
 import { UserAvatar } from '../people/user-avatar';
 import { DocumentFormModal } from './document-form-modal';
 import { usePermissions } from '../projects/use-permissions';
@@ -88,6 +89,7 @@ export function DocumentTable({ orgSlug, projectKey }: { orgSlug: string; projec
                   </TableCell>
                   <TableCell>
                     <div className="row-actions flex justify-end gap-2">
+                      <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="ProjectDocument" entityId={doc.id} title={doc.title} />
                       {canEdit && (
                         <>
                           <Button

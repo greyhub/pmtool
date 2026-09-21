@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useApproveCharter, useCharter, useOrganizationMembers, useUpsertCharter, ApiError } from '@pmtool/api-client';
 import { Badge, Button, Card, FormField, Input, Select } from '@pmtool/ui';
 import { usePermissions } from '../projects/use-permissions';
+import { HistoryButton } from '../history/history-modal';
 
 const TEXTAREA_CLASS =
   'mt-0 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus';
@@ -89,6 +90,9 @@ export function CharterView({ orgSlug, projectKey }: { orgSlug: string; projectK
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
+          {charter && (
+            <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="ProjectCharter" entityId={charter.id} title={t('title')} variant="outline" />
+          )}
           {charter?.status === 'APPROVED' ? (
             <Badge variant="success">{t('approved')}</Badge>
           ) : (

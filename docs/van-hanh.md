@@ -132,6 +132,10 @@ Chạy `pnpm audit --prod` định kỳ (mỗi tuần và trước mỗi lần p
 
 Trong tiến trình `api` (chạy **một** bản): 23:55 giờ VN chốt báo cáo ngày cho mọi dự án **và điểm burndown của mọi sprint đang chạy**; mỗi giờ phút :10 (từ 08:00) gửi thông báo báo cáo sáng; 08:00 nhắc hạn Telegram. Nếu máy chủ tắt đúng 23:55 thì ngày đó không có bản chốt (biểu đồ xu hướng thiếu một điểm); thông báo sáng thì tự bù khi máy chủ chạy lại. Kiểm tra: `docker compose ... logs api | grep "Daily snapshot"` sau nửa đêm — phải thấy dòng `Daily snapshot YYYY-MM-DD: N/N projects`. Bảng `project_daily_snapshots` nằm trong bản sao lưu thường lệ.
 
+### 7.3 Lịch sử thay đổi: dung lượng và lưu giữ
+
+Bảng `entity_history` **chỉ tăng** (không tự xoá) và nằm trong bản sao lưu thường lệ. Mỗi thay đổi ≈ 0,3–1 KB; một dự án hoạt động mạnh ~ vài nghìn dòng mỗi tháng, tức vài MB — không đáng lo ở quy mô hiện tại. Có chỉ mục theo tổ chức/thời gian, thực thể, dự án và người làm nên truy vấn nhanh khi lớn. Khi bảng vượt vài chục triệu dòng, cân nhắc phân vùng theo tháng hoặc lưu trữ bản ghi cũ (chưa cần). **Kết nối cơ sở dữ liệu:** API mở **hai bể kết nối** — bể chính (mặc định của Prisma, theo số CPU; đặt `?connection_limit=N` trong `DATABASE_URL` nếu cần) và bể lịch sử riêng 4 kết nối. Cơ sở dữ liệu cần cho phép tổng ≥ N + 4 kết nối (Postgres mặc định 100, đủ). Kiểm tra lỗi ghi: `docker compose ... logs api | grep "EntityHistory"` — thấy dòng `Could not write ... history entries` nghĩa là có thay đổi đã thành công nhưng lịch sử chưa ghi được (thường do cơ sở dữ liệu gián đoạn giữa chừng); cần xử lý vì đó là lỗ hổng trong dấu vết kiểm toán.
+
 ## 8. Xử lý sự cố nhanh
 
 | Triệu chứng | Kiểm tra | Cách xử lý |

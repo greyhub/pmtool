@@ -125,7 +125,9 @@ const fakeGoogle = {
 beforeAll(async () => {
   container = await new PostgreSqlContainer('postgres:16-alpine').start();
 
-  process.env.DATABASE_URL = container.getConnectionUri();
+  // A deliberately tiny connection pool: code that needs a second connection while a transaction holds one (and other
+  // requests do the same) deadlocks here at a handful of concurrent requests instead of only in production under load.
+  process.env.DATABASE_URL = `${container.getConnectionUri()}?connection_limit=4`;
   process.env.REDIS_URL = 'redis://localhost:6379'; // not connected to in Phase 1
   process.env.JWT_ACCESS_SECRET =
     'integration-test-access-secret-at-least-32-chars';
@@ -4503,5 +4505,437 @@ describe('Sprint review', () => {
     });
     expect(r.people).toEqual([]);
     void today;
+  });
+});
+
+describe('Change history', () => {
+  const http = () => request(app.getHttpServer());
+  const setup = async (label: string) => {
+    const owner = await registerUser(`${label} Owner`);
+    const org = await createOrg(owner.accessToken, `${label} Org`);
+    const project = await createProject(owner.accessToken, org.slug, 'HST');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const p = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const history = async (query = '', headers = auth) =>
+      (await http().get(`${p}/history${query}`).set(headers).expect(200)).body
+        .data as {
+        items: {
+          action: string;
+          entityType: string;
+          entityId: string;
+          label: string | null;
+          subject: { type: string; id: string } | null;
+          actor: { fullName: string } | null;
+          changes:
+            | { field: string; from?: unknown; to?: unknown; changed?: true }[]
+            | null;
+          snapshot: Record<string, unknown> | null;
+        }[];
+        nextCursor: string | null;
+      };
+    return { owner, org, project, auth, p, history };
+  };
+
+  it('records who changed what, from and to — and what a deleted item held', async () => {
+    const { p, auth, history } = await setup('Risk');
+    const risk = (
+      await http()
+        .post(`${p}/risks`)
+        .set(auth)
+        .send({
+          type: 'RISK',
+          title: 'Vendor may be late',
+          probability: 3,
+          impact: 4,
+        })
+        .expect(201)
+    ).body.data;
+    await http()
+      .patch(`${p}/risks/${risk.id}`)
+      .set(auth)
+      .send({ status: 'MITIGATING', title: 'Vendor may deliver late' })
+      .expect(200);
+    await http().delete(`${p}/risks/${risk.id}`).set(auth).expect(200);
+
+    const items = (await history(`?entityType=RiskIssue&entityId=${risk.id}`))
+      .items;
+    expect(items.map((i) => i.action)).toEqual(['DELETE', 'UPDATE', 'CREATE']); // newest first
+    expect(items[2]).toMatchObject({
+      entityType: 'RiskIssue',
+      label: 'Vendor may be late',
+      actor: { fullName: 'Risk Owner' },
+    });
+    expect(items[2]!.snapshot).toMatchObject({
+      title: 'Vendor may be late',
+      probability: 3,
+      impact: 4,
+    });
+    const update = items[1]!;
+    expect(update.label).toBe('Vendor may deliver late');
+    expect(update.changes).toEqual(
+      expect.arrayContaining([
+        { field: 'status', from: 'IDENTIFIED', to: 'MITIGATING' },
+        {
+          field: 'title',
+          from: 'Vendor may be late',
+          to: 'Vendor may deliver late',
+        },
+      ]),
+    );
+    // Deleted, but still recognisable and recoverable from the trail.
+    expect(items[0]!.snapshot).toMatchObject({
+      title: 'Vendor may deliver late',
+      status: 'MITIGATING',
+    });
+    expect(items[0]!.label).toBe('Vendor may deliver late');
+  });
+
+  it('keeps task edits (without leaking description text) and files assignee changes under the task', async () => {
+    const { p, auth, owner, history } = await setup('Task');
+    const me = (await http().get(`${API_PREFIX}/auth/me`).set(auth).expect(200))
+      .body.data;
+    void owner;
+    const task = (
+      await http()
+        .post(`${p}/tasks`)
+        .set(auth)
+        .send({ title: 'Write spec' })
+        .expect(201)
+    ).body.data;
+    await http()
+      .patch(`${p}/tasks/${task.id}`)
+      .set(auth)
+      .send({
+        status: 'IN_PROGRESS',
+        priority: 'HIGH',
+        description: 'Very private description text',
+      })
+      .expect(200);
+    await http()
+      .patch(`${p}/tasks/${task.id}`)
+      .set(auth)
+      .send({ assigneeId: me.id })
+      .expect(200);
+
+    const items = (await history(`?entityType=Task&entityId=${task.id}`)).items;
+    const kinds = items.map((i) => `${i.entityType}:${i.action}`);
+    expect(kinds).toEqual(
+      expect.arrayContaining([
+        'Task:CREATE',
+        'Task:UPDATE',
+        'TaskAssignee:CREATE',
+      ]),
+    );
+    const edit = items.find(
+      (i) =>
+        i.entityType === 'Task' &&
+        i.action === 'UPDATE' &&
+        i.changes?.some((c) => c.field === 'status'),
+    )!;
+    expect(edit.changes).toEqual(
+      expect.arrayContaining([
+        { field: 'status', from: 'TODO', to: 'IN_PROGRESS' },
+        { field: 'priority', from: 'MEDIUM', to: 'HIGH' },
+        { field: 'description', changed: true },
+      ]),
+    );
+    expect(JSON.stringify(items)).not.toContain(
+      'Very private description text',
+    );
+    const assign = items.find((i) => i.entityType === 'TaskAssignee')!;
+    expect(assign.subject).toEqual({ type: 'Task', id: task.id });
+  });
+
+  it('covers projects, sprints and members too, and is scoped to the project', async () => {
+    const { p, auth, org, owner, history } = await setup('Wide');
+    const other = await createProject(owner.accessToken, org.slug, 'OTH');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Wide Member',
+    );
+    await http()
+      .patch(p)
+      .set(auth)
+      .send({ sprintsEnabled: true, name: 'Renamed project' })
+      .expect(200);
+    await http()
+      .post(`${p}/members`)
+      .set(auth)
+      .send({ userId: await getUserId(member.email), role: 'VIEWER' })
+      .expect(201);
+    const sprint = (
+      await http()
+        .post(`${p}/sprints`)
+        .set(auth)
+        .send({
+          name: 'S1',
+          startDate: '2026-10-01T00:00:00.000Z',
+          endDate: '2026-10-14T00:00:00.000Z',
+        })
+        .expect(201)
+    ).body.data;
+    await http().post(`${p}/sprints/${sprint.id}/start`).set(auth).expect(200);
+    await http()
+      .patch(`${API_PREFIX}/organizations/${org.slug}/projects/${other.key}`)
+      .set(auth)
+      .send({ name: 'Other renamed' })
+      .expect(200);
+
+    const items = (await history()).items;
+    const has = (type: string, action: string) =>
+      items.some((i) => i.entityType === type && i.action === action);
+    expect(has('Project', 'UPDATE')).toBe(true);
+    expect(has('ProjectMember', 'CREATE')).toBe(true);
+    expect(has('Sprint', 'CREATE')).toBe(true);
+    const started = items.find(
+      (i) =>
+        i.entityType === 'Sprint' &&
+        i.action === 'UPDATE' &&
+        i.changes?.some((c) => c.field === 'status'),
+    )!;
+    expect(started.changes).toEqual(
+      expect.arrayContaining([
+        { field: 'status', from: 'PLANNED', to: 'ACTIVE' },
+      ]),
+    );
+    // Another project's change is not in this project's history.
+    expect(items.some((i) => i.label?.includes('Other renamed'))).toBe(false);
+  });
+
+  it('pages newest first without gaps or repeats, and filters by type, action and person', async () => {
+    const { p, auth, owner, org, history } = await setup('Page');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Page Member',
+    );
+    for (let i = 1; i <= 5; i++)
+      await http()
+        .post(`${p}/risks`)
+        .set(auth)
+        .send({ type: 'RISK', title: `Risk ${i}`, probability: 1, impact: 1 })
+        .expect(201);
+    await http()
+      .post(`${p}/risks`)
+      .set({ Authorization: `Bearer ${member.accessToken}` })
+      .send({ type: 'ISSUE', title: 'By member', probability: 1, impact: 1 })
+      .expect(201);
+
+    const first = await history('?entityType=RiskIssue&limit=4');
+    expect(first.items).toHaveLength(4);
+    expect(first.nextCursor).not.toBeNull();
+    const second = await history(
+      `?entityType=RiskIssue&limit=4&cursor=${first.nextCursor}`,
+    );
+    expect(second.items).toHaveLength(2);
+    expect(second.nextCursor).toBeNull();
+    const titles = [...first.items, ...second.items].map((i) => i.label);
+    expect(new Set(titles).size).toBe(6);
+    expect(titles[0]).toBe('By member'); // newest first
+
+    const memberId = await getUserId(member.email);
+    expect(
+      (await history(`?actorId=${memberId}`)).items.map((i) => i.label),
+    ).toEqual(['By member']);
+    expect((await history('?action=DELETE')).items).toEqual([]);
+    await http().get(`${p}/history?cursor=garbage`).set(auth).expect(400);
+    await http().get(`${p}/history?limit=1000`).set(auth).expect(400);
+  });
+
+  it('follows who may see the project: viewers read it, outsiders and hidden private projects do not', async () => {
+    const { owner, org, p, history, auth } = await setup('Perm');
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Perm Viewer',
+    );
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Perm PM',
+    );
+    const outsider = await registerUser('Perm Outsider');
+    await http()
+      .post(`${p}/risks`)
+      .set(auth)
+      .send({ type: 'RISK', title: 'Something', probability: 1, impact: 1 })
+      .expect(201);
+
+    expect(
+      (await history('', { Authorization: `Bearer ${viewer.accessToken}` }))
+        .items.length,
+    ).toBeGreaterThan(0);
+    await http()
+      .get(`${p}/history`)
+      .set({ Authorization: `Bearer ${outsider.accessToken}` })
+      .expect(403);
+
+    await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects`)
+      .set(auth)
+      .send({ key: 'SEC', name: 'Secret', isPrivate: true })
+      .expect(201);
+    const sec = `${API_PREFIX}/organizations/${org.slug}/projects/SEC/history`;
+    await http()
+      .get(sec)
+      .set({ Authorization: `Bearer ${pm.accessToken}` })
+      .expect(404);
+    await http().get(sec).set(auth).expect(200);
+  });
+
+  it('gives owners and admins an organization-wide audit trail, filtered by project, and nobody else', async () => {
+    const { owner, org, p, auth } = await setup('Audit');
+    const admin = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'ADMIN',
+      'Audit Admin',
+    );
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Audit Member',
+    );
+    const two = await createProject(owner.accessToken, org.slug, 'TWO');
+    await http()
+      .post(`${p}/risks`)
+      .set(auth)
+      .send({
+        type: 'RISK',
+        title: 'In project HST',
+        probability: 1,
+        impact: 1,
+      })
+      .expect(201);
+    await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/projects/${two.key}/risks`)
+      .set(auth)
+      .send({
+        type: 'RISK',
+        title: 'In project TWO',
+        probability: 1,
+        impact: 1,
+      })
+      .expect(201);
+    const audit = `${API_PREFIX}/organizations/${org.slug}/audit`;
+
+    await http()
+      .get(audit)
+      .set({ Authorization: `Bearer ${member.accessToken}` })
+      .expect(403);
+    const all = (
+      await http()
+        .get(audit)
+        .set({ Authorization: `Bearer ${admin.accessToken}` })
+        .expect(200)
+    ).body.data.items as {
+      label: string | null;
+      projectKey: string | null;
+      entityType: string;
+    }[];
+    expect(
+      all.some((i) => i.label === 'In project HST' && i.projectKey === 'HST'),
+    ).toBe(true);
+    expect(
+      all.some((i) => i.label === 'In project TWO' && i.projectKey === 'TWO'),
+    ).toBe(true);
+    // Members joining and the projects themselves are org-level facts.
+    expect(all.some((i) => i.entityType === 'Membership')).toBe(true);
+    const onlyTwo = (
+      await http().get(`${audit}?projectKey=TWO`).set(auth).expect(200)
+    ).body.data.items as { label: string | null }[];
+    expect(onlyTwo.some((i) => i.label === 'In project HST')).toBe(false);
+    expect(onlyTwo.some((i) => i.label === 'In project TWO')).toBe(true);
+
+    // Another organization never sees any of it.
+    const stranger = await registerUser('Audit Stranger');
+    const strangerOrg = await createOrg(
+      stranger.accessToken,
+      'Audit Stranger Org',
+    );
+    const theirs = (
+      await http()
+        .get(`${API_PREFIX}/organizations/${strangerOrg.slug}/audit`)
+        .set({ Authorization: `Bearer ${stranger.accessToken}` })
+        .expect(200)
+    ).body.data.items as { label: string | null }[];
+    expect(theirs.some((i) => i.label?.startsWith('In project'))).toBe(false);
+    await http()
+      .get(audit)
+      .set({ Authorization: `Bearer ${stranger.accessToken}` })
+      .expect(403);
+  });
+
+  it('does not starve the connection pool: many transactions at once all succeed and all leave a trail', async () => {
+    const { p, auth, history } = await setup('Load');
+    // Updating a task is an interactive transaction that also reads the task's state before the write. That read must never
+    // need a second connection from the pool the transactions are holding (it did once: they all waited for each other
+    // and timed out). The test pool is tiny (4), so a dozen concurrent updates would deadlock if it did.
+    const tasks: { id: string }[] = [];
+    for (let i = 0; i < 12; i++)
+      tasks.push(
+        (
+          await http()
+            .post(`${p}/tasks`)
+            .set(auth)
+            .send({ title: `Concurrent ${i}` })
+            .expect(201)
+        ).body.data,
+      );
+    const responses = await Promise.all(
+      tasks.map((t) =>
+        http()
+          .patch(`${p}/tasks/${t.id}`)
+          .set(auth)
+          .send({ status: 'IN_PROGRESS' }),
+      ),
+    );
+    expect(responses.map((r) => r.status)).toEqual(Array(12).fill(200));
+    const trail = await history('?entityType=Task&action=UPDATE&limit=100');
+    expect(
+      trail.items.filter((i) =>
+        i.changes?.some((c) => c.field === 'status' && c.to === 'IN_PROGRESS'),
+      ),
+    ).toHaveLength(12);
+  });
+
+  it('keeps the trail, without the person’s name, when the person who made a change deletes their account', async () => {
+    const { owner, org, p, history } = await setup('Gone');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Gone Member',
+    );
+    await http()
+      .post(`${p}/risks`)
+      .set({ Authorization: `Bearer ${member.accessToken}` })
+      .send({
+        type: 'RISK',
+        title: 'Raised by someone who left',
+        probability: 1,
+        impact: 1,
+      })
+      .expect(201);
+    await http()
+      .delete(`${API_PREFIX}/users/me`)
+      .set({ Authorization: `Bearer ${member.accessToken}` })
+      .send({ password: 'Password123' })
+      .expect(204);
+    const entry = (
+      await history('?entityType=RiskIssue', {
+        Authorization: `Bearer ${owner.accessToken}`,
+      })
+    ).items.find((i) => i.label === 'Raised by someone who left');
+    expect(entry).toBeDefined();
+    // The account is anonymised, so the trail shows the placeholder name — never the person's name.
+    expect(entry!.actor).not.toBeNull();
+    expect(entry!.actor!.fullName).not.toBe('Gone Member');
   });
 });

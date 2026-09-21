@@ -33,6 +33,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'ProjectDailySnapshot',
   'SprintDailySnapshot',
   'Artifact',
+  'EntityHistory',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([

@@ -414,3 +414,15 @@ Dùng cho buổi **sprint review**: nhìn lại sprint đã cam kết gì, giao 
 - **PM trở lên** ghi **đánh giá mục tiêu sprint** (Đạt / Đạt một phần / Không đạt — bấm lại để bỏ chọn) và **nhận xét buổi review** rồi bấm **Lưu nhận xét**. Người khác chỉ đọc.
 - **Chia sẻ:** **Sao chép văn bản** (dán vào chat, email, biên bản) hoặc **In / PDF** (bản in bỏ thanh điều hướng, nền trắng).
 - **Giới hạn:** sprint đã đóng **trước khi có tính năng** chỉ còn hai con số tổng (cam kết, đã xong) — không còn danh sách việc, và trang nói rõ điều đó. Việc "phát sinh" chỉ nhận biết được với việc vào sprint từ khi có tính năng. Đóng góp tính theo **người phụ trách chính** lúc đóng sprint, không chia theo người hỗ trợ.
+
+## 33. Lịch sử thay đổi và nhật ký kiểm toán
+
+Hệ thống **tự động ghi lại mọi thay đổi** của các phần chính: công việc, dự án, rủi ro/vấn đề, giao phẩm, bên liên quan, tài liệu, điều lệ, phạm vi, từ điển WBS, sprint, cột Kanban, artifact, phụ thuộc, người phụ trách, thành viên dự án và tổ chức. Không cần làm gì thêm — phần nào được thêm về sau cũng có lịch sử.
+
+- **Ghi gì:** ai làm, lúc nào, tạo/sửa/xoá, và với việc sửa là **từng trường trước → sau** (ví dụ "Trạng thái: Đã xác định → Đang xử lý"). Với mục **đã xoá**, nội dung của nó vẫn còn trong lịch sử. Nội dung dài (mô tả, điều lệ, phạm vi, artifact) chỉ ghi "đã thay đổi", **không lưu nguyên văn** trong lịch sử.
+- **Xem lịch sử của một mục:** bấm **Lịch sử** trên dòng của rủi ro, giao phẩm, bên liên quan, tài liệu; ở đầu trang Điều lệ và Phạm vi; trên thẻ sprint; và ở cuối trang chi tiết công việc (gồm cả thay đổi người phụ trách, phụ thuộc, từ điển WBS của công việc đó).
+- **Lịch sử cả dự án:** **Quản trị → Lịch sử**. Lọc theo loại, hành động (tạo/sửa/xoá), người thực hiện, khoảng ngày; nạp thêm khi cần. Ai xem được dự án đều xem được (dự án riêng tư chỉ những người có quyền vào).
+- **Nhật ký kiểm toán toàn tổ chức:** mục **Nhật ký kiểm toán** ở thanh bên, chỉ **Chủ sở hữu và Quản trị viên**: mọi dự án, thành viên, thay đổi cài đặt, lọc thêm theo dự án.
+- **Chỉ ghi khi thao tác thành công.** Thao tác bị từ chối hoặc lỗi không để lại dấu vết của thay đổi chưa hề xảy ra.
+- **Người đã xoá tài khoản:** thay đổi của họ vẫn còn, hiện dưới tên ẩn danh "Người dùng đã xoá" — không lưu tên thật.
+- **Giới hạn:** lịch sử **bắt đầu từ hôm tính năng chạy** (không dựng lại quá khứ; nhật ký hoạt động và lịch sử công việc cũ vẫn xem như trước). Thay đổi do tác vụ nền tự chạy (ví dụ nhắc hạn Telegram) không ghi. Xoá **cả tổ chức** thì lịch sử của tổ chức đó cũng mất theo. Lịch sử chưa có nút khôi phục — xem nội dung đã xoá để tạo lại.

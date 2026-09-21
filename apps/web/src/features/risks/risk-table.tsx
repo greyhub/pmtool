@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRiskIssues, useUpdateRiskIssue } from '@pmtool/api-client';
 import type { RiskIssueDto } from '@pmtool/shared-types';
 import { Badge, Button, Card, Select, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@pmtool/ui';
+import { HistoryButton } from '../history/history-modal';
 import { UserAvatar } from '../people/user-avatar';
 import { RiskTypeBadge, severityVariant } from './risk-badges';
 import { CreateRiskModal } from './create-risk-modal';
@@ -61,6 +62,7 @@ export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey
                 <TableHeaderCell>{t('columnStatus')}</TableHeaderCell>
                 <TableHeaderCell>{t('columnOwner')}</TableHeaderCell>
                 <TableHeaderCell>{t('columnDueDate')}</TableHeaderCell>
+                <TableHeaderCell />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -96,6 +98,11 @@ export function RiskTable({ orgSlug, projectKey }: { orgSlug: string; projectKey
                     ) : (
                       <span className="text-ink-muted">—</span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="row-actions flex justify-end">
+                      <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="RiskIssue" entityId={risk.id} title={risk.title} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

@@ -21,3 +21,4 @@ export * from './hooks/artifacts';
 export * from './hooks/deliverables';
 export * from './hooks/sprints';
 export * from './hooks/reports';
+export * from './hooks/history';

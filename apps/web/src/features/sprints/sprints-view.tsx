@@ -18,6 +18,7 @@ import { Badge, Button, Card, FormField, Input, Modal, Select } from '@pmtool/ui
 import { Link } from '../../i18n/navigation';
 import { usePermissions } from '../projects/use-permissions';
 import { TaskStatusBadge } from '../tasks/task-badges';
+import { HistoryButton } from '../history/history-modal';
 import { BurndownModal } from './burndown-modal';
 import { velocityOf } from './velocity';
 
@@ -308,6 +309,7 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                     {fmtDate(s.startDate)} → {fmtDate(s.endDate)}
                   </span>
                   <div className="ml-auto flex gap-2">
+                    <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="Sprint" entityId={s.id} title={s.name} />
                     {canManage && s.status === 'PLANNED' && (
                       <>
                         <Button
@@ -380,6 +382,7 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                 {closed.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-2">
                     <span className="text-ink-primary">{s.name}</span>
+                    <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="Sprint" entityId={s.id} title={s.name} />
                     <button
                       type="button"
                       onClick={() => setBurndownOf(s)}

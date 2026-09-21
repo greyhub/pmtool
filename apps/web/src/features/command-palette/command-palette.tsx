@@ -79,6 +79,7 @@ export function CommandPalette({ orgSlug }: { orgSlug: string }) {
         ['stakeholders', tTabs('stakeholders')],
         ['documents', tTabs('documents')],
         ['artifacts', tTabs('artifacts')],
+        ['history', tGroups('history')],
         ['settings', tTabs('settings')],
       ];
       for (const [path, label] of views) {

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { ApiError, useApproveScope, useProjectScope, useSaveScope } from '@pmtool/api-client';
 import { Badge, Button, Card, FormField } from '@pmtool/ui';
 import { usePermissions } from '../projects/use-permissions';
+import { HistoryButton } from '../history/history-modal';
 
 const TEXTAREA_CLASS =
   'mt-0 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus';
@@ -48,9 +49,14 @@ export function ScopeView({ orgSlug, projectKey }: { orgSlug: string; projectKey
           <h1 className="text-lg font-semibold text-ink-primary">{t('title')}</h1>
           <p className="text-sm text-ink-secondary">{t('subtitle')}</p>
         </div>
+        <div className="flex items-center gap-3">
+        {scope && (
+          <HistoryButton orgSlug={orgSlug} projectKey={projectKey} entityType="ProjectScope" entityId={scope.id} title={t('title')} variant="outline" />
+        )}
         <Badge variant={scope?.status === 'APPROVED' ? 'success' : 'neutral'}>
           {scope?.status === 'APPROVED' ? t('approved') : t('draft')}
         </Badge>
+        </div>
       </div>
 
       {scope?.status === 'APPROVED' && scope.approvedAt && (

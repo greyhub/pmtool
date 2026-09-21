@@ -6,11 +6,11 @@ Cập nhật 2026-09-20. Mô tả chiến lược kiểm thử, kết quả lầ
 
 | Tầng | Công cụ | Số lượng | Kết quả |
 |---|---|---|---|
-| Unit — API | Vitest (Prisma mock) | 272 test / 40 file | ✅ đạt |
-| Unit — Web | Vitest + jsdom | 46 test | ✅ đạt |
+| Unit — API | Vitest (Prisma mock) | 287 test / 42 file | ✅ đạt |
+| Unit — Web | Vitest + jsdom | 50 test | ✅ đạt |
 | Unit — UI (design system, Gantt) | Vitest + Testing Library | 52 test | ✅ đạt |
-| Tích hợp — API qua HTTP thật | Supertest + Postgres ephemeral (Testcontainers), toàn bộ guard/interceptor thật | 78 test | ✅ đạt (đã thấy 1 lần một test tên-nhân-vật-đã-dùng lỗi ngẫu nhiên, chạy lại 9 lần liên tiếp đều đạt — chưa tái hiện được, đang theo dõi) |
-| End-to-end — trình duyệt thật | Playwright (Chromium), build dev thật của web + api | 43 test / 34 file | ✅ 42 đạt, 1 tự bỏ qua vì chưa cấu hình Telegram trong môi trường này, 1,8 phút |
+| Tích hợp — API qua HTTP thật | Supertest + Postgres ephemeral (Testcontainers), toàn bộ guard/interceptor thật | 86 test | ✅ đạt (đã thấy 1 lần một test tên-nhân-vật-đã-dùng lỗi ngẫu nhiên, chạy lại 9 lần liên tiếp đều đạt — chưa tái hiện được, đang theo dõi) |
+| End-to-end — trình duyệt thật | Playwright (Chromium), build dev thật của web + api | 44 test / 35 file | ✅ 43 đạt, 1 tự bỏ qua vì chưa cấu hình Telegram trong môi trường này, 1,8 phút |
 | Tĩnh | ESLint, `tsc --noEmit`, `next build`, `nest build` (Turborepo 18 tác vụ) | 18 tác vụ | ✅ đạt, 0 cảnh báo |
 
 Đợt kiểm thử này **tìm ra và sửa** 5 lỗi bảo mật/phân quyền thật (mục 3) — đó là lý do có thêm test ma trận.
@@ -55,7 +55,7 @@ Cùng đợt: giao diện hiểu vai trò — nút không dùng được bị �
 | J5 Giám sát | E2E `wbs-scope` (sơ đồ + độ phủ), `gantt`, `daily-report`; integration "Daily reports"; unit dựng đồ thị/bố cục | Đã xem trực tiếp ảnh chụp sáng/tối |
 | J6 Nghiệm thu | E2E `deliverables-milestones`; integration "Deliverables and milestones" | |
 | J7 Gắn kết | E2E `gamification`, `settings`, `roles-and-characters`; integration "User preferences" | |
-| J8 Quản trị | Integration "Organization archive", "Project-level RBAC overrides", ma trận; E2E `org-settings`, `project-settings` | |
+| J8 Quản trị | Integration "Change history", "Organization archive", "Project-level RBAC overrides", ma trận; E2E `org-settings`, `project-settings`, `change-history` | |
 | J9 Viewer | E2E `roles-and-characters`, `private-project`; integration "Private projects", "AI routes stay inside the URL project"; ma trận | |
 
 ## 5. Danh sách kiểm tra thủ công trước mỗi bản phát hành
