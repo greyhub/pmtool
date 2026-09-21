@@ -54,7 +54,7 @@ Miễn phí không có nghĩa là hạ chuẩn: người dùng vẫn giao dữ l
 | 4 ✅ | **G8 Dự án mẫu + checklist kích hoạt** *(xong 2026-09-21: 3 mẫu vi/en — phần mềm, sự kiện, marketing — và thẻ "Bắt đầu nhanh"; nên bổ sung mẫu theo ngành khi có phản hồi beta)* | Rút ngắn thời gian tới "aha" — chỉ số quan trọng nhất khi không có doanh thu |
 | 5 ✅ | **G9 Nhập/xuất CSV** *(xong 2026-09-21: nhập/xuất công việc; xuất PDF báo cáo và nhập Excel .xlsx/MS Project chưa có)* | Hạ rào chuyển đổi từ bảng tính; xuất cũng phục vụ G4 |
 | 6 ✅ | **G11 Thông báo trong app**, "việc của tôi" xuyên dự án *(xong 2026-09-21; thông báo qua email theo sự kiện chưa làm — hiện email chỉ dùng cho tài khoản/lời mời)* | Giữ chân |
-| 7 | **G10 Dự án riêng tư**, G12, G13 | Mở rộng tệp khách |
+| 7 | **G10 Dự án riêng tư**, ~~G12~~ ✅ *(đổi cấp WBS hàng loạt xong 2026-09-21)*, G13 | Mở rộng tệp khách |
 | Song song | **G6 vận hành production** *(2026-09-21: đã có Dockerfile, compose production + Caddy HTTPS, sao lưu/khôi phục, `health/ready` và runbook `docs/van-hanh.md`; **chưa** kiểm chứng trọn vẹn trên máy chủ thật, chưa có giám sát ngoài và chưa diễn tập khôi phục trên dữ liệu thật)* —  (sao lưu diễn tập, giám sát, HTTPS, migrate an toàn), **G7 rà soát bảo mật**, **phân tích sản phẩm** (đo kích hoạt/giữ chân, tôn trọng quyền riêng tư) | Cần trước khi mở đăng ký công khai |
 
 

@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.8 Đổi cấp WBS hàng loạt
+
+`POST projects/:key/task-bulk/node-type` (`task-bulk.controller.ts`, logic thuần trong `wbs-bulk.ts` có unit test): hoặc `{taskIds, nodeType}` hoặc `{byDepth:true}`, thêm `dryRun`. `planBulk` tính cấp cuối cùng của **toàn bộ** cây rồi chỉ kiểm tra các cặp cha–con có ít nhất một bên đổi (dữ liệu cũ vốn đã sai ở chỗ khác không chặn thao tác). `levelsByDepth` gán lá = Hoạt động, mỗi cha = min(độ sâu, cấp thấp nhất của con − 1); nhánh sâu quá 4 cấp bị báo lỗi. Tất cả-hoặc-không, ghi bằng một `updateMany` mỗi cấp trong một transaction.
+
 ### 1.7 Thông báo trong ứng dụng
 
 `NotificationsService.notify()` (module toàn cục) ghi một dòng `Notification` cho mỗi người nhận, đã loại người gây ra hành động và trùng lặp, và **không bao giờ ném lỗi** ra ngoài (thông báo hỏng không được làm hỏng việc giao/bình luận/nộp). Bản ghi chỉ lưu `type`, tên người gây ra, loại/ID/khoá dự án của đối tượng và một đoạn trích; **câu chữ được dựng ở client** theo ngôn ngữ người đọc. Được gọi từ `TasksService` (giao việc khi tạo/sửa — chỉ người mới được thêm), `CommentsService`, `DeliverablesService` (nộp → người duyệt: PM+/Admin/Owner theo vai trò tổ chức hoặc vai trò dự án; duyệt/từ chối → chủ và người tạo). Các service nhận `NotificationsService` qua `@Optional()` nên unit test cũ không đổi. Mọi truy vấn khoá theo `userId` người gọi. `GET organizations/:org/my-tasks` trả việc của người gọi xuyên dự án. Chuông poll 60 giây (chưa có WebSocket).

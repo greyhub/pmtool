@@ -282,6 +282,10 @@ PMTool áp dụng chuỗi quản lý phạm vi của PMBOK. Mỗi khái niệm c
 
 **Tab Phạm vi.** Giống Điều lệ: PM trở lên soạn/sửa, còn **Phê duyệt phạm vi** chỉ Owner/Admin (người soạn và người duyệt tách nhau); sửa một bản đã duyệt sẽ đưa về Bản nháp (vì chữ ký cũ không còn đúng nội dung mới).
 
+**Đổi cấp WBS hàng loạt** (tab WBS, Member trở lên) — để đưa dữ liệu cũ về đúng cấu trúc:
+- **Gán cấp theo độ sâu**: gốc = Giai đoạn, cấp 2 = Giao phẩm, cấp 3 = Gói công việc, mục cuối mỗi nhánh = Hoạt động. Hộp thoại **xem trước** số lượng ở từng cấp rồi mới áp dụng; nhánh sâu quá 4 cấp được báo lỗi thay vì đoán. Không đụng tới ngày, người phụ trách, trạng thái.
+- **Chọn nhiều**: tick các công việc, chọn cấp rồi **Áp dụng**. Hệ thống kiểm tra cả bộ thay đổi cùng lúc (cha phải cao hơn con) — có lỗi thì **không đổi gì** và nêu rõ mục nào sai vì sao.
+
 **Tab WBS.** Cây có mã WBS và nhãn cấp; nút **+** ở mỗi dòng chỉ cho thêm các cấp hợp lệ bên dưới. Chọn một phần tử để viết/sửa từ điển WBS (thành viên trở lên được sửa).
 
 **Sơ đồ liên kết PMBOK (Tổng quan dự án).** Sơ đồ vẽ từ trái sang phải: Điều lệ → Phạm vi → Giai đoạn → Giao phẩm → Gói công việc → Hoạt động → Mốc. Ô có viền đứt màu cam là chỗ còn thiếu; ô xanh là đã hoàn thành/đã duyệt; thanh nhỏ là % hoàn thành; "✓ 1/2" là số bản ghi nghiệm thu đã duyệt trên tổng. Hoạt động được gộp thành bộ đếm — bấm **N hoạt động** (hoặc **Mở hết**) để bung ra. Bấm vào một ô để mở công việc tương ứng.

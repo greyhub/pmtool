@@ -1135,7 +1135,26 @@
     "expandAll": "Mở hết",
     "collapseAll": "Thu gọn hết",
     "legalChildren": "Có thể chứa: {types}",
-    "leaf": "Mức thấp nhất, không chứa mục con"
+    "leaf": "Mức thấp nhất, không chứa mục con",
+    "bulk": {
+      "selectMode": "Chọn nhiều",
+      "auto": "Gán cấp theo độ sâu",
+      "selected": "Đã chọn {count}",
+      "selectAll": "Chọn tất cả ({count})",
+      "clear": "Bỏ chọn",
+      "setLevel": "Đổi cấp thành",
+      "apply": "Áp dụng",
+      "nothingToChange": "Các mục đã chọn đã ở đúng cấp này.",
+      "moreErrors": "…và {count} lỗi nữa",
+      "error": "Không đổi được cấp WBS.",
+      "cancel": "Huỷ",
+      "checking": "Đang kiểm tra…",
+      "autoTitle": "Gán cấp WBS theo độ sâu",
+      "autoDescription": "Gốc = Giai đoạn, cấp 2 = Giao phẩm, cấp 3 = Gói công việc, mục cuối nhánh = Hoạt động. Dùng để chỉnh dữ liệu cũ về đúng cấu trúc PMBOK; xem trước rồi mới áp dụng. Không ảnh hưởng ngày, người phụ trách hay trạng thái.",
+      "autoSummary": "{count} công việc sẽ đổi cấp. Kết quả:",
+      "autoNothing": "Mọi công việc đã đúng cấp theo độ sâu — không có gì thay đổi.",
+      "autoApply": "Đổi {count} công việc"
+    }
   },
   "legal": {
     "home": "Về trang chủ",

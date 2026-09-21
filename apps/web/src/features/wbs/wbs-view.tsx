@@ -14,6 +14,7 @@ import {
 import { Button, Card, Input, Select } from '@pmtool/ui';
 import { NodeTypeBadge } from './node-type-badge';
 import { WbsDictionaryPanel } from './wbs-dictionary-panel';
+import { AutoLevelModal, BulkSelectionBar } from './bulk-level-tools';
 import { usePermissions } from '../projects/use-permissions';
 
 interface Row {
@@ -56,6 +57,10 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
   const { canEdit } = usePermissions(orgSlug, projectKey);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [bulkLevel, setBulkLevel] = useState<WbsNodeType>('WORK_PACKAGE');
+  const [autoOpen, setAutoOpen] = useState(false);
   // `null` parent = adding a root; undefined = the add form is closed.
   const [adding, setAdding] = useState<{ parentId: string | null; type: WbsNodeType; title: string } | null>(null);
 
@@ -162,6 +167,24 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
           <Button variant="outline" size="sm" onClick={() => setExpanded(new Set())}>
             {t('collapseAll')}
           </Button>
+          {canEdit && all.length > 0 && (
+            <>
+              <Button
+                variant={selecting ? 'primary' : 'outline'}
+                size="sm"
+                aria-pressed={selecting}
+                onClick={() => {
+                  setSelecting((v) => !v);
+                  setPicked(new Set());
+                }}
+              >
+                {t('bulk.selectMode')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setAutoOpen(true)}>
+                {t('bulk.auto')}
+              </Button>
+            </>
+          )}
           {canEdit && (
             <Button size="sm" onClick={() => startAdd(null)}>
               {t('addRoot')}
@@ -169,6 +192,24 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
           )}
         </div>
       </div>
+
+      {selecting && (
+        <BulkSelectionBar
+          orgSlug={orgSlug}
+          projectKey={projectKey}
+          picked={Array.from(picked)}
+          total={all.length}
+          level={bulkLevel}
+          onLevel={setBulkLevel}
+          onSelectAll={() => setPicked(new Set(all.map((x) => x.id)))}
+          onClear={() => setPicked(new Set())}
+          onDone={() => {
+            setPicked(new Set());
+            setSelecting(false);
+          }}
+        />
+      )}
+      <AutoLevelModal orgSlug={orgSlug} projectKey={projectKey} open={autoOpen} onClose={() => setAutoOpen(false)} />
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card className="overflow-hidden">
@@ -186,6 +227,22 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
                       style={{ paddingLeft: `${depth * 20 + 8}px` }}
                       className={`group flex items-center gap-2 py-1.5 pr-2 ${selectedId === task.id ? 'bg-action-primary/10' : 'hover:bg-surface-subtle'}`}
                     >
+                      {selecting && (
+                        <input
+                          type="checkbox"
+                          aria-label={`${code} ${task.title}`}
+                          checked={picked.has(task.id)}
+                          onChange={(e) =>
+                            setPicked((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(task.id);
+                              else next.delete(task.id);
+                              return next;
+                            })
+                          }
+                          className="h-4 w-4 shrink-0 accent-action-primary"
+                        />
+                      )}
                       <button
                         type="button"
                         aria-label={isOpen ? 'collapse' : 'expand'}

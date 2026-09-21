@@ -4,6 +4,7 @@ import { TasksService } from './tasks.service';
 import { DependenciesController } from './dependencies.controller';
 import { DependenciesService } from './dependencies.service';
 import { CommentsService } from './comments.service';
+import { TaskBulkController } from './task-bulk.controller';
 import { MyTasksController } from './my-tasks.controller';
 import { TaskCsvController } from './task-csv.controller';
 import { TaskCsvService } from './task-csv.service';
@@ -19,6 +20,7 @@ import { ActivityModule } from '../activity/activity.module';
     DependenciesController,
     TaskCsvController,
     MyTasksController,
+    TaskBulkController,
   ],
   providers: [
     TasksService,

@@ -1135,7 +1135,26 @@
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "legalChildren": "Can contain: {types}",
-    "leaf": "Lowest level, cannot contain children"
+    "leaf": "Lowest level, cannot contain children",
+    "bulk": {
+      "selectMode": "Select several",
+      "auto": "Set levels by depth",
+      "selected": "{count} selected",
+      "selectAll": "Select all ({count})",
+      "clear": "Clear",
+      "setLevel": "Set level to",
+      "apply": "Apply",
+      "nothingToChange": "The selected items are already at this level.",
+      "moreErrors": "…and {count} more errors",
+      "error": "Could not change the WBS level.",
+      "cancel": "Cancel",
+      "checking": "Checking…",
+      "autoTitle": "Set WBS levels by depth",
+      "autoDescription": "Root = Phase, level 2 = Deliverable, level 3 = Work package, the end of each branch = Activity. Use it to bring older data into the PMBOK structure; preview first, then apply. Dates, assignees and status are not touched.",
+      "autoSummary": "{count} tasks will change level. Result:",
+      "autoNothing": "Every task is already at the level its depth calls for — nothing to change.",
+      "autoApply": "Change {count} tasks"
+    }
   },
   "legal": {
     "home": "Back to home",

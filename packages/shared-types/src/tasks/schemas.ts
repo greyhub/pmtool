@@ -149,3 +149,29 @@ export interface ImportTasksResultDto {
   errors: { line: number; message: string }[];
   preview: { line: number; title: string; nodeType: string; parent: string | null }[];
 }
+
+/**
+ * Change many tasks' WBS level at once. Either name the tasks and the level, or
+ * ask for `byDepth` (root → phase, child → deliverable, … leaves → activity).
+ * `dryRun` reports what would change without writing.
+ */
+export const bulkNodeTypeSchema = z
+  .object({
+    taskIds: z.array(z.string()).min(1).max(2000).optional(),
+    nodeType: z.enum(WBS_NODE_TYPES).optional(),
+    byDepth: z.boolean().optional(),
+    dryRun: z.boolean().optional(),
+  })
+  .refine((v) => v.byDepth === true || (v.taskIds && v.nodeType), {
+    message: 'Chọn công việc và cấp WBS, hoặc dùng chế độ theo độ sâu',
+  });
+export type BulkNodeTypeInput = z.infer<typeof bulkNodeTypeSchema>;
+
+export interface BulkNodeTypeResultDto {
+  committed: boolean;
+  /** Tasks whose level changes (or changed). */
+  changed: number;
+  /** How many tasks end up at each level after the change. */
+  counts: Record<(typeof WBS_NODE_TYPES)[number], number>;
+  errors: { taskId: string; humanKey: string; message: string }[];
+}

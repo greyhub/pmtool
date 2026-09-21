@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  BulkNodeTypeInput,
+  BulkNodeTypeResultDto,
   ProjectScopeDto,
   ScopeMapDto,
   UpsertScopeInput,
@@ -85,6 +87,23 @@ export function useSaveWbsDictionary(orgSlug: string | undefined, projectKey: st
     onSuccess: (entry) => {
       queryClient.setQueryData(scopeKeys.dictionary(orgSlug ?? '', projectKey ?? '', taskId), entry);
       queryClient.invalidateQueries({ queryKey: scopeKeys.map(orgSlug ?? '', projectKey ?? '') });
+    },
+  });
+}
+
+/** Change the WBS level of many tasks at once (or set every level from tree depth). */
+export function useBulkNodeType(orgSlug: string | undefined, projectKey: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: BulkNodeTypeInput) =>
+      apiRequest<BulkNodeTypeResultDto>(`${base(orgSlug!, projectKey!)}/task-bulk/node-type`, {
+        method: 'POST',
+        body: input,
+      }),
+    onSuccess: (result) => {
+      if (result.committed) {
+        queryClient.invalidateQueries({ queryKey: [...prefix(orgSlug ?? '', projectKey ?? ''), 'tasks'] });
+      }
     },
   });
 }

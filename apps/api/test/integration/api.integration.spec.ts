@@ -2373,6 +2373,104 @@ describe('Sign in with Google', () => {
   });
 });
 
+describe('Bulk WBS level change', () => {
+  it('re-levels legacy tasks by depth or by choice, validating the whole change and writing all-or-nothing', async () => {
+    const owner = await registerUser('Bulk Owner');
+    const org = await createOrg(owner.accessToken, 'Bulk Org');
+    const viewer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Bulk Viewer',
+    );
+    const project = await createProject(owner.accessToken, org.slug, 'BLK');
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}`;
+    const create = async (title: string, parentTaskId?: string) =>
+      (
+        await http()
+          .post(`${base}/tasks`)
+          .set(auth)
+          .send({ title, parentTaskId })
+          .expect(201)
+      ).body.data as { id: string; nodeType: string };
+    const levels = async () =>
+      Object.fromEntries(
+        (
+          (await http().get(`${base}/tasks`).set(auth).expect(200)).body
+            .data as { title: string; nodeType: string }[]
+        ).map((t) => [t.title, t.nodeType]),
+      );
+    const bulk = (body: object, who = auth) =>
+      http().post(`${base}/task-bulk/node-type`).set(who).send(body);
+
+    // A legacy-style tree: everything created without levels (all activities, parents promoted).
+    const root = await create('Gốc');
+    const child = await create('Con', root.id);
+    const leaf = await create('Lá', child.id);
+    const other = await create('Việc lẻ');
+    void leaf;
+
+    // Dry run by depth reports the outcome and writes nothing.
+    const dry = (await bulk({ byDepth: true, dryRun: true }).expect(200)).body
+      .data;
+    expect(dry.committed).toBe(false);
+    expect(dry.counts).toEqual({
+      PHASE: 1,
+      DELIVERABLE: 1,
+      WORK_PACKAGE: 0,
+      ACTIVITY: 2,
+    });
+    // (Adding a child promotes an activity to a work package, so the legacy tree starts inconsistent.)
+    expect(await levels()).toMatchObject({
+      Gốc: 'WORK_PACKAGE',
+      Con: 'WORK_PACKAGE',
+      Lá: 'ACTIVITY',
+      'Việc lẻ': 'ACTIVITY',
+    });
+
+    // By depth for real: root=PHASE, child=DELIVERABLE, leaf & loose = ACTIVITY.
+    const done = (await bulk({ byDepth: true }).expect(200)).body.data;
+    expect(done.committed).toBe(true);
+    expect(await levels()).toMatchObject({
+      Gốc: 'PHASE',
+      Con: 'DELIVERABLE',
+      Lá: 'ACTIVITY',
+      'Việc lẻ': 'ACTIVITY',
+    });
+    // Nothing left to change: a second run is a no-op.
+    expect((await bulk({ byDepth: true }).expect(200)).body.data).toMatchObject(
+      { committed: false, changed: 0 },
+    );
+
+    // Explicit choice is validated against parents and children as a whole; a bad one changes nothing.
+    const bad = (
+      await bulk({ taskIds: [root.id], nodeType: 'ACTIVITY' }).expect(200)
+    ).body.data;
+    expect(bad.committed).toBe(false);
+    expect(bad.errors[0].message).toContain('không thể nằm trong');
+    expect(await levels()).toMatchObject({ Gốc: 'PHASE' });
+
+    // A loose task can be moved to any level under no parent; ids from elsewhere are refused.
+    expect(
+      (await bulk({ taskIds: [other.id], nodeType: 'DELIVERABLE' }).expect(200))
+        .body.data.committed,
+    ).toBe(true);
+    const foreign = (
+      await bulk({ taskIds: ['not-mine'], nodeType: 'PHASE' }).expect(200)
+    ).body.data;
+    expect(foreign.errors[0].message).toContain('không thuộc dự án');
+
+    // Same rules as editing a task: viewers cannot, and the request must say what to do.
+    await bulk(
+      { byDepth: true },
+      { Authorization: `Bearer ${viewer.accessToken}` },
+    ).expect(403);
+    await bulk({}).expect(400);
+  });
+});
+
 describe('Task assignees', () => {
   it('keeps exactly one primary assignee, with everyone else as supporters', async () => {
     const owner = await registerUser('Assignee Owner');
