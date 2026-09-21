@@ -234,7 +234,7 @@ function CharacterIcon({
         onBlur={() => setTip(null)}
         className={cn(
           'shrink-0 rounded-full bg-surface-subtle',
-          primary ? 'h-8 w-8' : 'h-6 w-6 opacity-70',
+          primary ? 'h-10 w-10' : 'h-7 w-7 opacity-70',
         )}
         style={{
           backgroundImage: `url(/mascots/${a.character}-directions.webp)`,
@@ -440,7 +440,7 @@ export function GanttChart({
       {
         id: 'assignee',
         header: { text: labels.columnAssignee, css: 'pm-gantt-header-nowrap' },
-        width: 140,
+        width: 150,
         cell: ({ row }) => (
           <AssigneeIcons
             assignees={(row.assignees ?? []) as GanttAssignee[]}
@@ -547,7 +547,7 @@ export function GanttChart({
                 scales={SCALE_PRESETS[zoom]}
                 columns={columns}
                 gridWidth={gridWidth}
-                cellHeight={44}
+                cellHeight={52}
                 taskTemplate={BarLabel}
                 highlightTime={ganttHighlightTime}
                 init={handleInit}
