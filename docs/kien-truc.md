@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.9 Kéo thả sắp xếp
+
+Dùng HTML5 drag-and-drop gốc (không thêm thư viện) cho danh sách phẳng/cây; nút ↑↓←→ là đường đi bằng bàn phím. `planMove()` (`features/wbs/wbs-move.ts`, hàm thuần có unit test) đổi vị trí thả (trước/sau/vào trong) thành `{parentTaskId, orderIndex}`: `orderIndex` là số thực nằm giữa hai anh em (hoặc ±1 ở đầu/cuối), nên **không phải đánh số lại các mục khác**; từ chối thả vào chính nó/con cháu và các vị trí phá thứ bậc cấp WBS (trừ hoạt động nhận con → được nâng thành gói, khớp `placeChild` phía API). Gọi `PATCH tasks/:id/move` sẵn có (API kiểm tra lại toàn bộ và là nơi quyết định) với cập nhật lạc quan và hoàn tác khi lỗi (`useMoveTask`).
+
 ### 1.8 Đổi cấp WBS hàng loạt
 
 `POST projects/:key/task-bulk/node-type` (`task-bulk.controller.ts`, logic thuần trong `wbs-bulk.ts` có unit test): hoặc `{taskIds, nodeType}` hoặc `{byDepth:true}`, thêm `dryRun`. `planBulk` tính cấp cuối cùng của **toàn bộ** cây rồi chỉ kiểm tra các cặp cha–con có ít nhất một bên đổi (dữ liệu cũ vốn đã sai ở chỗ khác không chặn thao tác). `levelsByDepth` gán lá = Hoạt động, mỗi cha = min(độ sâu, cấp thấp nhất của con − 1); nhánh sâu quá 4 cấp bị báo lỗi. Tất cả-hoặc-không, ghi bằng một `updateMany` mỗi cấp trong một transaction.

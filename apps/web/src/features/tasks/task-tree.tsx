@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useUpdateTaskById } from '@pmtool/api-client';
+import { useMoveTask, useUpdateTaskById } from '@pmtool/api-client';
 import { TASK_STATUSES, type TaskDto } from '@pmtool/shared-types';
 import { Avatar, Badge } from '@pmtool/ui';
 import { Link } from '../../i18n/navigation';
@@ -10,6 +10,18 @@ import { formatDate } from '../../lib/date-input';
 import { TaskPriorityBadge } from './task-badges';
 import { CreateTaskModal } from './create-task-modal';
 import { dueState, type DueState } from './task-filters';
+import { neighbourSiblings, planMove, type DropZone } from '../wbs/wbs-move';
+
+interface Reorder {
+  dragId: string | null;
+  over: { id: string; zone: DropZone } | null;
+  setDragId: (id: string | null) => void;
+  setOver: (over: { id: string; zone: DropZone } | null) => void;
+  allTasks: TaskDto[];
+  moveTo: (taskId: string, targetId: string, zone: DropZone) => void;
+}
+/** Present only while drag-and-drop ordering makes sense (unfiltered, default order). */
+const ReorderCtx = createContext<Reorder | null>(null);
 
 const DUE_VARIANT: Record<DueState, 'danger' | 'warning' | 'neutral'> = {
   overdue: 'danger',
@@ -94,6 +106,7 @@ function TaskRow({
   forceExpanded: boolean;
 }) {
   const t = useTranslations('tasks.list');
+  const reorder = useContext(ReorderCtx);
   const [addingSubtask, setAddingSubtask] = useState(false);
   const children = grouped.get(task.id) ?? [];
   const expanded = forceExpanded || !collapsed.has(task.id);
@@ -104,7 +117,43 @@ function TaskRow({
   return (
     <>
       <div
-        className="group border-b border-line px-2 py-2 hover:bg-surface-subtle"
+        data-testid={`task-row-${task.humanKey}`}
+        draggable={Boolean(reorder)}
+        onDragStart={(e) => {
+          if (!reorder) return;
+          reorder.setDragId(task.id);
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', task.id);
+        }}
+        onDragEnd={() => {
+          reorder?.setDragId(null);
+          reorder?.setOver(null);
+        }}
+        onDragOver={(e) => {
+          if (!reorder?.dragId) return;
+          const box = e.currentTarget.getBoundingClientRect();
+          const y = (e.clientY - box.top) / box.height;
+          const zone: DropZone = y < 0.25 ? 'before' : y > 0.75 ? 'after' : 'inside';
+          if (!planMove(reorder.allTasks, reorder.dragId, task.id, zone)) {
+            reorder.setOver(null);
+            return;
+          }
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (reorder.over?.id !== task.id || reorder.over.zone !== zone) reorder.setOver({ id: task.id, zone });
+        }}
+        onDrop={(e) => {
+          if (!reorder) return;
+          e.preventDefault();
+          if (reorder.dragId && reorder.over) reorder.moveTo(reorder.dragId, reorder.over.id, reorder.over.zone);
+          reorder.setDragId(null);
+          reorder.setOver(null);
+        }}
+        className={`group border-b border-line px-2 py-2 hover:bg-surface-subtle ${
+          reorder?.dragId === task.id ? 'opacity-40' : ''
+        } ${reorder?.over?.id === task.id && reorder.over.zone === 'inside' ? 'ring-2 ring-inset ring-action-primary' : ''} ${
+          reorder?.over?.id === task.id && reorder.over.zone === 'before' ? 'border-t-2 border-t-action-primary' : ''
+        } ${reorder?.over?.id === task.id && reorder.over.zone === 'after' ? 'border-b-2 border-b-action-primary' : ''}`}
         style={{ paddingLeft: 8 + depth * 20 }}
       >
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
@@ -132,6 +181,31 @@ function TaskRow({
             <span className="w-6 shrink-0" />
           )}
 
+          {reorder && (
+            <span className="flex shrink-0 opacity-0 focus-within:opacity-100 group-hover:opacity-100">
+              {(
+                [
+                  ['up', '↑', t('moveUp')],
+                  ['down', '↓', t('moveDown')],
+                ] as const
+              ).map(([action, glyph, label]) => (
+                <button
+                  key={action}
+                  type="button"
+                  aria-label={`${label}: ${task.title}`}
+                  title={label}
+                  onClick={() => {
+                    const { prev, next } = neighbourSiblings(reorder.allTasks, task.id);
+                    if (action === 'up' && prev) reorder.moveTo(task.id, prev.id, 'before');
+                    if (action === 'down' && next) reorder.moveTo(task.id, next.id, 'after');
+                  }}
+                  className="h-6 w-5 rounded text-xs text-ink-muted hover:bg-surface-subtle hover:text-ink-primary"
+                >
+                  {glyph}
+                </button>
+              ))}
+            </span>
+          )}
           <Link href={href} className="shrink-0 font-mono text-xs text-ink-muted hover:underline">
             {task.isMilestone && (
               <span aria-label={t('milestone')} title={t('milestone')} className="mr-1 text-action-primary">
@@ -235,6 +309,7 @@ export function TaskTree({
   forceExpanded = false,
   collapsed,
   onToggle,
+  reorderAmong,
 }: {
   tasks: TaskDto[];
   orgSlug: string;
@@ -243,26 +318,46 @@ export function TaskTree({
   forceExpanded?: boolean;
   collapsed: Set<string>;
   onToggle: (id: string) => void;
+  /** Every task of the project; when given, rows can be dragged to reorder or re-parent them. */
+  reorderAmong?: TaskDto[];
 }) {
   const grouped = useMemo(() => groupByParent(tasks), [tasks]);
   const roots = grouped.get(null) ?? [];
+  const moveTask = useMoveTask(orgSlug, projectKey);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [over, setOver] = useState<{ id: string; zone: DropZone } | null>(null);
+  const reorder: Reorder | null = reorderAmong
+    ? {
+        dragId,
+        over,
+        setDragId,
+        setOver,
+        allTasks: reorderAmong,
+        moveTo: (taskId, targetId, zone) => {
+          const plan = planMove(reorderAmong, taskId, targetId, zone);
+          if (plan) moveTask.mutate({ taskId, input: plan });
+        },
+      }
+    : null;
 
   return (
-    <div>
-      {roots.map((task) => (
-        <TaskRow
-          key={task.id}
-          task={task}
-          depth={0}
-          grouped={grouped}
-          orgSlug={orgSlug}
-          projectKey={projectKey}
-          collapsed={collapsed}
-          toggle={onToggle}
-          forceExpanded={forceExpanded}
-        />
-      ))}
-    </div>
+    <ReorderCtx.Provider value={reorder}>
+      <div>
+        {roots.map((task) => (
+          <TaskRow
+            key={task.id}
+            task={task}
+            depth={0}
+            grouped={grouped}
+            orgSlug={orgSlug}
+            projectKey={projectKey}
+            collapsed={collapsed}
+            toggle={onToggle}
+            forceExpanded={forceExpanded}
+          />
+        ))}
+      </div>
+    </ReorderCtx.Provider>
   );
 }
 

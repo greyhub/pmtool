@@ -282,6 +282,8 @@ PMTool áp dụng chuỗi quản lý phạm vi của PMBOK. Mỗi khái niệm c
 
 **Tab Phạm vi.** Giống Điều lệ: PM trở lên soạn/sửa, còn **Phê duyệt phạm vi** chỉ Owner/Admin (người soạn và người duyệt tách nhau); sửa một bản đã duyệt sẽ đưa về Bản nháp (vì chữ ký cũ không còn đúng nội dung mới).
 
+**Sắp xếp bằng kéo thả** (tab WBS và danh sách Công việc, Member trở lên): kéo một dòng rồi thả vào **mép trên** hoặc **mép dưới** của dòng khác để đặt ngay cạnh nó, thả vào **giữa** để đưa nó vào trong dòng đó (thành công việc con). Đường kẻ hoặc khung sáng cho biết sẽ rơi ở đâu; vị trí không hợp lệ (vào chính nó hay con cháu của nó, hoặc làm sai thứ bậc Giai đoạn › Giao phẩm › Gói › Hoạt động) không nhận thả. Thả vào một *hoạt động* thì hoạt động đó thành gói công việc, như khi thêm việc con. Mã WBS tự đánh lại theo thứ tự mới, và thứ tự này cũng là thứ tự ở Gantt và danh sách. Ai không dùng chuột có thể dùng nút **↑ ↓** (và **← →** ở tab WBS để đưa ra ngoài / vào trong mục phía trên) hiện khi rê hoặc focus vào dòng. Ở danh sách Công việc, kéo thả chỉ bật khi **không lọc/tìm kiếm** và đang ở thứ tự **Mặc định** (khi đang lọc hoặc sắp theo hạn, thứ tự chỉ là một phần nên không cho kéo).
+
 **Đổi cấp WBS hàng loạt** (tab WBS, Member trở lên) — để đưa dữ liệu cũ về đúng cấu trúc:
 - **Gán cấp theo độ sâu**: gốc = Giai đoạn, cấp 2 = Giao phẩm, cấp 3 = Gói công việc, mục cuối mỗi nhánh = Hoạt động. Hộp thoại **xem trước** số lượng ở từng cấp rồi mới áp dụng; nhánh sâu quá 4 cấp được báo lỗi thay vì đoán. Không đụng tới ngày, người phụ trách, trạng thái.
 - **Chọn nhiều**: tick các công việc, chọn cấp rồi **Áp dụng**. Hệ thống kiểm tra cả bộ thay đổi cùng lúc (cha phải cao hơn con) — có lỗi thì **không đổi gì** và nêu rõ mục nào sai vì sao.

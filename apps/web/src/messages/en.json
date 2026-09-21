@@ -331,7 +331,9 @@
       "groupNone": "No grouping",
       "groupStatus": "By status",
       "importCsv": "Import CSV",
-      "exportCsv": "Export CSV"
+      "exportCsv": "Export CSV",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
     },
     "create": {
       "title": "Create a new task",
@@ -1109,7 +1111,7 @@
   },
   "wbs": {
     "title": "Work breakdown structure (WBS)",
-    "subtitle": "Decompose scope into Phase › Deliverable › Work package › Activity. WBS codes are generated from the order.",
+    "subtitle": "Decompose scope into Phase › Deliverable › Work package › Activity. WBS codes are generated from the order. Drag and drop to reorder: drop on the top/bottom edge to place beside, in the middle to put inside.",
     "empty": "No work yet. Create the first phase.",
     "addRoot": "Add phase",
     "addChild": "Add child",
@@ -1154,6 +1156,14 @@
       "autoSummary": "{count} tasks will change level. Result:",
       "autoNothing": "Every task is already at the level its depth calls for — nothing to change.",
       "autoApply": "Change {count} tasks"
+    },
+    "move": {
+      "up": "Move up",
+      "down": "Move down",
+      "outdent": "Move out one level",
+      "indent": "Move into the item above",
+      "error": "Could not move it.",
+      "hint": "Drag and drop to reorder: drop on the top/bottom edge to place beside, in the middle to put inside."
     }
   },
   "legal": {

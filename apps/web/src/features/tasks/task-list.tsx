@@ -221,6 +221,8 @@ export function TaskList({ orgSlug, projectKey }: { orgSlug: string; projectKey:
                 forceExpanded={filtering}
                 collapsed={rows.collapsed}
                 onToggle={rows.toggle}
+                // Ordering only makes sense on the full tree in its own order.
+                reorderAmong={canEdit && !filtering && sort === 'DEFAULT' ? (tasks ?? []) : undefined}
               />
             )
           ) : (

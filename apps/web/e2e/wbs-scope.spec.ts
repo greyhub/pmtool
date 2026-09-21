@@ -50,9 +50,7 @@ test('builds a WBS with dictionary and scope, then sees the linkage map and cove
   await expect(row('Phỏng vấn khách hàng').getByRole('button', { name: 'Thêm mục con' })).toHaveCount(0);
 
   // --- WBS dictionary of the work package.
-  await row('Khảo sát nghiệp vụ')
-    .getByRole('button', { name: /Khảo sát nghiệp vụ/ })
-    .click();
+  await row('Khảo sát nghiệp vụ').getByRole('button').filter({ hasText: 'Khảo sát nghiệp vụ' }).click();
   const panel = page.getByTestId('wbs-dictionary');
   await expect(panel.getByText('Chưa mô tả')).toBeVisible();
   await panel.getByLabel('Mô tả phạm vi').fill('Thu thập yêu cầu từ 5 phòng ban.');

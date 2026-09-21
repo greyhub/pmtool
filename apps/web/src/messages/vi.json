@@ -331,7 +331,9 @@
       "groupNone": "Không nhóm",
       "groupStatus": "Theo trạng thái",
       "importCsv": "Nhập CSV",
-      "exportCsv": "Xuất CSV"
+      "exportCsv": "Xuất CSV",
+      "moveUp": "Lên",
+      "moveDown": "Xuống"
     },
     "create": {
       "title": "Tạo công việc mới",
@@ -1109,7 +1111,7 @@
   },
   "wbs": {
     "title": "Cấu trúc phân rã công việc (WBS)",
-    "subtitle": "Phân rã phạm vi thành Giai đoạn › Giao phẩm › Gói công việc › Hoạt động. Mã WBS tự sinh theo thứ tự.",
+    "subtitle": "Phân rã phạm vi thành Giai đoạn › Giao phẩm › Gói công việc › Hoạt động. Mã WBS tự sinh theo thứ tự. Kéo thả để sắp xếp: thả vào mép trên/dưới để đặt cạnh, thả vào giữa để đưa vào trong.",
     "empty": "Chưa có công việc nào. Hãy tạo giai đoạn đầu tiên.",
     "addRoot": "Thêm giai đoạn",
     "addChild": "Thêm mục con",
@@ -1154,6 +1156,14 @@
       "autoSummary": "{count} công việc sẽ đổi cấp. Kết quả:",
       "autoNothing": "Mọi công việc đã đúng cấp theo độ sâu — không có gì thay đổi.",
       "autoApply": "Đổi {count} công việc"
+    },
+    "move": {
+      "up": "Lên",
+      "down": "Xuống",
+      "outdent": "Đưa ra ngoài một cấp",
+      "indent": "Đưa vào trong mục phía trên",
+      "error": "Không di chuyển được.",
+      "hint": "Kéo thả để sắp xếp: thả vào mép trên/dưới để đặt cạnh, thả vào giữa để đưa vào trong."
     }
   },
   "legal": {

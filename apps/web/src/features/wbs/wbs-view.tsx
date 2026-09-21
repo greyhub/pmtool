@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ApiError, useCreateTask, useTasks } from '@pmtool/api-client';
+import { ApiError, useCreateTask, useMoveTask, useTasks } from '@pmtool/api-client';
 import {
   computeWbsCodes,
   defaultChildType,
@@ -15,6 +15,7 @@ import { Button, Card, Input, Select } from '@pmtool/ui';
 import { NodeTypeBadge } from './node-type-badge';
 import { WbsDictionaryPanel } from './wbs-dictionary-panel';
 import { AutoLevelModal, BulkSelectionBar } from './bulk-level-tools';
+import { neighbourSiblings, planMove, type DropZone } from './wbs-move';
 import { usePermissions } from '../projects/use-permissions';
 
 interface Row {
@@ -54,6 +55,9 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
   const tHelp = useTranslations('tasks.nodeTypeHelp');
   const { data: tasks, isLoading } = useTasks(orgSlug, projectKey);
   const createTask = useCreateTask(orgSlug, projectKey);
+  const moveTask = useMoveTask(orgSlug, projectKey);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [over, setOver] = useState<{ id: string; zone: DropZone } | null>(null);
   const { canEdit } = usePermissions(orgSlug, projectKey);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -104,6 +108,22 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
       { title: adding.title.trim(), parentTaskId: adding.parentId ?? undefined, nodeType: adding.type },
       { onSuccess: () => setAdding(null) },
     );
+  }
+
+  function moveTo(taskId: string, targetId: string, zone: DropZone) {
+    const plan = planMove(all, taskId, targetId, zone);
+    if (!plan) return;
+    if (zone === 'inside') setExpanded((prev) => new Set(prev).add(targetId));
+    moveTask.mutate({ taskId, input: plan });
+  }
+
+  /** Keyboard/mouse alternatives to dragging: step past a sibling, indent under the previous one, or outdent. */
+  function step(task: TaskDto, action: 'up' | 'down' | 'indent' | 'outdent') {
+    const { prev, next } = neighbourSiblings(all, task.id);
+    if (action === 'up' && prev) moveTo(task.id, prev.id, 'before');
+    if (action === 'down' && next) moveTo(task.id, next.id, 'after');
+    if (action === 'indent' && prev) moveTo(task.id, prev.id, 'inside');
+    if (action === 'outdent' && task.parentTaskId) moveTo(task.id, task.parentTaskId, 'after');
   }
 
   if (isLoading) return null;
@@ -193,6 +213,12 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
         </div>
       </div>
 
+      {moveTask.isError && (
+        <p role="alert" className="mt-3 text-sm text-danger">
+          {moveTask.error instanceof ApiError ? moveTask.error.message : t('move.error')}
+        </p>
+      )}
+
       {selecting && (
         <BulkSelectionBar
           orgSlug={orgSlug}
@@ -225,7 +251,43 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
                   <li key={task.id}>
                     <div
                       style={{ paddingLeft: `${depth * 20 + 8}px` }}
-                      className={`group flex items-center gap-2 py-1.5 pr-2 ${selectedId === task.id ? 'bg-action-primary/10' : 'hover:bg-surface-subtle'}`}
+                      data-testid={`wbs-row-${task.humanKey}`}
+                      draggable={canEdit && !selecting}
+                      onDragStart={(e) => {
+                        setDragId(task.id);
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', task.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setOver(null);
+                      }}
+                      onDragOver={(e) => {
+                        if (!dragId) return;
+                        const box = e.currentTarget.getBoundingClientRect();
+                        const y = (e.clientY - box.top) / box.height;
+                        const zone: DropZone = y < 0.25 ? 'before' : y > 0.75 ? 'after' : 'inside';
+                        if (!planMove(all, dragId, task.id, zone)) {
+                          setOver(null);
+                          return;
+                        }
+                        e.preventDefault(); // this spot accepts the drop
+                        e.dataTransfer.dropEffect = 'move';
+                        if (over?.id !== task.id || over.zone !== zone) setOver({ id: task.id, zone });
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (dragId && over) moveTo(dragId, over.id, over.zone);
+                        setDragId(null);
+                        setOver(null);
+                      }}
+                      className={`group relative flex items-center gap-2 py-1.5 pr-2 ${
+                        selectedId === task.id ? 'bg-action-primary/10' : 'hover:bg-surface-subtle'
+                      } ${dragId === task.id ? 'opacity-40' : ''} ${
+                        over?.id === task.id && over.zone === 'inside' ? 'ring-2 ring-inset ring-action-primary' : ''
+                      } ${over?.id === task.id && over.zone === 'before' ? 'border-t-2 border-action-primary' : ''} ${
+                        over?.id === task.id && over.zone === 'after' ? 'border-b-2 border-action-primary' : ''
+                      }`}
                     >
                       {selecting && (
                         <input
@@ -265,6 +327,29 @@ export function WbsView({ orgSlug, projectKey }: { orgSlug: string; projectKey: 
                           {task.title}
                         </span>
                       </button>
+                      {canEdit && !selecting && (
+                        <span className="flex shrink-0 opacity-0 focus-within:opacity-100 group-hover:opacity-100">
+                          {(
+                            [
+                              ['up', '↑', t('move.up')],
+                              ['down', '↓', t('move.down')],
+                              ['outdent', '←', t('move.outdent')],
+                              ['indent', '→', t('move.indent')],
+                            ] as const
+                          ).map(([action, glyph, label]) => (
+                            <button
+                              key={action}
+                              type="button"
+                              aria-label={`${label}: ${task.title}`}
+                              title={label}
+                              onClick={() => step(task, action)}
+                              className="h-6 w-6 rounded text-xs text-ink-muted hover:bg-surface-subtle hover:text-ink-primary"
+                            >
+                              {glyph}
+                            </button>
+                          ))}
+                        </span>
+                      )}
                       {canAdd && (
                         <button
                           type="button"
