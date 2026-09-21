@@ -2,7 +2,9 @@
 
 Hướng dẫn triển khai, sao lưu, khôi phục, giám sát và xử lý sự cố cho PMTool. Đối tượng đọc: người vận hành hệ thống. Kiến trúc xem [kien-truc.md](kien-truc.md); kế hoạch ra mắt xem [gtm.md](gtm.md).
 
-> **Mức đã kiểm chứng (2026-09-21).** *Đã chạy thật:* `backup.sh` trên bản dữ liệu phát triển (≈ 1.100 người dùng, ≈ 1.100 công việc) tạo tệp nén hợp lệ; `restore.sh` khôi phục vào cơ sở dữ liệu tạm và **số dòng khớp** ở các bảng đối chiếu; tệp sao lưu hỏng bị từ chối; `docker compose config` hợp lệ; `GET /health/ready` có test tích hợp. *Chưa kiểm chứng:* dựng image bằng `docker build` cho tới hết (trên máy phát triển, mạng trong Docker quá chậm nên chưa hoàn tất — quá trình cài gói bằng pnpm 10 đã chạy được), khởi động cả stack với Caddy/HTTPS thật, và vòng lặp sao lưu hằng đêm. Hãy chạy các bước này trên máy chủ thật (mục 3) và diễn tập khôi phục (mục 5) trước khi mở đăng ký.
+> **Mức đã kiểm chứng (2026-09-21, cập nhật).** *Đã chạy thật trên máy phát triển, đúng file `infra/docker-compose.prod.yml`:* `docker build` cả hai image (api, web) thành công với Next 15/React 19; cả stack (Postgres, Redis, API, web, Caddy HTTPS, backup) khởi động, **22 migration áp dụng sạch trên cơ sở dữ liệu trống**, `health/ready` trả `ok`, tiêu đề HSTS/nosniff/referrer có mặt, cookie làm mới là `HttpOnly` + `Secure`; đăng ký → tổ chức → dự án mẫu (35 công việc) qua HTTPS; đăng ký trên giao diện rồi tải lại trang vẫn giữ phiên; `backup.sh` tạo tệp hợp lệ và **khôi phục vào cơ sở dữ liệu tạm khớp số dòng** ở các bảng đối chiếu. *Chưa kiểm chứng:* chạy trên **máy chủ thật với tên miền thật** (chứng chỉ Let's Encrypt, DNS, tường lửa), vòng lặp sao lưu qua đêm, gửi email thật (SMTP), đăng nhập Google thật, và khôi phục trên dữ liệu thật. Hãy chạy mục 3 và diễn tập mục 5 trên máy chủ thật trước khi mở đăng ký.
+
+**Việc nên cải thiện:** mỗi image nặng ≈ 2,15 GB vì chứa cả gói phát triển và mã nguồn; nên tách giai đoạn chạy chỉ giữ gói production để nhẹ hơn và giảm bề mặt tấn công.
 
 ## 1. Thành phần
 
