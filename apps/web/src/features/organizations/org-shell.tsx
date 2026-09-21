@@ -155,7 +155,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
     <div className="flex min-h-screen">
       <aside
         className={cn(
-          'sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line-glass bg-surface-glass p-4 backdrop-blur-xl md:flex',
+          'sticky top-0 hidden h-screen shrink-0 flex-col glass-bar p-4 md:flex',
           collapsed ? 'w-16' : 'w-56',
         )}
       >

@@ -75,7 +75,7 @@ function InlineStatus({ task, orgSlug, projectKey }: { task: TaskDto; orgSlug: s
       value={task.status}
       disabled={update.isPending}
       onChange={(e) => update.mutate({ taskId: task.id, input: { status: e.target.value as TaskDto['status'] } })}
-      className="h-7 shrink-0 rounded-md border border-line bg-surface px-1.5 text-xs text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
+      className="h-7 shrink-0 glass-field rounded-md border border-line-glass px-1.5 text-xs text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
     >
       {TASK_STATUSES.map((s) => (
         <option key={s} value={s}>

@@ -45,7 +45,7 @@ export function Modal({ open, onClose, title, description, children, footer, cla
         aria-describedby={description ? 'modal-description' : undefined}
         tabIndex={-1}
         className={cn(
-          'relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl border border-line-glass bg-surface-glass-strong p-6 shadow-2xl shadow-black/10 backdrop-blur-2xl outline-none',
+          'relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto glass-strong rounded-xl p-6 outline-none',
           className,
         )}
       >

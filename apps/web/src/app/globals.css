@@ -1,5 +1,6 @@
 @import '@pmtool/ui/theme/light.css';
 @import '@pmtool/ui/theme/dark.css';
+@import '@pmtool/ui/theme/glass.css';
 
 @tailwind base;
 @tailwind components;

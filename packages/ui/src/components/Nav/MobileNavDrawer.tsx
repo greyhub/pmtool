@@ -43,7 +43,7 @@ export function MobileNavDrawer({ open, onClose, title, children, className }: M
         aria-labelledby="mobile-nav-title"
         tabIndex={-1}
         className={cn(
-          'relative z-10 flex h-full w-72 max-w-[80vw] flex-col gap-4 border-r border-line-glass bg-surface-glass-strong p-4 shadow-2xl shadow-black/10 backdrop-blur-2xl outline-none',
+          'relative z-10 flex h-full w-72 max-w-[80vw] flex-col gap-4 glass-strong p-4 outline-none',
           className,
         )}
       >

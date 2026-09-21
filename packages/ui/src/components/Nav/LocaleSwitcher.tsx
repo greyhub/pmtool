@@ -20,7 +20,7 @@ export function LocaleSwitcher({ value, options, onChange, className }: LocaleSw
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        'h-9 rounded-md border border-line bg-surface px-2 text-sm text-ink-primary outline-none transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-focus',
+        'h-9 glass-field rounded-md border border-line-glass px-2 text-sm text-ink-primary outline-none transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-focus',
         className,
       )}
     >

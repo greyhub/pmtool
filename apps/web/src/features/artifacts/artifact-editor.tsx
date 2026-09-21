@@ -106,7 +106,7 @@ export function ArtifactEditor({
             value={htmlContent}
             onChange={(e) => setHtmlContent(e.target.value)}
             spellCheck={false}
-            className="h-full min-h-[500px] w-full flex-1 rounded-md border border-line bg-surface p-3 font-mono text-xs text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            className="h-full min-h-[500px] w-full flex-1 glass-field rounded-md border border-line-glass p-3 font-mono text-xs text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
           />
         </div>
         <div className="flex flex-col gap-1">

@@ -39,7 +39,7 @@ export function UserMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-line-glass bg-surface-glass-strong py-1 shadow-xl shadow-black/10 backdrop-blur-2xl"
+          className="absolute right-0 top-full z-20 mt-1 w-48 glass-strong rounded-md py-1"
         >
           <div className="px-3 py-2 text-sm text-ink-secondary">{user.email}</div>
           <div className="my-1 border-t border-line-glass" />

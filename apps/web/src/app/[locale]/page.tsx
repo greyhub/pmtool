@@ -32,7 +32,7 @@ function DocCard({ docKey, href, icon }: { docKey: (typeof DOC_LINKS)[number]['k
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="flex flex-col gap-2 rounded-xl border border-line-glass bg-surface-glass-strong p-5 shadow-lg shadow-black/5 backdrop-blur-xl transition-transform hover:-translate-y-0.5"
+      className="flex flex-col gap-2 glass rounded-xl p-5 transition-transform hover:-translate-y-0.5"
     >
       <span className="text-xl" aria-hidden="true">
         {icon}

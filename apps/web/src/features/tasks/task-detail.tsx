@@ -311,7 +311,7 @@ export function TaskDetail({
               }}
               placeholder={t('descriptionPlaceholder')}
               rows={5}
-              className="mt-2 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              className="mt-2 w-full glass-field rounded-md border border-line-glass px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
             />
             {summarizeTask.isError && (
               <p role="alert" className="mt-2 text-sm text-danger">
@@ -534,7 +534,7 @@ export function TaskDetail({
                     }
                     setPercentComplete(String(clamped));
                   }}
-                  className="w-20 rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  className="w-20 glass-field rounded-md border border-line-glass px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 />
                 <span className="text-sm text-ink-secondary">%</span>
               </div>

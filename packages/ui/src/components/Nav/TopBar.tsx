@@ -11,7 +11,7 @@ export function TopBar({ left, right, className }: TopBarProps) {
   return (
     <header
       className={cn(
-        'sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-line-glass bg-surface-glass px-4 backdrop-blur-xl',
+        'sticky top-0 z-20 flex h-14 items-center justify-between gap-4 glass-bar px-4',
         className,
       )}
     >

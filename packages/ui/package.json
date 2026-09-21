@@ -10,6 +10,7 @@
     ".": "./dist/index.js",
     "./theme/light.css": "./src/theme/light.css",
     "./theme/dark.css": "./src/theme/dark.css",
+    "./theme/glass.css": "./src/theme/glass.css",
     "./tailwind-preset": "./dist/theme/tailwind-preset.js"
   },
   "scripts": {

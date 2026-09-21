@@ -98,7 +98,7 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
         <textarea
           id="project-description"
           rows={3}
-          className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          className="w-full glass-field rounded-md border border-line-glass px-3 py-2 text-sm text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
           {...field('description')}
         />
       </FormField>

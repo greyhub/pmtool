@@ -74,7 +74,7 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
         <div
           role="dialog"
           aria-label={t('title')}
-          className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-line bg-surface shadow-xl"
+          className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] glass-strong overflow-hidden rounded-xl"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
