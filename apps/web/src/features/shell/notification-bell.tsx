@@ -37,6 +37,8 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
     };
   }, [open]);
 
+  // The type key is dynamic (one message per notification type), which next-intl 4 cannot type-check.
+  const translateType = t as unknown as (key: string, values: Record<string, string>) => string;
   const unread = data?.unreadCount ?? 0;
 
   return (
@@ -107,7 +109,7 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
                     />
                     <span className="min-w-0 text-sm">
                       <span className="block text-ink-primary">
-                        {t(`types.${n.type}` as never, { actor: n.actorName ?? t('someone'), title: n.entityTitle })}
+                        {translateType(`types.${n.type}`, { actor: n.actorName ?? t('someone'), title: n.entityTitle })}
                       </span>
                       {n.detail && (
                         <span className="mt-0.5 block truncate text-xs text-ink-secondary">“{n.detail}”</span>

@@ -7,6 +7,8 @@ const nextConfig = {
   // Workspace packages must go through Next's own webpack build (not be
   // treated as external `require()`s) so React context providers (e.g.
   // QueryClientProvider) share a single module instance with the app.
+  // The app does not use next/image; turning the optimizer endpoint off removes that attack surface.
+  images: { unoptimized: true },
   transpilePackages: ['@pmtool/shared-types', '@pmtool/api-client', '@pmtool/ui'],
 };
 
