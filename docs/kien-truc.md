@@ -195,7 +195,7 @@ Quy tắc thứ bậc (`apps/api/src/modules/tasks/wbs-rules.ts`): `PHASE > DELI
 ```mermaid
 flowchart TB
     subgraph CLIENT["Trình duyệt"]
-        WEB["apps/web<br/>Next.js 14 App Router<br/>TanStack Query + next-intl + next-themes"]
+        WEB["apps/web<br/>Next.js 15 (React 19) App Router<br/>TanStack Query + next-intl + next-themes"]
     end
 
     subgraph SERVER["Máy chủ"]
@@ -386,7 +386,7 @@ Ba lớp phòng thủ độc lập, đã kiểm chứng trực tiếp (không ch
 
 | Lớp | Công nghệ | Vai trò |
 |---|---|---|
-| Frontend framework | Next.js 14 (App Router) + TypeScript | SSR/CSR, routing theo `[locale]/[orgSlug]/...` |
+| Frontend framework | Next.js 15 (React 19) (App Router) + TypeScript | SSR/CSR, routing theo `[locale]/[orgSlug]/...` |
 | UI state/data | TanStack Query | cache + đồng bộ dữ liệu server, qua `packages/api-client` |
 | Design system | Tailwind CSS + `packages/ui` | token màu vàng/xám, glass-morphism, sáng/tối |
 | Đa ngôn ngữ | next-intl | vi/en, lưu qua cookie `NEXT_LOCALE` |

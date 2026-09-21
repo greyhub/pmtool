@@ -122,9 +122,9 @@ Chưa có sẵn: metrics/dashboards, log tập trung, tracing. Bổ sung khi lư
 
 ### 7.1 Lỗ hổng thư viện (kiểm tra 2026-09-21)
 
-Chạy `pnpm audit --prod` định kỳ (mỗi tuần và trước mỗi lần phát hành). Đã xử lý: 52 → 26 cảnh báo bằng cách ghim các gói gián tiếp lên bản đã vá (`overrides` trong `pnpm-workspace.yaml`: `multer`, `lodash`, `js-yaml`, `postcss`, `qs`, `body-parser`), nâng `next-intl` lên 4.x, và tắt bộ tối ưu ảnh của Next (`images.unoptimized`) vì ứng dụng không dùng `next/image`.
+Chạy `pnpm audit --prod` định kỳ (mỗi tuần và trước mỗi lần phát hành). Đã xử lý: **52 → 3 cảnh báo (đều mức vừa)**: ghim các gói gián tiếp lên bản đã vá (`overrides` trong `pnpm-workspace.yaml`: `multer`, `lodash`, `js-yaml`, `postcss`, `qs`, `body-parser`), nâng **Next.js 14 → 15.5** (kèm React 19) và `next-intl` 3 → 4, và tắt bộ tối ưu ảnh của Next (`images.unoptimized`) vì ứng dụng không dùng `next/image`.
 
-**Còn lại, cần làm trước khi mở công khai:** **Next.js 14** còn 23 cảnh báo (2 nghiêm trọng, 8 cao) mà bản vá chỉ có ở **15.5+** — cần nâng cấp lớn (kéo theo React 19) và thử lại toàn bộ giao diện. Cảnh báo nghiêm trọng thứ nhất chỉ áp dụng khi chạy trên Windows; thứ hai nằm ở API tối ưu ảnh, đã tắt. Phần lớn còn lại là từ chối dịch vụ (DoS) và SSRF trong Server Actions/rewrites — ứng dụng không dùng Server Actions và không dùng rewrites, nhưng vẫn nên nâng cấp. Còn hai cảnh báo mức vừa ở `file-type` (qua `@nestjs/common`, chỉ dùng cho bộ kiểm tra tệp tải lên mà ứng dụng không dùng) và một ở `@nestjs/core` (cần nâng Nest 10 → 11).
+**Còn lại (mức vừa):** `file-type` (qua `@nestjs/common`, chỉ dùng cho bộ kiểm tra tệp tải lên mà ứng dụng không dùng) và `@nestjs/core` (cần nâng Nest 10 → 11 — nên làm ở đợt sau, kèm thử lại toàn bộ API).
 
 ## 8. Xử lý sự cố nhanh
 

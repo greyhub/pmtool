@@ -65,7 +65,7 @@ export function GanttWidget({ orgSlug, projectKey }: { orgSlug: string; projectK
   const deleteDependency = useDeleteDependency(orgSlug, projectKey);
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
-  const saveStatusTimer = useRef<ReturnType<typeof setTimeout>>();
+  const saveStatusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const flashSaveStatus = (status: 'saved' | 'error') => {
     setSaveStatus(status);

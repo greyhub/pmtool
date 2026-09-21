@@ -1,11 +1,12 @@
 import { OrgShell } from '../../../features/organizations/org-shell';
 
-export default function OrgLayout({
+export default async function OrgLayout({
   children,
-  params: { orgSlug },
+  params,
 }: {
   children: React.ReactNode;
-  params: { orgSlug: string };
+  params: Promise<{ orgSlug: string }>;
 }) {
+  const { orgSlug } = await params;
   return <OrgShell orgSlug={orgSlug}>{children}</OrgShell>;
 }

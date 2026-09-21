@@ -10,7 +10,7 @@ Tài liệu này dành cho phát triển/vận hành. Hướng dẫn sử dụng
 
 | Lớp | Công nghệ |
 |---|---|
-| Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, next-intl (vi/en), next-themes, TanStack Query |
+| Frontend | Next.js 15 (React 19) (App Router), TypeScript, Tailwind CSS, next-intl (vi/en), next-themes, TanStack Query |
 | Backend | NestJS 10, REST API `/api/v1`, Swagger docs (non-prod) |
 | ORM/DB | Prisma + PostgreSQL 16 |
 | Auth | JWT access token + rotating refresh token (httpOnly cookie), argon2id |
