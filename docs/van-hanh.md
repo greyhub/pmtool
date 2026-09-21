@@ -102,6 +102,14 @@ Việc tối thiểu cần có trước khi mở công khai:
 | **Đĩa và RAM** | Cảnh báo khi đĩa > 80% (dữ liệu Postgres, log Docker, sao lưu). |
 | **Chi phí** | Theo dõi hoá đơn nhà cung cấp AI và email; hạn mức `AI_DAILY_LIMIT_PER_ORG` chặn mỗi tổ chức. |
 
+### 6.1 Số liệu sản phẩm (kích hoạt, giữ chân)
+
+```bash
+infra/metrics/metrics.sh          # qua dịch vụ postgres của compose; hoặc DATABASE_URL=... infra/metrics/metrics.sh
+```
+
+Báo cáo chỉ-đọc (chỉ có SELECT) trong `infra/metrics/metrics.sql`, chạy trên máy chủ vì xuyên nhiều tổ chức nên **không** đưa vào ứng dụng. Không thêm công cụ theo dõi nào; mọi thứ suy ra từ dữ liệu sẵn có: tổng số, **phễu kích hoạt theo tổ chức** (tạo dự án → ≥ 5 công việc → mời đồng đội → có phạm vi/WBS — cùng bốn bước với checklist trong ứng dụng), **giữ chân theo nhóm tuần đăng ký** (còn thao tác ở ngày 1–7, 8–14, 15–28), người dùng hoạt động theo tuần, tính năng nào được dùng, và tỉ lệ email đã xác minh. "Hoạt động" nghĩa là có ít nhất một thay đổi được ghi nhật ký — chỉ xem thì không thấy. Số liệu trên bản phát triển toàn là dữ liệu kiểm thử nên vô nghĩa; chỉ có ý nghĩa trên bản chạy thật. Nên chạy hằng tuần và ghi lại để xem xu hướng.
+
 Chưa có sẵn: metrics/dashboards, log tập trung, tracing. Bổ sung khi lượng người dùng tăng.
 
 ## 7. Bảo mật vận hành
