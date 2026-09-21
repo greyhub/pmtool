@@ -12,6 +12,8 @@ import { AiService } from './ai.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
+import { ProjectEntityGuard } from '../../common/guards/project-entity.guard';
+import { ProjectEntity } from '../../common/decorators/project-entity.decorator';
 import { ProjectRolesGuard } from '../../common/guards/project-roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
@@ -38,6 +40,7 @@ const CAN_USE_AI = ['OWNER', 'ADMIN', 'PM', 'MEMBER'] as const;
   EmailVerifiedGuard,
   OrgMembershipGuard,
   ProjectGuard,
+  ProjectEntityGuard,
   ProjectRolesGuard,
   RateLimitGuard,
 )
@@ -50,6 +53,7 @@ export class AiController {
   ) {}
 
   @Post('tasks/:taskId/summarize')
+  @ProjectEntity('task', 'taskId')
   async summarize(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,
@@ -63,6 +67,7 @@ export class AiController {
   }
 
   @Post('tasks/:taskId/suggest-subtasks')
+  @ProjectEntity('task', 'taskId')
   async suggestSubtasks(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('taskId') taskId: string,

@@ -237,7 +237,9 @@
       "startFrom": "Start from",
       "blank": "Blank project",
       "blankHint": "Build the scope and work yourself from scratch.",
-      "stats": "{phases} phases · {deliverables} deliverables · {workPackages} work packages · {activities} activities, with scope, milestones and common risks"
+      "stats": "{phases} phases · {deliverables} deliverables · {workPackages} work packages · {activities} activities, with scope, milestones and common risks",
+      "private": "Private project",
+      "privateHint": "Only owners/admins and members added to the project can see it. Use it for a single client's project."
     },
     "status": {
       "PLANNING": "Planning",
@@ -276,7 +278,9 @@
         "status": "Status",
         "archiveHint": "Pick \"Archived\" to archive this project.",
         "save": "Save",
-        "genericError": "Something went wrong, please try again"
+        "genericError": "Something went wrong, please try again",
+        "private": "Private project",
+        "privateHint": "Only owners/admins and members added to the project can see it. Use it for a single client's project."
       },
       "members": {
         "title": "Project role overrides",
@@ -301,6 +305,9 @@
         "points": "Story points",
         "hours": "Hours"
       }
+    },
+    "private": {
+      "badge": "Private"
     }
   },
   "board": {

@@ -37,6 +37,7 @@ interface FormState {
   status: (typeof PROJECT_STATUSES)[number];
   startDate: string;
   targetEndDate: string;
+  isPrivate: boolean;
 }
 
 function toDateInputValue(iso: string | null): string {
@@ -58,6 +59,7 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
       status: project.status,
       startDate: toDateInputValue(project.startDate),
       targetEndDate: toDateInputValue(project.targetEndDate),
+      isPrivate: project.isPrivate,
     });
   }, [project]);
 
@@ -78,6 +80,7 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
       name: form.name,
       description: form.description || null,
       status: form.status,
+      isPrivate: form.isPrivate,
       startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
       targetEndDate: form.targetEndDate ? new Date(form.targetEndDate).toISOString() : null,
     });
@@ -117,6 +120,19 @@ function GeneralCard({ orgSlug, projectKey }: { orgSlug: string; projectKey: str
           </Select>
         </FormField>
       </div>
+
+      <label className="flex items-start gap-2 text-sm text-ink-primary">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={form.isPrivate}
+          onChange={(e) => setForm((f) => (f ? { ...f, isPrivate: e.target.checked } : f))}
+        />
+        <span>
+          {t('private')}
+          <span className="block text-xs text-ink-muted">{t('privateHint')}</span>
+        </span>
+      </label>
 
       {updateProject.isError && (
         <p role="alert" className="text-sm text-danger">

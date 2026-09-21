@@ -237,7 +237,9 @@
       "startFrom": "Bắt đầu từ",
       "blank": "Dự án trống",
       "blankHint": "Tự xây dựng phạm vi và công việc từ đầu.",
-      "stats": "{phases} giai đoạn · {deliverables} giao phẩm · {workPackages} gói công việc · {activities} hoạt động, kèm phạm vi, mốc và rủi ro thường gặp"
+      "stats": "{phases} giai đoạn · {deliverables} giao phẩm · {workPackages} gói công việc · {activities} hoạt động, kèm phạm vi, mốc và rủi ro thường gặp",
+      "private": "Dự án riêng tư",
+      "privateHint": "Chỉ chủ sở hữu/quản trị và thành viên được thêm vào dự án mới thấy. Dùng cho dự án của từng khách hàng."
     },
     "status": {
       "PLANNING": "Lên kế hoạch",
@@ -276,7 +278,9 @@
         "status": "Trạng thái",
         "archiveHint": "Chọn \"Lưu trữ\" để lưu trữ dự án này.",
         "save": "Lưu",
-        "genericError": "Có lỗi xảy ra, vui lòng thử lại"
+        "genericError": "Có lỗi xảy ra, vui lòng thử lại",
+        "private": "Dự án riêng tư",
+        "privateHint": "Chỉ chủ sở hữu/quản trị và thành viên được thêm vào dự án mới thấy. Dùng cho dự án của từng khách hàng."
       },
       "members": {
         "title": "Vai trò riêng trong dự án",
@@ -301,6 +305,9 @@
         "points": "Điểm (story points)",
         "hours": "Giờ"
       }
+    },
+    "private": {
+      "badge": "Riêng tư"
     }
   },
   "board": {

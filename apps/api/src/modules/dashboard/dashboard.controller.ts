@@ -6,6 +6,8 @@ import {
   OrgDashboardDto,
   ProjectDashboardDto,
 } from '@pmtool/shared-types';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { DashboardService } from './dashboard.service';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { ProjectGuard } from '../../common/guards/project.guard';
@@ -24,8 +26,13 @@ export class OrgDashboardController {
   @Get()
   async get(
     @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ data: OrgDashboardDto }> {
-    const data = await this.dashboardService.orgDashboard(ctx.organization.id);
+    const data = await this.dashboardService.orgDashboard(
+      ctx.organization.id,
+      user.id,
+      ctx.role,
+    );
     return { data };
   }
 

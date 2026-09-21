@@ -8,6 +8,7 @@ import {
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import { PrismaService } from '../../prisma/prisma.service';
+import { hiddenProjectIds } from '../../common/project-visibility';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 
 /** The caller's own work across every project of the organization. */
@@ -23,13 +24,20 @@ export class MyTasksController {
     @CurrentUser() user: AuthenticatedUser,
     @Query('includeDone') includeDone?: string,
   ): Promise<{ data: MyTaskDto[] }> {
+    const hidden = await hiddenProjectIds(
+      this.prisma,
+      ctx.organization.id,
+      user.id,
+      ctx.role,
+    );
     const rows = await this.prisma.db.taskAssignee.findMany({
       where: {
         organizationId: ctx.organization.id,
         userId: user.id,
-        ...(includeDone === 'true'
-          ? {}
-          : { task: { status: { not: 'DONE' } } }),
+        task: {
+          projectId: { notIn: hidden },
+          ...(includeDone === 'true' ? {} : { status: { not: 'DONE' } }),
+        },
       },
       include: {
         task: { include: { project: { select: { key: true, name: true } } } },

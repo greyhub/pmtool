@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { seesAllProjects } from '../project-visibility';
 
 /**
  * Resolves the `:projectKey` route param to a Project scoped to the
@@ -33,6 +34,16 @@ export class ProjectGuard implements CanActivate {
     });
     if (!project) {
       throw new NotFoundException('Không tìm thấy dự án');
+    }
+
+    // A private project does not exist for someone who is neither an admin nor a member.
+    if (project.isPrivate && !seesAllProjects(req.currentOrg.role)) {
+      const member = await this.prisma.db.projectMember.findUnique({
+        where: {
+          projectId_userId: { projectId: project.id, userId: req.user?.id },
+        },
+      });
+      if (!member) throw new NotFoundException('Không tìm thấy dự án');
     }
 
     req.currentProject = project;

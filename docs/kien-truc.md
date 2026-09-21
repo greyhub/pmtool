@@ -146,6 +146,10 @@ flowchart LR
     H --> J["Ghi ActivityLog + cập nhật streak/huy hiệu"]
 ```
 
+### 1.11 Dự án riêng tư
+
+`projects.isPrivate`. Một dự án riêng tư chỉ tồn tại với OWNER/ADMIN của tổ chức và những người có dòng `project_members`. Thực thi ở **hai lớp**: (1) `ProjectGuard` trả 404 cho mọi route theo dự án; (2) các đọc xuyên dự án (danh sách dự án, dashboard tổ chức, "Việc của tôi", dòng hoạt động) loại các dự án ẩn qua `hiddenProjectIds()` (`common/project-visibility.ts`). `activity_logs.projectId` được thêm để lọc dòng hoạt động. Thêm một đọc xuyên dự án mới thì **bắt buộc** dùng `hiddenProjectIds`. Các route AI theo task đã được ràng buộc vào dự án của URL (`ProjectEntityGuard`).
+
 ### 1.10 Sprint (Scrum)
 
 Lớp lập kế hoạch tuỳ chọn trên cùng bảng `tasks`: `projects.sprintsEnabled` + `estimationUnit` (POINTS|HOURS); `tasks.sprintId` (null = backlog, FK `ON DELETE SET NULL`) + `tasks.storyPoints`; bảng `sprints` (tenant-scoped) với chỉ mục duy nhất một phần `sprints_one_active_per_project` (`WHERE status='ACTIVE'`) để chặn hai sprint chạy cùng lúc ngay ở tầng dữ liệu. Khối lượng kế hoạch/đã xong được **tính khi đọc** từ các task (không lưu), chỉ `committedLoad` (lúc bắt đầu) và `completedLoad` (lúc đóng) được chụp lại để làm cơ sở cho tốc độ (velocity) và báo cáo sau này. Đóng sprint chuyển việc chưa xong trong một giao dịch. Gán việc vào sprint đã đóng hoặc thuộc dự án khác bị từ chối (`assertSprintUsable`). Module: `apps/api/src/modules/sprints`; giao diện: `apps/web/src/features/sprints`.
@@ -285,7 +289,7 @@ flowchart LR
 
 - **Mặc định không đổi**: một người dùng chưa từng được gán vai trò riêng có hành vi *y hệt* trước mốc này — `resolveEffectiveProjectRole()` (`apps/api/src/common/guards/project-role.util.ts`) chỉ trả về vai trò tổ chức khi không tìm thấy `ProjectMember`. Đây là lý do việc đổi `RolesGuard` → `ProjectRolesGuard` ở 9 controller cấp-dự-án (`tasks`, `dependencies`, `artifacts`, `charter`, `stakeholders`, `ai`, `boards`, `documents`, `risks`) không phá vỡ hành vi RBAC hiện có.
 - **Vai trò riêng có thể nâng lên hoặc hạ xuống** so với vai trò tổ chức — không chỉ giới hạn ở việc hạn chế quyền.
-- **Không phải là điều kiện hiển thị/truy cập dự án**: xoá một `ProjectMember` không ẩn dự án khỏi người đó — khả năng *nhìn thấy* dự án luôn dựa trên tư cách thành viên tổ chức (`OrgMembershipGuard`), không đổi. `ProjectMember` chỉ quyết định họ *làm được gì* trong dự án đó.
+- **Điều kiện hiển thị chỉ áp dụng cho dự án riêng tư** (xem §1.11): với dự án thường, xoá một `ProjectMember` không ẩn dự án khỏi người đó — khả năng nhìn thấy dựa trên tư cách thành viên tổ chức (`OrgMembershipGuard`); `ProjectMember` chỉ quyết định họ *làm được gì*. Với dự án **riêng tư**, có dòng `ProjectMember` là điều kiện để nhìn thấy (trừ OWNER/ADMIN), nên xoá dòng đó là thu hồi quyền truy cập.
 - **Ngoại lệ tránh tự khoá bản thân**: quản lý chính danh sách `ProjectMember` của một dự án (`apps/api/src/modules/projects/project-members.controller.ts`) dùng `ProjectMemberManageGuard`, không phải `ProjectRolesGuard` — cho phép request khi **hoặc** vai trò tổ chức là OWNER/ADMIN, **hoặc** vai trò hiệu lực trên chính dự án đó là OWNER/ADMIN. Nếu chỉ dùng `ProjectRolesGuard` đơn thuần, một Owner/Admin tổ chức tự hạ vai trò riêng của mình trên một dự án sẽ tự khoá mình khỏi việc sửa lại chính danh sách đó.
 - **`MembershipsService.removeMember` dọn luôn `ProjectMember`**: xoá một người khỏi tổ chức xoá theo mọi `ProjectMember` của họ trong tổ chức đó (cùng transaction) — nếu không, một người bị mời lại sau ở vai trò thấp hơn sẽ vô tình "hồi sinh" vai trò riêng cũ trên các dự án họ từng có, do `Membership` và `ProjectMember` là hai bảng độc lập không tự động đồng bộ.
 
@@ -505,6 +509,7 @@ Kết quả rà soát phân quyền (2026-09-20) và các quy tắc đã đưa v
 | Admin có thể **hạ vai trò hoặc xoá Owner** (chỉ chặn khi là Owner cuối cùng) | Admin loại chủ sở hữu khỏi tổ chức | Chỉ Owner mới được đổi/xoá vai trò Owner (`MembershipsService.assertMayGrantOwner`); có unit + integration test. Vai trò Owner không thể cấp qua API (schema loại trừ). |
 | Có thể gán **người ngoài tổ chức** làm người phụ trách/hỗ trợ, chủ giao phẩm, chủ rủi ro, quản lý điều lệ | Lộ tên/ảnh của người dùng tổ chức khác nếu đoán được id; dữ liệu sai | `assertOrgMembers()` (`common/guards/org-members.util.ts`) → `400`. |
 | Member xoá được giao phẩm đã nghiệm thu | Xoá dấu vết nghiệm thu | Xoá giao phẩm chỉ PM trở lên. |
+| Route AI theo task nhận `taskId` của dự án khác qua URL dự án A (đọc nội dung + tiêu hạn mức AI) | Rò nội dung công việc giữa các dự án | `ProjectEntityGuard` trên `summarize`/`suggest-subtasks`, chạy trước khi tính hạn mức; có integration test. |
 | Sửa/xoá bản ghi của dự án B qua URL dự án A (rủi ro, tài liệu, bên liên quan, artifact, cột Kanban, công việc, phụ thuộc) — lợi dụng vai trò riêng trên A | Người chỉ là Viewer ở B nhưng là PM ở A có thể sửa dữ liệu B | `ProjectEntityGuard` + `@ProjectEntity(model, param)`: thực thể phải thuộc dự án trong URL, nếu không `404`. Có integration test. |
 | Phạm vi do PM soạn cũng do PM phê duyệt | Không tách người soạn và người duyệt | Phê duyệt phạm vi chỉ Owner/Admin — giống điều lệ. |
 

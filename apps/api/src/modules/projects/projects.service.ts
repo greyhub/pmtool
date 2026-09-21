@@ -3,7 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Project } from '@prisma/client';
+import { OrgRole, Project } from '@prisma/client';
+import {
+  hiddenProjectIds,
+  seesAllProjects,
+} from '../../common/project-visibility';
 import {
   CreateProjectInput,
   findTemplate,
@@ -41,6 +45,7 @@ export class ProjectsService {
             targetEndDate: input.targetEndDate
               ? new Date(input.targetEndDate)
               : undefined,
+            isPrivate: input.isPrivate ?? false,
             createdById,
           },
         });
@@ -182,9 +187,19 @@ export class ProjectsService {
     );
   }
 
-  async list(organizationId: string): Promise<Project[]> {
+  async list(
+    organizationId: string,
+    userId: string,
+    role: OrgRole,
+  ): Promise<Project[]> {
+    const hiddenIds = await hiddenProjectIds(
+      this.prisma,
+      organizationId,
+      userId,
+      role,
+    );
     return this.prisma.db.project.findMany({
-      where: { organizationId },
+      where: { organizationId, id: { notIn: hiddenIds } },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -206,7 +221,21 @@ export class ProjectsService {
     organizationId: string,
     projectId: string,
     input: UpdateProjectInput,
+    actor: { id: string; role: OrgRole },
   ): Promise<Project> {
+    // Whoever makes a project private must not lock themselves out of it.
+    if (input.isPrivate && !seesAllProjects(actor.role)) {
+      await this.prisma.db.projectMember.upsert({
+        where: { projectId_userId: { projectId, userId: actor.id } },
+        update: {},
+        create: {
+          organizationId,
+          projectId,
+          userId: actor.id,
+          role: actor.role,
+        },
+      });
+    }
     return this.prisma.db.project.update({
       where: { id: projectId },
       data: {
@@ -214,6 +243,7 @@ export class ProjectsService {
         description: input.description,
         status: input.status,
         sprintsEnabled: input.sprintsEnabled,
+        isPrivate: input.isPrivate,
         estimationUnit: input.estimationUnit,
         startDate:
           input.startDate === undefined

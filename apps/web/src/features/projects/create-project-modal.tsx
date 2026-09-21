@@ -33,6 +33,7 @@ export function CreateProjectModal({
   const [templateId, setTemplateId] = useState<CreateProjectInput['templateId']>(undefined);
   const createProject = useCreateProject(orgSlug);
   const [keyTouched, setKeyTouched] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const {
     register,
     handleSubmit,
@@ -43,12 +44,13 @@ export function CreateProjectModal({
 
   const onSubmit = handleSubmit((data) => {
     createProject.mutate(
-      { ...data, templateId, locale },
+      { ...data, templateId, locale, isPrivate },
       {
         onSuccess: (project) => {
           reset();
           setKeyTouched(false);
           setTemplateId(undefined);
+          setIsPrivate(false);
           onClose();
           router.push(`/${orgSlug}/projects/${project.key}/tasks`);
         },
@@ -87,6 +89,19 @@ export function CreateProjectModal({
             {...register('description')}
           />
         </FormField>
+
+        <label className="flex items-start gap-2 text-sm text-ink-primary">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={isPrivate}
+            onChange={(e) => setIsPrivate(e.target.checked)}
+          />
+          <span>
+            {t('private')}
+            <span className="block text-xs text-ink-muted">{t('privateHint')}</span>
+          </span>
+        </label>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-sm font-medium text-ink-primary">{t('startFrom')}</legend>

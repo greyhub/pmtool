@@ -346,3 +346,13 @@ Sprint là một lớp lập kế hoạch đặt **lên trên chính các công 
 **Quyền:** tạo/sửa/bắt đầu/đóng/xoá sprint — Owner, Admin, PM. Gán việc vào sprint và sửa điểm — mọi vai trò được sửa công việc (Member trở lên); Viewer chỉ xem.
 
 Chưa có (sẽ bổ sung): biểu đồ burndown, báo cáo review sprint, cảnh báo phình phạm vi, retrospective, tự lặp sprint.
+
+## 26. Dự án riêng tư
+
+Dùng cho công ty dịch vụ có nhiều khách hàng: mỗi khách chỉ thấy dự án của mình.
+
+- **Bật:** tick "Dự án riêng tư" khi tạo dự án, hoặc trong Cài đặt dự án (PM trở lên). Người bật sẽ tự được thêm làm thành viên để không bị khoá khỏi dự án.
+- **Ai thấy:** Chủ sở hữu và Quản trị viên của tổ chức luôn thấy mọi dự án. Người khác chỉ thấy dự án riêng tư nếu được **thêm vào dự án** (Cài đặt dự án → Thành viên dự án, với vai trò ghi đè, ví dụ Viewer cho khách).
+- **Người không có quyền** không thấy dự án trong danh sách, dashboard tổ chức, "Việc của tôi" và dòng hoạt động; mở thẳng đường dẫn nhận "không tìm thấy" — không lộ việc dự án có tồn tại.
+- **Mời khách:** mời họ vào tổ chức với vai trò Viewer (hoặc Member), rồi thêm vào đúng dự án. Lưu ý họ vẫn thấy các dự án **không** riêng tư của tổ chức — hãy đặt dự án chung thành riêng tư nếu không muốn khách thấy.
+- **Giới hạn hiện tại:** dòng hoạt động cũ (trước khi có tính năng) của dự án không gắn mã dự án nên có thể còn hiện; danh sách thành viên tổ chức vẫn thấy tên nhau.

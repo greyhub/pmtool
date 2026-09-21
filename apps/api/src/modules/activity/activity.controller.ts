@@ -1,6 +1,8 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ActivityLogDto } from '@pmtool/shared-types';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ActivityService } from './activity.service';
 import { OrgMembershipGuard } from '../../common/guards/org-membership.guard';
 import {
@@ -18,8 +20,13 @@ export class ActivityController {
   @Get()
   async list(
     @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ data: ActivityLogDto[] }> {
-    const logs = await this.activityService.listForOrg(ctx.organization.id);
+    const logs = await this.activityService.listForOrg(
+      ctx.organization.id,
+      user.id,
+      ctx.role,
+    );
     return { data: logs.map(toActivityLogDto) };
   }
 }

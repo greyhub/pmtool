@@ -12,6 +12,7 @@ export function toProjectDto(project: Project): ProjectDto {
     startDate: project.startDate?.toISOString() ?? null,
     targetEndDate: project.targetEndDate?.toISOString() ?? null,
     sprintsEnabled: project.sprintsEnabled,
+    isPrivate: project.isPrivate,
     estimationUnit: project.estimationUnit,
     createdById: project.createdById,
     createdAt: project.createdAt.toISOString(),

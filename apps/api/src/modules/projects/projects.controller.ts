@@ -65,12 +65,18 @@ export class ProjectsController {
   @Get()
   async list(
     @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ data: ProjectDto[] }> {
-    const projects = await this.projectsService.list(ctx.organization.id);
+    const projects = await this.projectsService.list(
+      ctx.organization.id,
+      user.id,
+      ctx.role,
+    );
     return { data: projects.map(toProjectDto) };
   }
 
   @Get(':projectKey')
+  @UseGuards(ProjectGuard)
   async getOne(
     @CurrentOrg() ctx: CurrentOrgContext,
     @Param('projectKey') projectKey: string,
@@ -88,6 +94,7 @@ export class ProjectsController {
   @LogActivity('Project', 'updated')
   async update(
     @CurrentOrg() ctx: CurrentOrgContext,
+    @CurrentUser() user: AuthenticatedUser,
     @CurrentProject() project: Project,
     @Body(new ZodValidationPipe(updateProjectSchema)) body: UpdateProjectInput,
   ): Promise<{ data: ProjectDto }> {
@@ -95,6 +102,7 @@ export class ProjectsController {
       ctx.organization.id,
       project.id,
       body,
+      { id: user.id, role: ctx.role },
     );
     return { data: toProjectDto(updated) };
   }

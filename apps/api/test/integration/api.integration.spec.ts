@@ -3602,3 +3602,175 @@ describe('Sprints', () => {
       .expect(400);
   });
 });
+
+describe('AI routes stay inside the URL project', () => {
+  it("refuses a task of project B addressed through project A's URL, before any quota is spent", async () => {
+    const owner = await registerUser('AI Scope Owner');
+    const org = await createOrg(owner.accessToken, 'AI Scope Org');
+    const a = await createProject(owner.accessToken, org.slug, 'AIA');
+    const b = await createProject(owner.accessToken, org.slug, 'AIB');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const task = (
+      await request(app.getHttpServer())
+        .post(`${API_PREFIX}/organizations/${org.slug}/projects/${b.key}/tasks`)
+        .set(auth)
+        .send({ title: 'Secret of B' })
+        .expect(201)
+    ).body.data;
+
+    for (const route of ['summarize', 'suggest-subtasks']) {
+      // Repeat past the daily cap (3): every call must be a 404, never a 429.
+      for (let i = 0; i < 4; i++) {
+        await request(app.getHttpServer())
+          .post(
+            `${API_PREFIX}/organizations/${org.slug}/projects/${a.key}/tasks/${task.id}/${route}`,
+          )
+          .set(auth)
+          .expect(404);
+      }
+    }
+  });
+});
+
+describe('Private projects', () => {
+  it('hides a private project from everyone but owners/admins and its members, on every read path', async () => {
+    const owner = await registerUser('Priv Owner');
+    const org = await createOrg(owner.accessToken, 'Priv Org');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Priv PM',
+    );
+    const customer = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'VIEWER',
+      'Priv Customer',
+    );
+    const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
+    const http = () => request(app.getHttpServer());
+    const org$ = `${API_PREFIX}/organizations/${org.slug}`;
+
+    await createProject(owner.accessToken, org.slug, 'PUB');
+    const priv = (
+      await http()
+        .post(`${org$}/projects`)
+        .set(auth(owner.accessToken))
+        .send({ key: 'SEC', name: 'Secret client', isPrivate: true })
+        .expect(201)
+    ).body.data;
+    expect(priv.isPrivate).toBe(true);
+    const sec = `${org$}/projects/SEC`;
+    const task = (
+      await http()
+        .post(`${sec}/tasks`)
+        .set(auth(owner.accessToken))
+        .send({
+          title: 'Confidential work',
+          dueDate: '2020-01-01T00:00:00.000Z',
+        })
+        .expect(201)
+    ).body.data;
+    // Assign the PM so we can prove even their own assignment stays hidden.
+    const pmId = await getUserId(pm.email);
+    await http()
+      .post(`${sec}/tasks/${task.id}/assignees`)
+      .set(auth(owner.accessToken))
+      .send({ userId: pmId, role: 'PRIMARY' });
+
+    const keys = async (t: string) =>
+      (
+        await http().get(`${org$}/projects`).set(auth(t)).expect(200)
+      ).body.data.map((p: { key: string }) => p.key);
+
+    // Owner sees both; the PM and the customer see only the public one.
+    expect(await keys(owner.accessToken)).toEqual(
+      expect.arrayContaining(['PUB', 'SEC']),
+    );
+    for (const who of [pm, customer]) {
+      expect(await keys(who.accessToken)).toEqual(['PUB']);
+      await http().get(sec).set(auth(who.accessToken)).expect(404);
+      await http().get(`${sec}/tasks`).set(auth(who.accessToken)).expect(404);
+      await http()
+        .get(`${sec}/dashboard`)
+        .set(auth(who.accessToken))
+        .expect(404);
+    }
+
+    const myTasks = await http()
+      .get(`${org$}/my-tasks`)
+      .set(auth(pm.accessToken))
+      .expect(200);
+    expect(JSON.stringify(myTasks.body)).not.toContain('Confidential');
+
+    const dash = async (t: string) =>
+      (await http().get(`${org$}/dashboard`).set(auth(t)).expect(200)).body
+        .data;
+    expect((await dash(owner.accessToken)).totalProjects).toBe(2);
+    expect((await dash(pm.accessToken)).totalProjects).toBe(1);
+    expect(JSON.stringify(await dash(pm.accessToken))).not.toContain(
+      'Confidential',
+    );
+    expect(JSON.stringify(await dash(owner.accessToken))).toContain(
+      'Confidential',
+    );
+
+    const feed = async (t: string) =>
+      JSON.stringify(
+        (await http().get(`${org$}/activity`).set(auth(t)).expect(200)).body,
+      );
+    // The activity row is written just after the response, so wait for it on the owner's feed.
+    for (
+      let i = 0;
+      i < 20 && !(await feed(owner.accessToken)).includes('Confidential');
+      i++
+    )
+      await new Promise((r) => setTimeout(r, 100));
+    expect(await feed(owner.accessToken)).toContain('Confidential');
+    expect(await feed(pm.accessToken)).not.toContain('Confidential');
+    expect(await feed(pm.accessToken)).not.toContain('Secret client');
+
+    // Adding the customer as a project member (read-only) opens exactly this project to them.
+    await http()
+      .post(`${sec}/members`)
+      .set(auth(owner.accessToken))
+      .send({ userId: await getUserId(customer.email), role: 'VIEWER' })
+      .expect(201);
+    expect(await keys(customer.accessToken)).toEqual(
+      expect.arrayContaining(['PUB', 'SEC']),
+    );
+    await http()
+      .get(`${sec}/tasks`)
+      .set(auth(customer.accessToken))
+      .expect(200);
+    await http()
+      .post(`${sec}/tasks`)
+      .set(auth(customer.accessToken))
+      .send({ title: 'nope' })
+      .expect(403);
+  });
+
+  it('a PM who makes a project private keeps access to it', async () => {
+    const owner = await registerUser('Priv2 Owner');
+    const org = await createOrg(owner.accessToken, 'Priv2 Org');
+    const pm = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'PM',
+      'Priv2 PM',
+    );
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects`;
+    await createProject(owner.accessToken, org.slug, 'OPEN');
+    // The owner created it, so the PM has no membership yet — a PM-level update is still allowed on an open project.
+    await request(app.getHttpServer())
+      .patch(`${base}/OPEN`)
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .send({ isPrivate: true })
+      .expect(200);
+    await request(app.getHttpServer())
+      .get(`${base}/OPEN`)
+      .set('Authorization', `Bearer ${pm.accessToken}`)
+      .expect(200);
+  });
+});

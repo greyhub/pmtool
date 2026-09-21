@@ -172,6 +172,7 @@ model Project {
   targetEndDate  DateTime?
   taskSequence   Int           @default(0) // monotonically incremented to mint Task.humanKey
   sprintsEnabled Boolean       @default(false) // Scrum-style sprints for this project (a layer over the same tasks)
+  isPrivate      Boolean       @default(false) // visible only to org OWNER/ADMIN and project members
   estimationUnit EstimationUnit @default(POINTS) // what a sprint's load is measured in
   createdById    String
   createdAt      DateTime      @default(now())
@@ -619,12 +620,15 @@ model ActivityLog {
   entityId       String
   action         String
   metadata       Json?
+  /// Set when the entry belongs to a project, so private projects can be hidden from the org feed.
+  projectId      String?
   createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actor        User         @relation(fields: [actorId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, createdAt])
+  @@index([organizationId, projectId])
   @@map("activity_logs")
 }
 

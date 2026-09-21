@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ActivityLog, User } from '@prisma/client';
+import { ActivityLog, OrgRole, User } from '@prisma/client';
+import { hiddenProjectIds } from '../../common/project-visibility';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface RecordActivityInput {
@@ -7,6 +8,7 @@ export interface RecordActivityInput {
   actorId: string;
   entityType: string;
   entityId: string;
+  projectId?: string;
   action: string;
   metadata?: Record<string, unknown>;
 }
@@ -26,6 +28,7 @@ export class ActivityService {
         actorId: input.actorId,
         entityType: input.entityType,
         entityId: input.entityId,
+        projectId: input.projectId,
         action: input.action,
         metadata: input.metadata,
       },
@@ -34,11 +37,23 @@ export class ActivityService {
 
   async listForOrg(
     organizationId: string,
+    userId: string,
+    role: OrgRole,
   ): Promise<
     (ActivityLog & { actor: Pick<User, 'id' | 'fullName' | 'avatarUrl'> })[]
   > {
+    const hidden = await hiddenProjectIds(
+      this.prisma,
+      organizationId,
+      userId,
+      role,
+    );
     return this.prisma.db.activityLog.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        // Entries of a private project the caller cannot see stay out of the feed.
+        OR: [{ projectId: null }, { projectId: { notIn: hidden } }],
+      },
       include: { actor: { select: ACTOR_SELECT } },
       orderBy: { createdAt: 'desc' },
       take: FEED_TAKE,

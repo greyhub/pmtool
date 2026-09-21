@@ -19,6 +19,8 @@ export const createProjectSchema = z.object({
   templateId: templateIdSchema.optional(),
   /** Language of the template's texts (defaults to Vietnamese). */
   locale: z.enum(LOCALES).optional(),
+  /** Only owners/admins and explicit project members can see a private project. */
+  isPrivate: z.boolean().optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
@@ -29,6 +31,7 @@ export const updateProjectSchema = z.object({
   startDate: z.string().datetime().nullable().optional(),
   targetEndDate: z.string().datetime().nullable().optional(),
   sprintsEnabled: z.boolean().optional(),
+  isPrivate: z.boolean().optional(),
   estimationUnit: z.enum(ESTIMATION_UNITS).optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
@@ -43,6 +46,7 @@ export const projectSchema = z.object({
   startDate: z.string().nullable(),
   targetEndDate: z.string().nullable(),
   sprintsEnabled: z.boolean(),
+  isPrivate: z.boolean(),
   estimationUnit: z.enum(ESTIMATION_UNITS),
   createdById: z.string(),
   createdAt: z.string(),

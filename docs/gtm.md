@@ -54,7 +54,7 @@ Miễn phí không có nghĩa là hạ chuẩn: người dùng vẫn giao dữ l
 | 4 ✅ | **G8 Dự án mẫu + checklist kích hoạt** *(xong 2026-09-21: 3 mẫu vi/en — phần mềm, sự kiện, marketing — và thẻ "Bắt đầu nhanh"; nên bổ sung mẫu theo ngành khi có phản hồi beta)* | Rút ngắn thời gian tới "aha" — chỉ số quan trọng nhất khi không có doanh thu |
 | 5 ✅ | **G9 Nhập/xuất CSV** *(xong 2026-09-21: nhập/xuất công việc; xuất PDF báo cáo và nhập Excel .xlsx/MS Project chưa có)* | Hạ rào chuyển đổi từ bảng tính; xuất cũng phục vụ G4 |
 | 6 ✅ | **G11 Thông báo trong app**, "việc của tôi" xuyên dự án *(xong 2026-09-21; thông báo qua email theo sự kiện chưa làm — hiện email chỉ dùng cho tài khoản/lời mời)* | Giữ chân |
-| 7 | **G10 Dự án riêng tư**, ~~G12~~ ✅ *(đổi cấp WBS hàng loạt xong 2026-09-21)*, G13 | Mở rộng tệp khách |
+| 7 | ~~G10 Dự án riêng tư~~ ✅, ~~G12~~ ✅ *(đổi cấp WBS hàng loạt xong 2026-09-21)*, ~~G13~~ ✅ *(route AI ràng buộc dự án; quyền xoá công việc giữ nguyên: Member trở lên được xoá, có nhật ký)* | Mở rộng tệp khách |
 | Song song | **G6 vận hành production** *(2026-09-21: đã có Dockerfile, compose production + Caddy HTTPS, sao lưu/khôi phục, `health/ready` và runbook `docs/van-hanh.md`; **chưa** kiểm chứng trọn vẹn trên máy chủ thật, chưa có giám sát ngoài và chưa diễn tập khôi phục trên dữ liệu thật)* —  (sao lưu diễn tập, giám sát, HTTPS, migrate an toàn), **G7 rà soát bảo mật**, **phân tích sản phẩm** (đo kích hoạt/giữ chân, tôn trọng quyền riêng tư) | Cần trước khi mở đăng ký công khai |
 
 
@@ -78,7 +78,7 @@ Rút từ rà soát hành trình và bảo mật. Kích cỡ: **S** ≤ 3 ngày,
 |---|---|---|---|
 | G8 | **Dự án mẫu / mẫu WBS** theo ngành (phần mềm, xây dựng, sự kiện) + checklist kích hoạt | Rút ngắn tới "aha" (J1) | M |
 | G9 | **Nhập/xuất** CSV/Excel (công việc, WBS); xuất báo cáo PDF của dashboard/sơ đồ liên kết | Rào cản chuyển đổi; PM cần gửi khách | M |
-| G10 | **Dự án riêng tư / khách chỉ thấy dự án của họ** | Bán cho công ty dịch vụ có nhiều khách (J9) | M |
+| G10 | ~~**Dự án riêng tư / khách chỉ thấy dự án của họ**~~ ✅ *(xong 2026-09-21)* | Bán cho công ty dịch vụ có nhiều khách (J9) | M |
 | G11 | **Thông báo trong app + email** cho giao việc/bình luận/từ chối giao phẩm; màn "việc của tôi" xuyên dự án | Telegram không đủ (J4) | M |
 | G12 | Công cụ **chuyển cấp WBS hàng loạt** cho dữ liệu cũ | Tránh "đầy cảnh báo" khi nhập kế hoạch có sẵn | S |
 | G13 | Ràng buộc route AI theo dự án; soát quyền xoá công việc của người khác | Khép các điểm đã biết trong kien-truc.md §5 | S |

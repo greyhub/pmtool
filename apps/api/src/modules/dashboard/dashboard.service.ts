@@ -8,7 +8,8 @@ import {
   TASK_STATUSES,
   TaskSummaryDto,
 } from '@pmtool/shared-types';
-import { Task } from '@prisma/client';
+import { OrgRole, Task } from '@prisma/client';
+import { hiddenProjectIds } from '../../common/project-visibility';
 import { PrismaService } from '../../prisma/prisma.service';
 
 const OPEN_RISK_STATUSES = ['IDENTIFIED', 'ANALYZING', 'MITIGATING'] as const;
@@ -83,7 +84,19 @@ export class DashboardService {
     };
   }
 
-  async orgDashboard(organizationId: string): Promise<OrgDashboardDto> {
+  async orgDashboard(
+    organizationId: string,
+    userId: string,
+    role: OrgRole,
+  ): Promise<OrgDashboardDto> {
+    const hidden = await hiddenProjectIds(
+      this.prisma,
+      organizationId,
+      userId,
+      role,
+    );
+    const projectWhere = { organizationId, id: { notIn: hidden } };
+    const scoped = { organizationId, projectId: { notIn: hidden } };
     const [
       totalProjects,
       projectGroups,
@@ -91,20 +104,20 @@ export class DashboardService {
       overdueTasks,
       openRiskCount,
     ] = await Promise.all([
-      this.prisma.db.project.count({ where: { organizationId } }),
+      this.prisma.db.project.count({ where: projectWhere }),
       this.prisma.db.project.groupBy({
         by: ['status'],
-        where: { organizationId },
+        where: projectWhere,
         _count: true,
       }),
       this.prisma.db.task.groupBy({
         by: ['status'],
-        where: { organizationId },
+        where: scoped,
         _count: true,
       }),
       this.prisma.db.task.findMany({
         where: {
-          organizationId,
+          ...scoped,
           dueDate: { lt: new Date() },
           status: { notIn: ['DONE'] },
         },
@@ -112,7 +125,7 @@ export class DashboardService {
         take: OVERDUE_TAKE,
       }),
       this.prisma.db.riskIssue.count({
-        where: { organizationId, status: { in: [...OPEN_RISK_STATUSES] } },
+        where: { ...scoped, status: { in: [...OPEN_RISK_STATUSES] } },
       }),
     ]);
 

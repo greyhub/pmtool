@@ -18,6 +18,7 @@ const STATUS_VARIANT = {
 export function ProjectList({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('projects.list');
   const tStatus = useTranslations('projects.status');
+  const tPrivate = useTranslations('projects.private');
   const { data: projects, isLoading } = useProjects(orgSlug);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -56,6 +57,11 @@ export function ProjectList({ orgSlug }: { orgSlug: string }) {
                     <Link href={`/${orgSlug}/projects/${project.key}/tasks`} className="hover:underline">
                       {project.name}
                     </Link>
+                    {project.isPrivate && (
+                      <Badge variant="neutral" className="ml-2">
+                        {tPrivate('badge')}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[project.status]}>{tStatus(project.status)}</Badge>
