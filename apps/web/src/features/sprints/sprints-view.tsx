@@ -310,6 +310,7 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                       <>
                         <Button
                           size="sm"
+                          variant="outline"
                           onClick={() =>
                             startSprint.mutate(s.id, {
                               onError: (e) => setError(messageOf(e, t('genericError'))),
@@ -326,6 +327,7 @@ export function SprintsView({ orgSlug, projectKey }: { orgSlug: string; projectK
                     {canManage && s.status === 'ACTIVE' && (
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => {
                           setCarryTo(BACKLOG);
                           setClosing(s);

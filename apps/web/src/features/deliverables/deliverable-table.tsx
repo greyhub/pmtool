@@ -160,7 +160,7 @@ export function DeliverableTable({ orgSlug, projectKey }: { orgSlug: string; pro
                       )}
                       {canManage && d.status === 'SUBMITTED' && (
                         <>
-                          <Button size="sm" disabled={accept.isPending} onClick={() => accept.mutate(d.id)}>
+                          <Button size="sm" variant="outline" disabled={accept.isPending} onClick={() => accept.mutate(d.id)}>
                             {t('accept')}
                           </Button>
                           <Button

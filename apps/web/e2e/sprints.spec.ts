@@ -38,6 +38,7 @@ test('plans a sprint: enable in settings, drag from backlog, start, board shows 
   await expect(page.getByRole('link', { name: 'Sprint', exact: true })).toHaveCount(0);
   await page.getByLabel('Làm việc theo sprint').click();
   await expect(page.getByLabel('Làm việc theo sprint')).toBeChecked();
+  await page.getByRole('link', { name: 'Công việc', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Sprint', exact: true })).toBeVisible();
 
   await page.getByRole('link', { name: 'Sprint', exact: true }).click();

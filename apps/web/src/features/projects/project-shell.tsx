@@ -30,25 +30,51 @@ export function ProjectShell({
   const pathname = usePathname();
   const { role } = usePermissions(orgSlug, projectKey);
 
-  const tabs = [
-    { href: `/${orgSlug}/projects/${projectKey}/dashboard`, label: tTabs('dashboard') },
-    { href: `/${orgSlug}/projects/${projectKey}/scope`, label: tTabs('scope') },
-    { href: `/${orgSlug}/projects/${projectKey}/wbs`, label: tTabs('wbs') },
-    { href: `/${orgSlug}/projects/${projectKey}/tasks`, label: tTabs('tasks') },
-    ...(project?.sprintsEnabled
-      ? [{ href: `/${orgSlug}/projects/${projectKey}/sprints`, label: tTabs('sprints') }]
-      : []),
-    { href: `/${orgSlug}/projects/${projectKey}/board`, label: tTabs('board') },
-    { href: `/${orgSlug}/projects/${projectKey}/gantt`, label: tTabs('gantt') },
-    { href: `/${orgSlug}/projects/${projectKey}/milestones`, label: tTabs('milestones') },
-    { href: `/${orgSlug}/projects/${projectKey}/deliverables`, label: tTabs('deliverables') },
-    { href: `/${orgSlug}/projects/${projectKey}/risks`, label: tTabs('risks') },
-    { href: `/${orgSlug}/projects/${projectKey}/charter`, label: tTabs('charter') },
-    { href: `/${orgSlug}/projects/${projectKey}/stakeholders`, label: tTabs('stakeholders') },
-    { href: `/${orgSlug}/projects/${projectKey}/documents`, label: tTabs('documents') },
-    { href: `/${orgSlug}/projects/${projectKey}/artifacts`, label: tTabs('artifacts') },
-    { href: `/${orgSlug}/projects/${projectKey}/settings`, label: tTabs('settings') },
+  const tGroups = useTranslations('projects.groups');
+  const base = `/${orgSlug}/projects/${projectKey}`;
+  // Six top-level groups instead of fourteen tabs; every view keeps its own URL and is one click away in the sub-navigation.
+  const groups: { key: string; label: string; items: { href: string; label: string }[] }[] = [
+    { key: 'overview', label: tGroups('overview'), items: [{ href: `${base}/dashboard`, label: tGroups('overview') }] },
+    {
+      key: 'work',
+      label: tGroups('work'),
+      items: [
+        { href: `${base}/tasks`, label: tGroups('list') },
+        { href: `${base}/board`, label: tTabs('board') },
+        ...(project?.sprintsEnabled ? [{ href: `${base}/sprints`, label: tTabs('sprints') }] : []),
+      ],
+    },
+    {
+      key: 'schedule',
+      label: tGroups('schedule'),
+      items: [
+        { href: `${base}/gantt`, label: tTabs('gantt') },
+        { href: `${base}/milestones`, label: tTabs('milestones') },
+      ],
+    },
+    {
+      key: 'plan',
+      label: tGroups('plan'),
+      items: [
+        { href: `${base}/scope`, label: tTabs('scope') },
+        { href: `${base}/wbs`, label: tTabs('wbs') },
+        { href: `${base}/charter`, label: tTabs('charter') },
+        { href: `${base}/deliverables`, label: tTabs('deliverables') },
+      ],
+    },
+    {
+      key: 'governance',
+      label: tGroups('governance'),
+      items: [
+        { href: `${base}/risks`, label: tTabs('risks') },
+        { href: `${base}/stakeholders`, label: tTabs('stakeholders') },
+        { href: `${base}/documents`, label: tTabs('documents') },
+        { href: `${base}/artifacts`, label: tTabs('artifacts') },
+      ],
+    },
+    { key: 'settings', label: tTabs('settings'), items: [{ href: `${base}/settings`, label: tTabs('settings') }] },
   ];
+  const activeGroup = groups.find((g) => g.items.some((i) => pathname.startsWith(i.href)));
 
   return (
     <div>
@@ -60,24 +86,47 @@ export function ProjectShell({
           <Badge variant={STATUS_VARIANT[project.status]}>{tStatus(project.status)}</Badge>
         </div>
       )}
-      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-line">
-        {tabs.map((tab) => {
-          const active = pathname.startsWith(tab.href);
+      <nav aria-label={tGroups('aria')} className="mb-4 flex gap-1 overflow-x-auto border-b border-line">
+        {groups.map((g) => {
+          const active = g === activeGroup;
           return (
             <Link
-              key={tab.href}
-              href={tab.href}
+              key={g.key}
+              href={g.items[0]!.href}
+              aria-current={active ? 'page' : undefined}
               className={
                 active
                   ? 'shrink-0 whitespace-nowrap border-b-2 border-action-primary px-3 py-2 text-sm font-medium text-ink-primary'
                   : 'shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-medium text-ink-secondary hover:text-ink-primary'
               }
             >
-              {tab.label}
+              {g.label}
             </Link>
           );
         })}
-      </div>
+      </nav>
+      {activeGroup && activeGroup.items.length > 1 && (
+        <div className="mb-6 flex gap-1 overflow-x-auto" role="group" aria-label={activeGroup.label}>
+          {activeGroup.items.map((item) => {
+            const active = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={
+                  active
+                    ? 'glass-field shrink-0 whitespace-nowrap rounded-full border border-line-glass px-3 py-1 text-sm font-medium text-ink-primary'
+                    : 'shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-sm text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary'
+                }
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+      {activeGroup && activeGroup.items.length === 1 && <div className="mb-2" />}
       {role === 'VIEWER' && (
         <p role="note" className="mb-4 rounded-md bg-info-bg px-3 py-2 text-sm text-info">
           {tTabs('viewerNotice')}

@@ -32,6 +32,7 @@ test('creates a milestone, adds a deliverable to it, and sees it accepted on the
   await expect(card.getByText('0/1')).toBeVisible();
 
   // Submit, then sign off on the Deliverables tab.
+  await page.getByRole('link', { name: 'Kế hoạch', exact: true }).click();
   await page.getByRole('link', { name: 'Giao phẩm' }).click();
   const row = page.getByRole('row', { name: /Báo cáo tổng kết GĐ1/ });
   await expect(row.getByText('Kế hoạch')).toBeVisible();
@@ -54,6 +55,7 @@ test('creates a milestone, adds a deliverable to it, and sees it accepted on the
   await expect(row.getByText(new RegExp(`Nghiệm thu bởi ${user.fullName}`))).toBeVisible();
 
   // The milestone now shows the deliverable as accepted.
+  await page.getByRole('link', { name: 'Lịch trình', exact: true }).click();
   await page.getByRole('link', { name: 'Mốc quan trọng' }).click();
   const after = page.locator('div', { hasText: 'Bàn giao giai đoạn 1' }).filter({ hasText: 'Giao phẩm đã nghiệm thu' }).last();
   await expect(after.getByText('1/1')).toBeVisible();

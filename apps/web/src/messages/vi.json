@@ -308,6 +308,15 @@
     },
     "private": {
       "badge": "Riêng tư"
+    },
+    "groups": {
+      "aria": "Các phần của dự án",
+      "overview": "Tổng quan",
+      "work": "Công việc",
+      "list": "Danh sách",
+      "schedule": "Lịch trình",
+      "plan": "Kế hoạch",
+      "governance": "Quản trị"
     }
   },
   "board": {

@@ -356,3 +356,18 @@ Dùng cho công ty dịch vụ có nhiều khách hàng: mỗi khách chỉ th�
 - **Người không có quyền** không thấy dự án trong danh sách, dashboard tổ chức, "Việc của tôi" và dòng hoạt động; mở thẳng đường dẫn nhận "không tìm thấy" — không lộ việc dự án có tồn tại.
 - **Mời khách:** mời họ vào tổ chức với vai trò Viewer (hoặc Member), rồi thêm vào đúng dự án. Lưu ý họ vẫn thấy các dự án **không** riêng tư của tổ chức — hãy đặt dự án chung thành riêng tư nếu không muốn khách thấy.
 - **Giới hạn hiện tại:** dòng hoạt động cũ (trước khi có tính năng) của dự án không gắn mã dự án nên có thể còn hiện; danh sách thành viên tổ chức vẫn thấy tên nhau.
+
+## 27. Cách điều hướng trong một dự án
+
+Một dự án có **6 mục chính** trên thanh trên cùng; các màn hình cụ thể nằm ở hàng nút nhỏ bên dưới mục đang mở. Tên "tab" trong các phần trên (Bảng, Tiến độ, Điều lệ, …) là các màn hình con này.
+
+| Mục | Gồm các màn hình |
+|---|---|
+| **Tổng quan** | Dashboard dự án |
+| **Công việc** | Danh sách · Bảng (Kanban) · Sprint (khi đã bật) |
+| **Lịch trình** | Tiến độ (Gantt) · Mốc quan trọng |
+| **Kế hoạch** | Phạm vi · WBS · Điều lệ · Giao phẩm |
+| **Quản trị** | Rủi ro/Vấn đề · Các bên liên quan · Tài liệu · Artifact |
+| **Cài đặt** | Thông tin, dự án riêng tư, sprint, thành viên |
+
+Bấm một mục sẽ mở màn hình đầu tiên của nó. Địa chỉ (URL) của từng màn hình không đổi nên liên kết đã lưu vẫn dùng được.

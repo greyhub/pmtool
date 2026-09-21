@@ -308,6 +308,15 @@
     },
     "private": {
       "badge": "Private"
+    },
+    "groups": {
+      "aria": "Project sections",
+      "overview": "Overview",
+      "work": "Work",
+      "list": "List",
+      "schedule": "Schedule",
+      "plan": "Plan",
+      "governance": "Governance"
     }
   },
   "board": {
