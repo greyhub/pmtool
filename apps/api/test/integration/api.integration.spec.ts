@@ -2019,8 +2019,14 @@ describe('Task CSV import and export', () => {
     expect(
       withPeople.assignees.find((a) => a.role === 'PRIMARY')!.fullName,
     ).toBe('Csv Helper');
-    // The defused formula is restored to the original text.
-    expect(withPeople.description).toBe('=cmd|calc');
+    // The defused formula is restored to the original text (the list omits descriptions; the task itself has it).
+    const detail = (
+      await http()
+        .get(`${projects}/DST/tasks/${withPeople.id}`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    expect(detail.description).toBe('=cmd|calc');
   });
 
   it('reports problems by line number and creates nothing when any line is bad', async () => {
@@ -4017,5 +4023,78 @@ describe('Daily reports', () => {
     // Running it again (or after a restart) must not repeat itself.
     await svc.notifyPending();
     expect(await inbox(owner.accessToken)).toHaveLength(1);
+  });
+});
+
+describe('Task list payload', () => {
+  it('is lean (no description) yet complete: assignees, subtask counts, order, and the detail still has the description', async () => {
+    const owner = await registerUser('List Owner');
+    const org = await createOrg(owner.accessToken, 'List Org');
+    const project = await createProject(owner.accessToken, org.slug, 'LST');
+    const auth = { Authorization: `Bearer ${owner.accessToken}` };
+    const base = `${API_PREFIX}/organizations/${org.slug}/projects/${project.key}/tasks`;
+    const me = (
+      await request(app.getHttpServer())
+        .get(`${API_PREFIX}/auth/me`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    const parent = (
+      await request(app.getHttpServer())
+        .post(base)
+        .set(auth)
+        .send({
+          title: 'Parent',
+          description: 'Long **rich** description',
+          assigneeId: me.id,
+        })
+        .expect(201)
+    ).body.data;
+    for (const title of ['Child 1', 'Child 2']) {
+      await request(app.getHttpServer())
+        .post(base)
+        .set(auth)
+        .send({ title, parentTaskId: parent.id })
+        .expect(201);
+    }
+
+    const list = (
+      await request(app.getHttpServer()).get(base).set(auth).expect(200)
+    ).body.data;
+    expect(list.map((t: { title: string }) => t.title)).toEqual([
+      'Parent',
+      'Child 1',
+      'Child 2',
+    ]);
+    const p = list.find((t: { id: string }) => t.id === parent.id);
+    expect(p.description).toBeNull();
+    expect(p.subtaskCount).toBe(2);
+    expect(p.assignees).toHaveLength(1);
+    expect(p.assignees[0]).toMatchObject({
+      id: me.id,
+      role: 'PRIMARY',
+      fullName: me.fullName,
+    });
+    expect(
+      list.find((t: { title: string }) => t.title === 'Child 1').subtaskCount,
+    ).toBe(0);
+
+    // Filtering by parent keeps counts and assignees right too.
+    const kids = (
+      await request(app.getHttpServer())
+        .get(`${base}?parentTaskId=${parent.id}`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    expect(kids).toHaveLength(2);
+
+    // The task page still gets the description.
+    const detail = (
+      await request(app.getHttpServer())
+        .get(`${base}/${parent.id}`)
+        .set(auth)
+        .expect(200)
+    ).body.data;
+    expect(detail.description).toBe('Long **rich** description');
   });
 });

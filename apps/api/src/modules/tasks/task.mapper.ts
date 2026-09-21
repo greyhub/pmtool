@@ -2,8 +2,12 @@ import { Task, TaskAssignee, User } from '@prisma/client';
 import { TaskDto } from '@pmtool/shared-types';
 import { fromRichText } from './rich-text.util';
 
-type TaskWithRelations = Task & {
-  assignees?: (TaskAssignee & {
+// The list query does not load every column (no reminder marker, no completedAt), so only what the DTO needs is required.
+type TaskWithRelations = Omit<
+  Task,
+  'telegramReminderSentAt' | 'completedAt'
+> & {
+  assignees?: (Pick<TaskAssignee, 'role'> & {
     user: Pick<User, 'id' | 'fullName' | 'avatarUrl' | 'mascotCharacter'>;
   })[];
   _count?: { subtasks: number };

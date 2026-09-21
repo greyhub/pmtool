@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { flattenVisible, groupByParent } from './tree-rows';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useMoveTask, useUpdateTaskById } from '@pmtool/api-client';
 import { TASK_STATUSES, type TaskDto } from '@pmtool/shared-types';
@@ -32,17 +33,6 @@ const DUE_VARIANT: Record<DueState, 'danger' | 'warning' | 'neutral'> = {
   done: 'neutral',
 };
 
-function groupByParent(tasks: TaskDto[]): Map<string | null, TaskDto[]> {
-  const map = new Map<string | null, TaskDto[]>();
-  for (const task of tasks) {
-    const key = task.parentTaskId;
-    const siblings = map.get(key) ?? [];
-    siblings.push(task);
-    map.set(key, siblings);
-  }
-  return map;
-}
-
 function AssigneeStack({ task }: { task: TaskDto }) {
   const tRoles = useTranslations('tasks.roles');
   const primary = task.assignees.find((a) => a.role === 'PRIMARY');
@@ -52,7 +42,11 @@ function AssigneeStack({ task }: { task: TaskDto }) {
     <span className="flex shrink-0 items-center gap-1">
       {primary && (
         <span title={`${primary.fullName} — ${tRoles('assignee')}`}>
-          <UserAvatar userId={primary.id} name={primary.fullName} character={primary.mascotCharacter} />
+          <UserAvatar
+            userId={primary.id}
+            name={primary.fullName}
+            character={primary.mascotCharacter}
+          />
         </span>
       )}
       {supporters.length > 0 && (
@@ -67,7 +61,15 @@ function AssigneeStack({ task }: { task: TaskDto }) {
   );
 }
 
-function InlineStatus({ task, orgSlug, projectKey }: { task: TaskDto; orgSlug: string; projectKey: string }) {
+function InlineStatus({
+  task,
+  orgSlug,
+  projectKey,
+}: {
+  task: TaskDto;
+  orgSlug: string;
+  projectKey: string;
+}) {
   const tStatus = useTranslations('tasks.status');
   const update = useUpdateTaskById(orgSlug, projectKey);
   return (
@@ -75,7 +77,9 @@ function InlineStatus({ task, orgSlug, projectKey }: { task: TaskDto; orgSlug: s
       aria-label={`${tStatus('label')} ${task.humanKey}`}
       value={task.status}
       disabled={update.isPending}
-      onChange={(e) => update.mutate({ taskId: task.id, input: { status: e.target.value as TaskDto['status'] } })}
+      onChange={(e) =>
+        update.mutate({ taskId: task.id, input: { status: e.target.value as TaskDto['status'] } })
+      }
       className="h-7 shrink-0 glass-field rounded-md border border-line-glass px-1.5 text-xs text-ink-primary outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
     >
       {TASK_STATUSES.map((s) => (
@@ -96,6 +100,7 @@ function TaskRow({
   collapsed,
   toggle,
   forceExpanded,
+  flat = false,
 }: {
   task: TaskDto;
   depth: number;
@@ -105,6 +110,8 @@ function TaskRow({
   collapsed: Set<string>;
   toggle: (id: string) => void;
   forceExpanded: boolean;
+  /** Render just this row; the caller lists descendants itself (used for windowed rendering). */
+  flat?: boolean;
 }) {
   const t = useTranslations('tasks.list');
   const reorder = useContext(ReorderCtx);
@@ -141,19 +148,23 @@ function TaskRow({
           }
           e.preventDefault();
           e.dataTransfer.dropEffect = 'move';
-          if (reorder.over?.id !== task.id || reorder.over.zone !== zone) reorder.setOver({ id: task.id, zone });
+          if (reorder.over?.id !== task.id || reorder.over.zone !== zone)
+            reorder.setOver({ id: task.id, zone });
         }}
         onDrop={(e) => {
           if (!reorder) return;
           e.preventDefault();
-          if (reorder.dragId && reorder.over) reorder.moveTo(reorder.dragId, reorder.over.id, reorder.over.zone);
+          if (reorder.dragId && reorder.over)
+            reorder.moveTo(reorder.dragId, reorder.over.id, reorder.over.zone);
           reorder.setDragId(null);
           reorder.setOver(null);
         }}
         className={`group border-b border-line px-2 py-2 hover:bg-surface-subtle ${
           reorder?.dragId === task.id ? 'opacity-40' : ''
         } ${reorder?.over?.id === task.id && reorder.over.zone === 'inside' ? 'ring-2 ring-inset ring-action-primary' : ''} ${
-          reorder?.over?.id === task.id && reorder.over.zone === 'before' ? 'border-t-2 border-t-action-primary' : ''
+          reorder?.over?.id === task.id && reorder.over.zone === 'before'
+            ? 'border-t-2 border-t-action-primary'
+            : ''
         } ${reorder?.over?.id === task.id && reorder.over.zone === 'after' ? 'border-b-2 border-b-action-primary' : ''}`}
         style={{ paddingLeft: 8 + depth * 20 }}
       >
@@ -209,7 +220,11 @@ function TaskRow({
           )}
           <Link href={href} className="shrink-0 font-mono text-xs text-ink-muted hover:underline">
             {task.isMilestone && (
-              <span aria-label={t('milestone')} title={t('milestone')} className="mr-1 text-action-primary">
+              <span
+                aria-label={t('milestone')}
+                title={t('milestone')}
+                className="mr-1 text-action-primary"
+              >
                 ◆
               </span>
             )}
@@ -277,7 +292,8 @@ function TaskRow({
         </div>
       </div>
 
-      {expanded &&
+      {!flat &&
+        expanded &&
         children.map((child) => (
           <TaskRow
             key={child.id}
@@ -303,6 +319,10 @@ function TaskRow({
   );
 }
 
+/** Rows drawn first, and per step while scrolling: a project of thousands of tasks must not build tens of thousands of DOM nodes up front. */
+const FIRST_BATCH = 150;
+const NEXT_BATCH = 200;
+
 export function TaskTree({
   tasks,
   orgSlug,
@@ -323,7 +343,25 @@ export function TaskTree({
   reorderAmong?: TaskDto[];
 }) {
   const grouped = useMemo(() => groupByParent(tasks), [tasks]);
-  const roots = grouped.get(null) ?? [];
+  const flat = useMemo(
+    () => flattenVisible(grouped.get(null) ?? [], grouped, collapsed, forceExpanded),
+    [grouped, collapsed, forceExpanded],
+  );
+  const [limit, setLimit] = useState(FIRST_BATCH);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const shown = flat.slice(0, limit);
+  const hasMore = flat.length > shown.length;
+  useEffect(() => {
+    if (!hasMore || !sentinel.current) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setLimit((n) => n + NEXT_BATCH);
+      },
+      { rootMargin: '600px' },
+    );
+    io.observe(sentinel.current);
+    return () => io.disconnect();
+  }, [hasMore, shown.length]);
   const moveTask = useMoveTask(orgSlug, projectKey);
   const [dragId, setDragId] = useState<string | null>(null);
   const [over, setOver] = useState<{ id: string; zone: DropZone } | null>(null);
@@ -344,19 +382,29 @@ export function TaskTree({
   return (
     <ReorderCtx.Provider value={reorder}>
       <div>
-        {roots.map((task) => (
+        {shown.map(({ task, depth }) => (
           <TaskRow
             key={task.id}
             task={task}
-            depth={0}
+            depth={depth}
             grouped={grouped}
             orgSlug={orgSlug}
             projectKey={projectKey}
             collapsed={collapsed}
             toggle={onToggle}
             forceExpanded={forceExpanded}
+            flat
           />
         ))}
+        {hasMore && (
+          <div
+            ref={sentinel}
+            className="px-4 py-3 text-center text-xs text-ink-muted"
+            data-testid="tree-more"
+          >
+            {shown.length} / {flat.length}
+          </div>
+        )}
       </div>
     </ReorderCtx.Provider>
   );

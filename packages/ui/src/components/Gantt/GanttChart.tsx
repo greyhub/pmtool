@@ -540,7 +540,9 @@ export function GanttChart({
           ref={scrollRef}
         >
           <div style={{ minWidth: gridWidth + 200 }}>
-            <Skin>
+            {/* The library loads its icon font from a third-party CDN by default (two sequential requests, ~3 s on first open, and a hard dependency on someone else's server). We serve the same font from our own origin instead. */}
+            <link rel="stylesheet" href="/fonts/svar/wx-icons.css" precedence="default" />
+            <Skin fonts={false}>
               <Gantt
                 tasks={tasksWithOpen}
                 links={links}

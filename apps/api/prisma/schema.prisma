@@ -212,6 +212,7 @@ model ProjectMember {
 
   @@unique([projectId, userId])
   @@index([organizationId])
+  @@index([userId])
   @@map("project_members")
 }
 
@@ -276,6 +277,7 @@ model Task {
   @@index([projectId, completedAt])
   @@index([parentTaskId])
   @@index([sprintId])
+  @@index([boardColumnId])
   @@map("tasks")
 }
 
@@ -309,6 +311,7 @@ model TaskAssignee {
 
   @@id([taskId, userId])
   @@index([organizationId])
+  @@index([userId])
   @@map("task_assignees")
 }
 
@@ -334,6 +337,7 @@ model TaskDependency {
 
   @@unique([predecessorId, successorId])
   @@index([organizationId])
+  @@index([successorId])
   @@map("task_dependencies")
 }
 
@@ -370,6 +374,7 @@ model Comment {
 
   @@index([organizationId])
   @@index([taskId])
+  @@index([authorId])
   @@map("comments")
 }
 
@@ -409,6 +414,7 @@ model RiskIssue {
 
   @@index([organizationId])
   @@index([projectId, status])
+  @@index([ownerId])
   @@map("risk_issues")
 }
 
@@ -587,6 +593,7 @@ model Deliverable {
   @@index([organizationId])
   @@index([projectId])
   @@index([taskId])
+  @@index([ownerId])
   @@map("deliverables")
 }
 
@@ -633,6 +640,7 @@ model ActivityLog {
 
   @@index([organizationId, createdAt])
   @@index([organizationId, projectId])
+  @@index([actorId])
   @@map("activity_logs")
 }
 
@@ -663,6 +671,7 @@ model UserScore {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
+  @@index([userId])
   @@map("user_scores")
 }
 
@@ -677,6 +686,7 @@ model UserBadge {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId, badgeKey])
+  @@index([userId])
   @@map("user_badges")
 }
 
