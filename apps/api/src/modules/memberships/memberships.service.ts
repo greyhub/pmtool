@@ -15,6 +15,7 @@ import {
 } from '../auth/refresh-token.util';
 import { MailService } from '../mail/mail.service';
 import { inviteMail } from '../mail/mail-templates';
+import { UsersService } from '../users/users.service';
 
 const INVITE_TTL_DAYS = 7;
 
@@ -22,6 +23,7 @@ const INVITE_TTL_DAYS = 7;
 export class MembershipsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
     @Optional() private readonly mail?: MailService,
   ) {}
 
@@ -188,7 +190,7 @@ export class MembershipsService {
       );
     }
 
-    return this.prisma.db.$transaction(async (tx) => {
+    const membership = await this.prisma.db.$transaction(async (tx) => {
       const membership = await tx.membership.upsert({
         where: {
           organizationId_userId: {
@@ -209,6 +211,8 @@ export class MembershipsService {
       });
       return membership;
     });
+    await this.usersService.resolveCharacterConflictOnJoin(userId);
+    return membership;
   }
 
   async updateRole(

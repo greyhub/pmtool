@@ -7,6 +7,7 @@ import {
 import { Membership, MembershipInvite } from '@prisma/client';
 import { MembershipsService } from './memberships.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 
 function makeInvite(
   overrides: Partial<MembershipInvite> = {},
@@ -82,7 +83,10 @@ describe('MembershipsService', () => {
         $transaction: vi.fn((cb: (tx: unknown) => unknown) => cb(prisma.db)),
       },
     };
-    service = new MembershipsService(prisma as unknown as PrismaService);
+    service = new MembershipsService(
+      prisma as unknown as PrismaService,
+      { resolveCharacterConflictOnJoin: vi.fn() } as unknown as UsersService,
+    );
   });
 
   describe('updateRole', () => {

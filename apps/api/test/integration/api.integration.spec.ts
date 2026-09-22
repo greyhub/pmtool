@@ -5279,3 +5279,76 @@ describe('Presence: login history and online status', () => {
     expect(emails).toEqual(expect.arrayContaining([owner.email, member.email]));
   });
 });
+
+describe('Character auto-assignment on joining an organization', () => {
+  const http = () => request(app.getHttpServer());
+  const meCharacter = async (accessToken: string): Promise<string> =>
+    (
+      await http()
+        .get(`${API_PREFIX}/auth/me`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200)
+    ).body.data.mascotCharacter;
+
+  it('accepting an invite reassigns a colliding default character instead of leaving two members both on "fox"', async () => {
+    const owner = await registerUser('Character Owner');
+    const org = await createOrg(owner.accessToken, 'Character Org');
+    expect(await meCharacter(owner.accessToken)).toBe('fox'); // both new accounts start on the same default
+
+    const invitee = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Character Invitee',
+    );
+
+    expect(await meCharacter(owner.accessToken)).toBe('fox'); // the existing member is left untouched
+    expect(await meCharacter(invitee.accessToken)).not.toBe('fox');
+  });
+
+  it('approving a join request reassigns a colliding default character the same way', async () => {
+    const owner = await registerUser('Join Character Owner');
+    const org = await createOrg(owner.accessToken, 'Join Character Org');
+    const requester = await registerUser('Join Character Requester');
+
+    const created = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({})
+      .expect(201);
+    await http()
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/join-requests/${created.body.data.id}/approve`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ role: 'MEMBER' })
+      .expect(201);
+
+    expect(await meCharacter(requester.accessToken)).not.toBe('fox');
+  });
+
+  it('does not touch a character that is already free in the org being joined', async () => {
+    const owner = await registerUser('Free Character Owner');
+    const org = await createOrg(owner.accessToken, 'Free Character Org');
+    const invitee = await registerUser('Free Character Invitee');
+    // Give the invitee a distinct character before they join anything.
+    await http()
+      .patch(`${API_PREFIX}/users/me/preferences`)
+      .set('Authorization', `Bearer ${invitee.accessToken}`)
+      .send({ mascotCharacter: 'panda' })
+      .expect(200);
+
+    const invite = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/invites`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ email: invitee.email, role: 'MEMBER' })
+      .expect(201);
+    await http()
+      .post(`${API_PREFIX}/invites/accept`)
+      .set('Authorization', `Bearer ${invitee.accessToken}`)
+      .send({ token: invite.body.data.rawToken })
+      .expect(200);
+
+    expect(await meCharacter(invitee.accessToken)).toBe('panda');
+  });
+});

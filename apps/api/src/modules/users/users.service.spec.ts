@@ -118,3 +118,81 @@ describe('UsersService.takenCharacters', () => {
     expect(await service.takenCharacters('me')).toEqual([]);
   });
 });
+
+describe('UsersService.resolveCharacterConflictOnJoin', () => {
+  let prisma: {
+    db: {
+      user: {
+        findUnique: ReturnType<typeof vi.fn>;
+        update: ReturnType<typeof vi.fn>;
+      };
+      membership: {
+        findMany: ReturnType<typeof vi.fn>;
+      };
+    };
+  };
+  let service: UsersService;
+
+  beforeEach(() => {
+    prisma = {
+      db: {
+        user: {
+          findUnique: vi.fn(),
+          update: vi.fn().mockResolvedValue({}),
+        },
+        membership: {
+          findMany: vi.fn(),
+        },
+      },
+    };
+    service = new UsersService(prisma as unknown as PrismaService);
+  });
+
+  it('leaves the character alone when nobody else in the same orgs has it', async () => {
+    prisma.db.user.findUnique.mockResolvedValue({ mascotCharacter: 'otter' });
+    prisma.db.membership.findMany
+      .mockResolvedValueOnce([{ organizationId: 'org_1' }])
+      .mockResolvedValueOnce([{ user: { mascotCharacter: 'fox' } }]);
+
+    await service.resolveCharacterConflictOnJoin('user_1');
+
+    expect(prisma.db.user.update).not.toHaveBeenCalled();
+  });
+
+  it('reassigns to the first free character when the new org already has this one', async () => {
+    prisma.db.user.findUnique.mockResolvedValue({ mascotCharacter: 'fox' });
+    prisma.db.membership.findMany
+      .mockResolvedValueOnce([{ organizationId: 'org_1' }])
+      .mockResolvedValueOnce([
+        { user: { mascotCharacter: 'fox' } },
+        { user: { mascotCharacter: 'bear' } },
+      ]);
+
+    await service.resolveCharacterConflictOnJoin('user_1');
+
+    // MASCOT_CHARACTERS starts with bear, bunny, cat, ... — bear is taken, bunny is the first free one.
+    expect(prisma.db.user.update).toHaveBeenCalledWith({
+      where: { id: 'user_1' },
+      data: { mascotCharacter: 'bunny' },
+    });
+  });
+
+  it('does nothing for someone who belongs to no organization yet', async () => {
+    prisma.db.user.findUnique.mockResolvedValue({ mascotCharacter: 'fox' });
+    prisma.db.membership.findMany.mockResolvedValueOnce([]);
+
+    await service.resolveCharacterConflictOnJoin('user_1');
+
+    expect(prisma.db.membership.findMany).toHaveBeenCalledTimes(1);
+    expect(prisma.db.user.update).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when the account no longer exists', async () => {
+    prisma.db.user.findUnique.mockResolvedValue(null);
+
+    await service.resolveCharacterConflictOnJoin('user_1');
+
+    expect(prisma.db.membership.findMany).not.toHaveBeenCalled();
+    expect(prisma.db.user.update).not.toHaveBeenCalled();
+  });
+});

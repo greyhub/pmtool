@@ -4,7 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { UpdateUserPreferencesInput } from '@pmtool/shared-types';
+import {
+  MASCOT_CHARACTERS,
+  UpdateUserPreferencesInput,
+} from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -62,6 +65,44 @@ export class UsersService {
       character,
       takenBy,
     }));
+  }
+
+  /**
+   * Called right after someone becomes a member of an organization (invite accepted, join request
+   * approved). Every account defaults to "fox" and nothing ever forced a new member to pick a distinct
+   * one before this point — without it, two people who both never opened Settings silently collide on
+   * the same character everywhere it matters (Gantt, leaderboard, the assignee picker). Reassigns to the
+   * first free character across every org they're now in; never touches someone who already has a
+   * character nobody else in those orgs is using.
+   */
+  async resolveCharacterConflictOnJoin(userId: string): Promise<void> {
+    const user = await this.prisma.db.user.findUnique({
+      where: { id: userId },
+      select: { mascotCharacter: true },
+    });
+    if (!user) return;
+
+    const myOrgIds = (
+      await this.prisma.db.membership.findMany({
+        where: { userId },
+        select: { organizationId: true },
+      })
+    ).map((m) => m.organizationId);
+    if (myOrgIds.length === 0) return;
+
+    const others = await this.prisma.db.membership.findMany({
+      where: { organizationId: { in: myOrgIds }, userId: { not: userId } },
+      select: { user: { select: { mascotCharacter: true } } },
+    });
+    const takenByOthers = new Set(others.map((o) => o.user.mascotCharacter));
+    if (!takenByOthers.has(user.mascotCharacter)) return;
+
+    const free = MASCOT_CHARACTERS.find((c) => !takenByOthers.has(c));
+    if (!free) return; // every character is in use across these orgs — extremely unlikely (52 characters)
+    await this.prisma.db.user.update({
+      where: { id: userId },
+      data: { mascotCharacter: free },
+    });
   }
 
   /**

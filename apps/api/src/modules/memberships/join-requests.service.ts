@@ -15,6 +15,7 @@ import {
 import { CreateJoinRequestInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
 import {
   joinRequestApprovedMail,
@@ -50,6 +51,7 @@ export class JoinRequestsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly organizationsService: OrganizationsService,
+    private readonly usersService: UsersService,
     @Optional() private readonly mail?: MailService,
   ) {}
 
@@ -177,6 +179,7 @@ export class JoinRequestsService {
         },
       }),
     ]);
+    await this.usersService.resolveCharacterConflictOnJoin(request.userId);
     await this.notifyDecision(request, true);
     return membership;
   }

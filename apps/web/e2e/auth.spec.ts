@@ -5,8 +5,9 @@ test('register, log out, then log back in with the same credentials', async ({ p
   const user = makeUser('auth');
   await registerUser(page, user);
 
-  // Registering lands a brand-new account on onboarding (no org yet).
-  await expect(page.getByText('Tạo tổ chức của bạn')).toBeVisible();
+  // Registering lands a brand-new account on onboarding (no org yet): create-or-join, create tab active by default.
+  await expect(page.getByText('Bắt đầu với PMTool')).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Tạo tổ chức mới' })).toHaveAttribute('aria-selected', 'true');
 
   await page.goto('/vi/login');
   await page.getByLabel('Email').fill(user.email);

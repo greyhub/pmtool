@@ -8,9 +8,10 @@ import {
 import { MembershipsService } from './memberships.service';
 import { JoinRequestsService } from './join-requests.service';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [OrganizationsModule],
+  imports: [OrganizationsModule, UsersModule],
   controllers: [
     MembershipsController,
     InvitesController,
