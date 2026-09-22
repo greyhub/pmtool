@@ -51,6 +51,9 @@ export const envSchema = z.object({
   // Cost caps: AI calls per organization per (Vietnam) day, organizations one user may own.
   AI_DAILY_LIMIT_PER_ORG: z.coerce.number().int().min(0).default(100),
   MAX_ORGS_PER_USER: z.coerce.number().int().min(1).default(5),
+  // Comma-separated emails allowed to read/triage in-app feedback (GET/PATCH /feedback).
+  // Anyone signed in can still submit feedback (POST /feedback).
+  FEEDBACK_ADMIN_EMAILS: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

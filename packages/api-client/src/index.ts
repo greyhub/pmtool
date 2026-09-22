@@ -6,6 +6,7 @@ export * from './hooks/projects';
 export * from './hooks/tasks';
 export * from './hooks/boards';
 export * from './hooks/risks';
+export * from './hooks/feedback';
 export * from './hooks/dashboard';
 export * from './hooks/activity';
 export * from './hooks/gamification';

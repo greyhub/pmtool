@@ -92,6 +92,12 @@ export type RiskIssueType = (typeof RISK_ISSUE_TYPES)[number];
 export const RISK_STATUSES = ['IDENTIFIED', 'ANALYZING', 'MITIGATING', 'RESOLVED', 'CLOSED'] as const;
 export type RiskStatus = (typeof RISK_STATUSES)[number];
 
+export const FEEDBACK_CATEGORIES = ['BUG', 'IDEA', 'OTHER'] as const;
+export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
+
+export const FEEDBACK_STATUSES = ['NEW', 'PLANNED', 'IN_PROGRESS', 'DONE', 'DECLINED'] as const;
+export type FeedbackStatus = (typeof FEEDBACK_STATUSES)[number];
+
 export const BADGE_KEYS = [
   'FIRST_TASK',
   'STREAK_7',

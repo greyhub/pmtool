@@ -49,6 +49,7 @@ cp infra/.env.prod.example infra/.env.prod && chmod 600 infra/.env.prod
 | `POSTGRES_PASSWORD`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | mỗi giá trị `openssl rand -hex 32` |
 | `OPERATOR_NAME`, `CONTACT_EMAIL` | hiện trên trang Điều khoản/Quyền riêng tư |
 | `BACKUP_DIR` | thư mục sao lưu, **nên là ổ ngoài** (ví dụ `/Volumes/Backup/pmtool`) |
+| `FEEDBACK_ADMIN_EMAILS` | email của bạn (và ai khác cần xem), cách nhau bởi dấu phẩy — mới xem và xử lý được góp ý gửi từ mục **Góp ý** trong app ([huong-dan-su-dung.md §34](huong-dan-su-dung.md#34-góp-ý--phản-hồi)); để trống thì vẫn gửi được nhưng không ai xem |
 
 `SITE_ADDRESS` không dùng ở chế độ tunnel. Email/Google để trống lúc đầu, bổ sung ở mục 7.
 

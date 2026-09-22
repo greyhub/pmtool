@@ -426,3 +426,11 @@ Hệ thống **tự động ghi lại mọi thay đổi** của các phần chí
 - **Chỉ ghi khi thao tác thành công.** Thao tác bị từ chối hoặc lỗi không để lại dấu vết của thay đổi chưa hề xảy ra.
 - **Người đã xoá tài khoản:** thay đổi của họ vẫn còn, hiện dưới tên ẩn danh "Người dùng đã xoá" — không lưu tên thật.
 - **Giới hạn:** lịch sử **bắt đầu từ hôm tính năng chạy** (không dựng lại quá khứ; nhật ký hoạt động và lịch sử công việc cũ vẫn xem như trước). Thay đổi do tác vụ nền tự chạy (ví dụ nhắc hạn Telegram) không ghi. Xoá **cả tổ chức** thì lịch sử của tổ chức đó cũng mất theo. Lịch sử chưa có nút khôi phục — xem nội dung đã xoá để tạo lại.
+
+## 34. Góp ý & phản hồi
+
+Bất kỳ ai đã đăng nhập đều gửi được góp ý về chính PMTool (không phải về dữ liệu dự án) qua mục **Góp ý** trong menu tài khoản (góc trên phải).
+
+- **Gửi góp ý:** chọn loại (**Báo lỗi**, **Góp ý/ý tưởng**, **Khác**) và viết nội dung. Nếu mở từ trong một tổ chức, tổ chức đó được ghi kèm để có thêm ngữ cảnh — không bắt buộc và người gửi không cần làm gì thêm.
+- **Ai xem được:** chỉ những email trong biến môi trường `FEEDBACK_ADMIN_EMAILS` (đặt lúc triển khai, xem [trien-khai-mac-mini.md](trien-khai-mac-mini.md)) mới thấy mục **Quản lý góp ý** và đổi được trạng thái (Mới / Đã lên kế hoạch / Đang làm / Hoàn thành / Không thực hiện) cùng ghi chú nội bộ — người gửi không thấy ghi chú này. Nếu biến này để trống, góp ý vẫn gửi được nhưng không ai xem được danh sách.
+- Góp ý không nằm trong lịch sử thay đổi của dự án (mục 33) vì đây là dữ liệu chung của cả hệ thống, không thuộc một tổ chức.

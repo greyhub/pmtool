@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMe, useLogout } from '@pmtool/api-client';
 import { UserAvatar } from '../people/user-avatar';
 import { Link, useRouter } from '../../i18n/navigation';
 
-export function UserMenu() {
+export function UserMenu({ feedbackOrgSlug }: { feedbackOrgSlug?: string } = {}) {
+  const tNav = useTranslations('nav');
   const { data: user } = useMe();
   const logout = useLogout();
   const router = useRouter();
@@ -43,6 +45,14 @@ export function UserMenu() {
         >
           <div className="px-3 py-2 text-sm text-ink-secondary">{user.email}</div>
           <div className="my-1 border-t border-line-glass" />
+          <Link
+            href={feedbackOrgSlug ? `/feedback?org=${feedbackOrgSlug}` : '/feedback'}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+          >
+            {tNav('feedback')}
+          </Link>
           <Link
             href="/settings"
             role="menuitem"

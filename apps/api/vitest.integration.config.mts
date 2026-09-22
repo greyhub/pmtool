@@ -13,6 +13,10 @@ export default defineConfig({
     fileParallelism: false,
     // Set before any module loads: ConfigModule validates env at import time, so a
     // value assigned later in beforeAll would be ignored.
-    env: { RATE_LIMIT_ENABLED: 'false', AI_DAILY_LIMIT_PER_ORG: '3' },
+    env: {
+      RATE_LIMIT_ENABLED: 'false',
+      AI_DAILY_LIMIT_PER_ORG: '3',
+      FEEDBACK_ADMIN_EMAILS: 'feedback-admin@example.com',
+    },
   },
 });

@@ -289,7 +289,7 @@ function OrgGate({ orgSlug, children }: { orgSlug: string; children: React.React
                 <LocaleSwitcherWidget />
               </div>
               <ThemeSwitcher />
-              <UserMenu />
+              <UserMenu feedbackOrgSlug={orgSlug} />
             </>
           }
         />

@@ -33,6 +33,7 @@ import { DeliverablesModule } from './modules/deliverables/deliverables.module';
 import { MilestonesModule } from './modules/milestones/milestones.module';
 import { ArtifactsModule } from './modules/artifacts/artifacts.module';
 import { HealthModule } from './modules/health/health.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -73,6 +74,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     MilestonesModule,
     ArtifactsModule,
     HealthModule,
+    FeedbackModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

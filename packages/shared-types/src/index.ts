@@ -6,6 +6,7 @@ export * from './projects/schemas';
 export * from './tasks/schemas';
 export * from './boards/schemas';
 export * from './risks/schemas';
+export * from './feedback/schemas';
 export * from './dashboard/schemas';
 export * from './activity/schemas';
 export * from './gamification/schemas';

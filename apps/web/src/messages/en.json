@@ -219,7 +219,8 @@
     "collapseSidebar": "Collapse",
     "expandSidebar": "Expand",
     "myTasks": "My tasks",
-    "audit": "Audit trail"
+    "audit": "Audit trail",
+    "feedback": "Feedback"
   },
   "projects": {
     "list": {
@@ -1625,5 +1626,40 @@
       "APPROVED": "Approved"
     },
     "hasContent": "has content"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "intro": "Found a bug, or have an idea to make PMTool better? Send it our way.",
+    "category": "Category",
+    "categories": {
+      "BUG": "Bug report",
+      "IDEA": "Idea / suggestion",
+      "OTHER": "Other"
+    },
+    "message": "Message",
+    "messagePlaceholder": "Be as specific as you can...",
+    "submit": "Send feedback",
+    "submitting": "Sending...",
+    "submitted": "Sent, thank you!",
+    "submitAnother": "Send another",
+    "errorSubmit": "Couldn't send, please try again.",
+    "admin": {
+      "title": "Manage feedback",
+      "empty": "No feedback yet.",
+      "filterAll": "All",
+      "status": "Status",
+      "statuses": {
+        "NEW": "New",
+        "PLANNED": "Planned",
+        "IN_PROGRESS": "In progress",
+        "DONE": "Done",
+        "DECLINED": "Declined"
+      },
+      "note": "Internal note",
+      "notePlaceholder": "Private note, the sender can't see this...",
+      "from": "From {name}",
+      "org": "Organization: {name}",
+      "save": "Save"
+    }
   }
 }

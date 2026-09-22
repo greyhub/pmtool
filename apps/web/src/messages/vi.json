@@ -219,7 +219,8 @@
     "collapseSidebar": "Thu gọn",
     "expandSidebar": "Mở rộng",
     "myTasks": "Việc của tôi",
-    "audit": "Nhật ký kiểm toán"
+    "audit": "Nhật ký kiểm toán",
+    "feedback": "Góp ý"
   },
   "projects": {
     "list": {
@@ -1625,5 +1626,40 @@
       "APPROVED": "Đã phê duyệt"
     },
     "hasContent": "có nội dung"
+  },
+  "feedback": {
+    "title": "Góp ý & phản hồi",
+    "intro": "Bạn thấy lỗi, hoặc có ý tưởng giúp PMTool tốt hơn? Gửi cho chúng tôi.",
+    "category": "Loại",
+    "categories": {
+      "BUG": "Báo lỗi",
+      "IDEA": "Góp ý / ý tưởng",
+      "OTHER": "Khác"
+    },
+    "message": "Nội dung",
+    "messagePlaceholder": "Mô tả cụ thể để chúng tôi dễ xử lý...",
+    "submit": "Gửi góp ý",
+    "submitting": "Đang gửi...",
+    "submitted": "Đã gửi, cảm ơn bạn!",
+    "submitAnother": "Gửi thêm góp ý khác",
+    "errorSubmit": "Gửi không thành công, thử lại nhé.",
+    "admin": {
+      "title": "Quản lý góp ý",
+      "empty": "Chưa có góp ý nào.",
+      "filterAll": "Tất cả",
+      "status": "Trạng thái",
+      "statuses": {
+        "NEW": "Mới",
+        "PLANNED": "Đã lên kế hoạch",
+        "IN_PROGRESS": "Đang làm",
+        "DONE": "Hoàn thành",
+        "DECLINED": "Không thực hiện"
+      },
+      "note": "Ghi chú nội bộ",
+      "notePlaceholder": "Ghi chú riêng, người gửi không thấy...",
+      "from": "Từ {name}",
+      "org": "Tổ chức: {name}",
+      "save": "Lưu"
+    }
   }
 }

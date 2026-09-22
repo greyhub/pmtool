@@ -4939,3 +4939,94 @@ describe('Change history', () => {
     expect(entry!.actor!.fullName).not.toBe('Gone Member');
   });
 });
+
+describe('Feedback', () => {
+  const http = () => request(app.getHttpServer());
+
+  async function registerAdmin(): Promise<{
+    accessToken: string;
+    email: string;
+  }> {
+    const email = 'feedback-admin@example.com';
+    const res = await http()
+      .post(`${API_PREFIX}/auth/register`)
+      .send({ email, password: 'Password123', fullName: 'Feedback Admin' });
+    if (res.status === 201)
+      return { accessToken: res.body.data.accessToken, email };
+    // Already registered by an earlier test in this describe block.
+    const login = await http()
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email, password: 'Password123' })
+      .expect(200);
+    return { accessToken: login.body.data.accessToken, email };
+  }
+
+  it('lets any signed-in user submit feedback, but only the configured admin read or triage it', async () => {
+    const admin = await registerAdmin();
+    const someone = await registerUser('Regular User');
+
+    const created = await http()
+      .post(`${API_PREFIX}/feedback`)
+      .set('Authorization', `Bearer ${someone.accessToken}`)
+      .send({ category: 'IDEA', message: 'Thêm bộ lọc theo người phụ trách' })
+      .expect(201);
+    expect(created.body.data.status).toBe('NEW');
+    expect(created.body.data.user.email).toBe(someone.email);
+
+    await http()
+      .get(`${API_PREFIX}/feedback`)
+      .set('Authorization', `Bearer ${someone.accessToken}`)
+      .expect(403);
+
+    const list = await http()
+      .get(`${API_PREFIX}/feedback`)
+      .set('Authorization', `Bearer ${admin.accessToken}`)
+      .expect(200);
+    const mine = list.body.data.find(
+      (f: { id: string }) => f.id === created.body.data.id,
+    );
+    expect(mine).toBeDefined();
+
+    await http()
+      .patch(`${API_PREFIX}/feedback/${created.body.data.id}`)
+      .set('Authorization', `Bearer ${someone.accessToken}`)
+      .send({ status: 'DONE' })
+      .expect(403);
+
+    const updated = await http()
+      .patch(`${API_PREFIX}/feedback/${created.body.data.id}`)
+      .set('Authorization', `Bearer ${admin.accessToken}`)
+      .send({ status: 'PLANNED', adminNote: 'Đưa vào sprint sau' })
+      .expect(200);
+    expect(updated.body.data.status).toBe('PLANNED');
+    expect(updated.body.data.adminNote).toBe('Đưa vào sprint sau');
+  });
+
+  it("attaches the sender's organization only when they are really a member of it", async () => {
+    const someone = await registerUser('Org Sender');
+    const org = await createOrg(someone.accessToken, 'Feedback Org');
+
+    const created = await http()
+      .post(`${API_PREFIX}/feedback`)
+      .set('Authorization', `Bearer ${someone.accessToken}`)
+      .send({
+        category: 'BUG',
+        message: 'Gantt bị lệch',
+        organizationSlug: org.slug,
+      })
+      .expect(201);
+    expect(created.body.data.organizationId).toBe(org.id);
+
+    const outsider = await registerUser('Outsider');
+    const spoofed = await http()
+      .post(`${API_PREFIX}/feedback`)
+      .set('Authorization', `Bearer ${outsider.accessToken}`)
+      .send({
+        category: 'BUG',
+        message: 'Not actually a member',
+        organizationSlug: org.slug,
+      })
+      .expect(201);
+    expect(spoofed.body.data.organizationId).toBeNull();
+  });
+});
