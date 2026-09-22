@@ -168,14 +168,35 @@ export class GamificationService {
     });
   }
 
+  /**
+   * Every member of the org, not just the ones who have ever earned points — a member who has
+   * never scored has no UserScore row at all, so they'd otherwise be invisible rather than shown at 0.
+   */
   async getLeaderboard(organizationId: string, limit = LEADERBOARD_TAKE) {
-    const rows = await this.prisma.db.userScore.findMany({
-      where: { organizationId },
-      orderBy: { totalPoints: 'desc' },
-      take: limit,
-      include: { user: { select: USER_SELECT } },
+    const [memberships, scores] = await Promise.all([
+      this.prisma.db.membership.findMany({
+        where: { organizationId },
+        include: { user: { select: USER_SELECT } },
+      }),
+      this.prisma.db.userScore.findMany({ where: { organizationId } }),
+    ]);
+    const scoreByUserId = new Map(scores.map((s) => [s.userId, s]));
+    const merged = memberships.map((m) => {
+      const score = scoreByUserId.get(m.userId);
+      return {
+        user: m.user,
+        totalPoints: score?.totalPoints ?? 0,
+        currentStreakDays: score?.currentStreakDays ?? 0,
+      };
     });
-    return rows.map((row, index) => ({ ...row, rank: index + 1 }));
+    merged.sort(
+      (a, b) =>
+        b.totalPoints - a.totalPoints ||
+        a.user.fullName.localeCompare(b.user.fullName),
+    );
+    return merged
+      .slice(0, limit)
+      .map((row, index) => ({ ...row, rank: index + 1 }));
   }
 
   async getMyStats(organizationId: string, userId: string) {

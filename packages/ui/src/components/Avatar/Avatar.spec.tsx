@@ -24,4 +24,13 @@ describe('Avatar', () => {
     expect(screen.queryByText('NA')).not.toBeInTheDocument();
     expect(img.querySelector('img')).toBeNull();
   });
+
+  it('renders an animated character facing forward at rest, same sprite sheet as the static one', () => {
+    render(<Avatar name="Nguyễn Văn A" character="fox" animated />);
+    const img = screen.getByRole('img', { name: 'Nguyễn Văn A' });
+    expect(img).toHaveStyle({
+      backgroundImage: 'url(/mascots/fox-directions.webp)',
+      backgroundPosition: '50% 50%',
+    });
+  });
 });

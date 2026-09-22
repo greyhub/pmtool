@@ -16,12 +16,15 @@ export function UserAvatar({
   character,
   size = 'sm',
   className,
+  animated,
 }: {
   userId?: string | null;
   name: string;
   character?: string | null;
   size?: AvatarProps['size'];
   className?: string;
+  /** The character's eyes follow the cursor — see Avatar's `animated` prop. Use sparingly. */
+  animated?: boolean;
 }) {
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: members } = useOrganizationMembers(character ? undefined : orgSlug);
@@ -30,5 +33,5 @@ export function UserAvatar({
     character ??
     (userId && me?.id === userId ? me.mascotCharacter : undefined) ??
     members?.find((m) => m.userId === userId)?.user?.mascotCharacter;
-  return <Avatar name={name} character={found} size={size} className={className} />;
+  return <Avatar name={name} character={found} size={size} className={className} animated={animated} />;
 }

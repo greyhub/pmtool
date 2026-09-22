@@ -1,5 +1,9 @@
+'use client';
+
+import { useRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/cn';
+import { useAimCell } from '../../lib/pointer-aim';
 
 const avatarVariants = cva(
   'inline-flex shrink-0 items-center justify-center rounded-full bg-action-primary font-semibold text-ink-on-primary overflow-hidden',
@@ -22,6 +26,8 @@ export interface AvatarProps extends VariantProps<typeof avatarVariants> {
   src?: string | null;
   /** Mascot character id (e.g. "fox"). When set it replaces the photo and the initials: every person is shown the same way everywhere. */
   character?: string | null;
+  /** When true and `character` is set, the character's eyes follow the cursor (the effect the Gantt timeline's assignee icons use) instead of always facing forward. Opt-in: a page full of avatars all tracking the pointer at once would be noisy, so this is for the handful of places — like a leaderboard — where one or two characters take the spotlight. */
+  animated?: boolean;
   className?: string;
 }
 
@@ -32,8 +38,45 @@ function initialsFrom(name: string): string {
   return (first + last).toUpperCase();
 }
 
-export function Avatar({ name, src, character, size, className }: AvatarProps) {
+function AnimatedCharacter({
+  name,
+  character,
+  size,
+  className,
+}: {
+  name: string;
+  character: string;
+  size: AvatarProps['size'];
+  className?: string;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const cell = useAimCell(ref);
+  return (
+    <span
+      ref={ref}
+      role="img"
+      aria-label={name}
+      className={cn(
+        'inline-flex shrink-0 overflow-hidden rounded-full bg-surface-subtle',
+        avatarSizes[size ?? 'md'],
+        className,
+      )}
+      style={{
+        backgroundImage: `url(/mascots/${character}-directions.webp)`,
+        backgroundSize: '300% 300%',
+        // background-size 300% makes each sprite cell a clean 0/50/100% step on both axes.
+        backgroundPosition: `${(cell % 3) * 50}% ${Math.floor(cell / 3) * 50}%`,
+        backgroundRepeat: 'no-repeat',
+      }}
+    />
+  );
+}
+
+export function Avatar({ name, src, character, size, className, animated }: AvatarProps) {
   if (character) {
+    if (animated) {
+      return <AnimatedCharacter name={name} character={character} size={size} className={className} />;
+    }
     return (
       <span
         role="img"

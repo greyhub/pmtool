@@ -298,6 +298,29 @@ describe('Gamification', () => {
       rank: 1,
     });
   });
+
+  it('lists a member who has never scored anything at 0 points, not omitted', async () => {
+    const owner = await registerUser('Leaderboard Owner');
+    const org = await createOrg(owner.accessToken, 'Leaderboard Org');
+    const idleMember = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Idle Member',
+    );
+
+    const leaderboard = await request(app.getHttpServer())
+      .get(`${API_PREFIX}/organizations/${org.slug}/gamification/leaderboard`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+
+    expect(leaderboard.body.data).toHaveLength(2);
+    const idleEntry = leaderboard.body.data.find(
+      (e: { fullName: string }) => e.fullName === 'Idle Member',
+    );
+    expect(idleEntry).toMatchObject({ totalPoints: 0, currentStreakDays: 0 });
+    expect(idleMember.email).toBeTruthy();
+  });
 });
 
 describe('Quests', () => {

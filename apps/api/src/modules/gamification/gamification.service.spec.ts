@@ -407,3 +407,66 @@ describe('GamificationService quests', () => {
     });
   });
 });
+
+describe('GamificationService.getLeaderboard', () => {
+  let prisma: {
+    db: {
+      membership: { findMany: ReturnType<typeof vi.fn> };
+      userScore: { findMany: ReturnType<typeof vi.fn> };
+    };
+  };
+  let service: GamificationService;
+
+  beforeEach(() => {
+    prisma = {
+      db: {
+        membership: { findMany: vi.fn() },
+        userScore: { findMany: vi.fn() },
+      },
+    };
+    service = new GamificationService(prisma as never);
+  });
+
+  it('includes every member, ranking those who never scored at 0 rather than leaving them out', async () => {
+    prisma.db.membership.findMany.mockResolvedValue([
+      {
+        userId: 'scorer',
+        user: { id: 'scorer', fullName: 'Scorer', avatarUrl: null },
+      },
+      {
+        userId: 'zero',
+        user: { id: 'zero', fullName: 'Zero Points', avatarUrl: null },
+      },
+    ]);
+    prisma.db.userScore.findMany.mockResolvedValue([
+      makeScore({ userId: 'scorer', totalPoints: 40, currentStreakDays: 2 }),
+    ]);
+
+    const board = await service.getLeaderboard('org_1');
+
+    expect(board).toHaveLength(2);
+    expect(board[0]).toMatchObject({
+      rank: 1,
+      totalPoints: 40,
+      user: { id: 'scorer' },
+    });
+    expect(board[1]).toMatchObject({
+      rank: 2,
+      totalPoints: 0,
+      currentStreakDays: 0,
+      user: { id: 'zero' },
+    });
+  });
+
+  it('breaks ties by name so the order is stable', async () => {
+    prisma.db.membership.findMany.mockResolvedValue([
+      { userId: 'b', user: { id: 'b', fullName: 'Bob', avatarUrl: null } },
+      { userId: 'a', user: { id: 'a', fullName: 'Alice', avatarUrl: null } },
+    ]);
+    prisma.db.userScore.findMany.mockResolvedValue([]);
+
+    const board = await service.getLeaderboard('org_1');
+
+    expect(board.map((r) => r.user.id)).toEqual(['a', 'b']);
+  });
+});

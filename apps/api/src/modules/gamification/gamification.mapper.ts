@@ -5,8 +5,10 @@ import {
   MyGamificationStatsDto,
 } from '@pmtool/shared-types';
 
-type LeaderboardRow = UserScore & {
+type LeaderboardRow = {
   rank: number;
+  totalPoints: number;
+  currentStreakDays: number;
   user: Pick<User, 'id' | 'fullName' | 'avatarUrl'>;
 };
 

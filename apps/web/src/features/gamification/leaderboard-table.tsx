@@ -31,7 +31,7 @@ export function LeaderboardTable({ orgSlug }: { orgSlug: string }) {
                   <TableCell className="font-mono text-xs text-ink-muted">#{entry.rank}</TableCell>
                   <TableCell>
                     <span className="flex items-center gap-2">
-                      <UserAvatar userId={entry.userId} name={entry.fullName} />
+                      <UserAvatar userId={entry.userId} name={entry.fullName} size="md" animated />
                       {entry.fullName}
                     </span>
                   </TableCell>
