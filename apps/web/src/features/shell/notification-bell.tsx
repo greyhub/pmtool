@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocale, useTranslations } from 'next-intl';
 import {
@@ -9,6 +9,7 @@ import {
   useNotifications,
 } from '@pmtool/api-client';
 import type { NotificationDto } from '@pmtool/shared-types';
+import { useAnchoredMenu } from '../../lib/use-anchored-menu';
 import { Link } from '../../i18n/navigation';
 import { formatRelativeTime } from '../../lib/relative-time';
 
@@ -29,18 +30,12 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
   const markAll = useMarkAllNotificationsRead(orgSlug);
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
-
-  // Escape + the invisible click-catching overlay below are the only auto-close triggers — a "close on
-  // scroll" listener looks like the obvious addition too, but the browser fires real scroll events for its
-  // own scroll-anchoring corrections (a layout shift anywhere above the fold nudges scrollTop by a few px
-  // to avoid visual jank), which closed this dialog the instant it opened. See assignees-editor.tsx.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  const pos = useAnchoredMenu(
+    open,
+    btnRef,
+    (box) => ({ left: Math.max(16, box.right - 320), top: box.bottom + 8 }),
+    () => setOpen(false),
+  );
 
   // The type key is dynamic (one message per notification type), which next-intl 4 cannot type-check.
   const translateType = t as unknown as (key: string, values: Record<string, string>) => string;
@@ -80,11 +75,7 @@ export function NotificationBell({ orgSlug }: { orgSlug: string }) {
         aria-label={unread > 0 ? t('bellUnread', { count: unread }) : t('bell')}
         aria-expanded={open}
         aria-haspopup="true"
-        onClick={() => {
-          const box = btnRef.current?.getBoundingClientRect();
-          if (box) setPos({ left: Math.max(16, box.right - 320), top: box.bottom + 8 });
-          setOpen((v) => !v);
-        }}
+        onClick={() => setOpen((v) => !v)}
         className="relative flex h-9 w-9 items-center justify-center rounded-md text-ink-secondary hover:bg-surface-subtle hover:text-ink-primary"
       >
         <svg

@@ -446,7 +446,9 @@
       "navigate": "Navigate tasks",
       "prevTask": "Previous task",
       "nextTask": "Next task",
-      "nodeType": "WBS level"
+      "nodeType": "WBS level",
+      "searchMember": "Search by name...",
+      "noMemberFound": "No one matches"
     },
     "history": {
       "title": "History",

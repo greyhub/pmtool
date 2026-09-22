@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useOrganizationMembers } from '@pmtool/api-client';
 import type { TaskDto, UpdateTaskInput } from '@pmtool/shared-types';
+import { useAnchoredMenu } from '../../lib/use-anchored-menu';
+import { fold } from '../command-palette/filter';
 import { UserAvatar } from '../people/user-avatar';
 
 type Assignment = Pick<UpdateTaskInput, 'assigneeId' | 'supporterIds'>;
@@ -25,21 +27,24 @@ function MemberPicker({
   label: string;
   onPick: (userId: string) => void;
 }) {
+  const t = useTranslations('tasks.detail');
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const pos = useAnchoredMenu(
+    open,
+    btnRef,
+    (box) => ({
+      left: Math.min(box.left, window.innerWidth - MENU_WIDTH - 16),
+      top: box.bottom + 4,
+    }),
+    () => setOpen(false),
+  );
 
-  // Escape + the invisible click-catching overlay below are the only auto-close triggers. A window
-  // "scroll" listener looked like the obvious addition too, but the browser fires real scroll events for
-  // its own scroll-anchoring corrections (a layout shift anywhere above the fold nudges scrollTop by a
-  // few px to avoid visual jank) — that closed the menu the instant it opened, before a user ever touched
-  // the page. Letting the menu drift a little if someone scrolls is a far smaller cost than that.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  const shown =
+    query.trim().length === 0
+      ? candidates
+      : candidates.filter((m) => fold(m.user?.fullName ?? '').includes(fold(query)));
 
   return (
     <div className="relative">
@@ -47,13 +52,7 @@ function MemberPicker({
         ref={btnRef}
         type="button"
         onClick={() => {
-          const box = btnRef.current?.getBoundingClientRect();
-          if (box) {
-            setPos({
-              left: Math.min(box.left, window.innerWidth - MENU_WIDTH - 16),
-              top: box.bottom + 4,
-            });
-          }
+          if (!open) setQuery('');
           setOpen((o) => !o);
         }}
         className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-line text-ink-muted hover:border-action-primary hover:text-ink-primary"
@@ -71,27 +70,52 @@ function MemberPicker({
             <div
               role="menu"
               aria-label={label}
-              className="fixed z-50 w-56 glass-strong rounded-md py-1"
+              className="fixed z-50 flex w-56 flex-col glass-strong rounded-md py-1"
               style={{ left: pos.left, top: pos.top }}
             >
-              {candidates.length === 0 && <p className="px-3 py-2 text-sm text-ink-muted">—</p>}
-              {candidates.map((m) => (
-                <button
-                  key={m.userId}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    onPick(m.userId);
-                    setOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
-                >
-                  <span aria-hidden="true">
-                    <UserAvatar userId={m.userId} name={m.user?.fullName ?? ''} />
-                  </span>
-                  {m.user?.fullName}
-                </button>
-              ))}
+              {/* Only worth showing once there's enough people to actually need it. */}
+              {candidates.length > 5 && (
+                <div className="px-2 pb-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && shown.length === 1) {
+                        onPick(shown[0]!.userId);
+                        setOpen(false);
+                      }
+                    }}
+                    placeholder={t('searchMember')}
+                    className="glass-field h-8 w-full rounded-md border border-line-glass px-2 text-sm text-ink-primary outline-none focus-visible:border-action-primary focus-visible:ring-2 focus-visible:ring-focus"
+                  />
+                </div>
+              )}
+              <div className="max-h-64 overflow-y-auto">
+                {shown.length === 0 && (
+                  <p className="px-3 py-2 text-sm text-ink-muted">
+                    {candidates.length === 0 ? '—' : t('noMemberFound')}
+                  </p>
+                )}
+                {shown.map((m) => (
+                  <button
+                    key={m.userId}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      onPick(m.userId);
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+                  >
+                    <span aria-hidden="true">
+                      <UserAvatar userId={m.userId} name={m.user?.fullName ?? ''} />
+                    </span>
+                    {m.user?.fullName}
+                  </button>
+                ))}
+              </div>
             </div>
           </>,
           document.body,

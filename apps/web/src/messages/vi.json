@@ -446,7 +446,9 @@
       "navigate": "Chuyển công việc",
       "prevTask": "Công việc trước",
       "nextTask": "Công việc sau",
-      "nodeType": "Cấp WBS"
+      "nodeType": "Cấp WBS",
+      "searchMember": "Tìm theo tên...",
+      "noMemberFound": "Không tìm thấy ai phù hợp"
     },
     "history": {
       "title": "Lịch sử thay đổi",

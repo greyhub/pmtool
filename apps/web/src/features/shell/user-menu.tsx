@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useMe, useLogout } from '@pmtool/api-client';
+import { useAnchoredMenu } from '../../lib/use-anchored-menu';
 import { UserAvatar } from '../people/user-avatar';
 import { Link, useRouter } from '../../i18n/navigation';
 
@@ -16,18 +17,12 @@ export function UserMenu({ feedbackOrgSlug }: { feedbackOrgSlug?: string } = {})
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
-
-  // Escape + the invisible click-catching overlay below are the only auto-close triggers — a "close on
-  // scroll" listener looks like the obvious addition too, but the browser fires real scroll events for its
-  // own scroll-anchoring corrections (a layout shift anywhere above the fold nudges scrollTop by a few px
-  // to avoid visual jank), which closed this menu the instant it opened. See assignees-editor.tsx.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  const pos = useAnchoredMenu(
+    open,
+    btnRef,
+    (box) => ({ left: box.right - MENU_WIDTH, top: box.bottom + 4 }),
+    () => setOpen(false),
+  );
 
   if (!user) return null;
 
@@ -36,11 +31,7 @@ export function UserMenu({ feedbackOrgSlug }: { feedbackOrgSlug?: string } = {})
       <button
         ref={btnRef}
         type="button"
-        onClick={() => {
-          const box = btnRef.current?.getBoundingClientRect();
-          if (box) setPos({ left: box.right - MENU_WIDTH, top: box.bottom + 4 });
-          setOpen((o) => !o);
-        }}
+        onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Menu tài khoản (${user.fullName})`}
