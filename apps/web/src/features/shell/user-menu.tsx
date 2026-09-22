@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useMe, useLogout } from '@pmtool/api-client';
 import { UserAvatar } from '../people/user-avatar';
 import { Link, useRouter } from '../../i18n/navigation';
+
+const MENU_WIDTH = 192; // w-48
 
 export function UserMenu({ feedbackOrgSlug }: { feedbackOrgSlug?: string } = {}) {
   const tNav = useTranslations('nav');
@@ -12,24 +15,32 @@ export function UserMenu({ feedbackOrgSlug }: { feedbackOrgSlug?: string } = {})
   const logout = useLogout();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
+  // Escape + the invisible click-catching overlay below are the only auto-close triggers — a "close on
+  // scroll" listener looks like the obvious addition too, but the browser fires real scroll events for its
+  // own scroll-anchoring corrections (a layout shift anywhere above the fold nudges scrollTop by a few px
+  // to avoid visual jank), which closed this menu the instant it opened. See assignees-editor.tsx.
   useEffect(() => {
     if (!open) return;
-    function onClickOutside(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
   if (!user) return null;
 
   return (
-    <div ref={rootRef} className="relative">
+    <div className="relative">
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const box = btnRef.current?.getBoundingClientRect();
+          if (box) setPos({ left: box.right - MENU_WIDTH, top: box.bottom + 4 });
+          setOpen((o) => !o);
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Menu tài khoản (${user.fullName})`}
@@ -38,42 +49,54 @@ export function UserMenu({ feedbackOrgSlug }: { feedbackOrgSlug?: string } = {})
         <UserAvatar userId={user.id} name={user.fullName} character={user.mascotCharacter} />
       </button>
 
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 top-full z-20 mt-1 w-48 glass-strong rounded-md py-1"
-        >
-          <div className="px-3 py-2 text-sm text-ink-secondary">{user.email}</div>
-          <div className="my-1 border-t border-line-glass" />
-          <Link
-            href={feedbackOrgSlug ? `/feedback?org=${feedbackOrgSlug}` : '/feedback'}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
-          >
-            {tNav('feedback')}
-          </Link>
-          <Link
-            href="/settings"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
-          >
-            Cài đặt
-          </Link>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              logout.mutate(undefined, { onSuccess: () => router.push('/login') });
-            }}
-            className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
-          >
-            Đăng xuất
-          </button>
-        </div>
-      )}
+      {open &&
+        pos &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            {/* Portaled: this menu sits inside a glass topbar, whose backdrop-filter creates its own
+                stacking context — a plain absolute dropdown would paint behind whatever the page renders
+                next (main content), no matter its z-index, since z-index only competes within the same
+                stacking context. Same fix, same reason, as assignees-editor.tsx's MemberPicker. */}
+            <div className="fixed inset-0 z-40" aria-hidden="true" onClick={() => setOpen(false)} />
+            <div
+              role="menu"
+              className="fixed z-50 rounded-md glass-strong py-1"
+              style={{ left: pos.left, top: pos.top, width: MENU_WIDTH }}
+            >
+              <div className="px-3 py-2 text-sm text-ink-secondary">{user.email}</div>
+              <div className="my-1 border-t border-line-glass" />
+              <Link
+                href={feedbackOrgSlug ? `/feedback?org=${feedbackOrgSlug}` : '/feedback'}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+              >
+                {tNav('feedback')}
+              </Link>
+              <Link
+                href="/settings"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+              >
+                Cài đặt
+              </Link>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  logout.mutate(undefined, { onSuccess: () => router.push('/login') });
+                }}
+                className="flex w-full items-center px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }

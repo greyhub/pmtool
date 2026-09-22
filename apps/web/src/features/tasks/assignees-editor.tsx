@@ -1,14 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useOrganizationMembers } from '@pmtool/api-client';
 import type { TaskDto, UpdateTaskInput } from '@pmtool/shared-types';
 import { UserAvatar } from '../people/user-avatar';
 
 type Assignment = Pick<UpdateTaskInput, 'assigneeId' | 'supporterIds'>;
+const MENU_WIDTH = 224; // w-56
 
-/** A "+" button that opens a list of org members to pick from. */
+/**
+ * A "+" button that opens a list of org members to pick from. Portaled to the document body: this sits
+ * inside a glass Card, and Card uses backdrop-filter, which creates its own stacking context — a plain
+ * `position: absolute` dropdown would paint *behind* the next Card down the page (Dependencies) instead of
+ * over it, no matter how high its z-index, since z-index only competes within the same stacking context.
+ */
 function MemberPicker({
   candidates,
   label,
@@ -19,38 +26,76 @@ function MemberPicker({
   onPick: (userId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+
+  // Escape + the invisible click-catching overlay below are the only auto-close triggers. A window
+  // "scroll" listener looked like the obvious addition too, but the browser fires real scroll events for
+  // its own scroll-anchoring corrections (a layout shift anywhere above the fold nudges scrollTop by a
+  // few px to avoid visual jank) — that closed the menu the instant it opened, before a user ever touched
+  // the page. Letting the menu drift a little if someone scrolls is a far smaller cost than that.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   return (
     <div className="relative">
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const box = btnRef.current?.getBoundingClientRect();
+          if (box) {
+            setPos({
+              left: Math.min(box.left, window.innerWidth - MENU_WIDTH - 16),
+              top: box.bottom + 4,
+            });
+          }
+          setOpen((o) => !o);
+        }}
         className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-line text-ink-muted hover:border-action-primary hover:text-ink-primary"
         aria-label={label}
         title={label}
       >
         +
       </button>
-      {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 w-56 glass-strong rounded-md py-1">
-          {candidates.length === 0 && <p className="px-3 py-2 text-sm text-ink-muted">—</p>}
-          {candidates.map((m) => (
-            <button
-              key={m.userId}
-              type="button"
-              onClick={() => {
-                onPick(m.userId);
-                setOpen(false);
-              }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+      {open &&
+        pos &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-40" aria-hidden="true" onClick={() => setOpen(false)} />
+            <div
+              role="menu"
+              aria-label={label}
+              className="fixed z-50 w-56 glass-strong rounded-md py-1"
+              style={{ left: pos.left, top: pos.top }}
             >
-              <span aria-hidden="true">
-                <UserAvatar userId={m.userId} name={m.user?.fullName ?? ''} />
-              </span>
-              {m.user?.fullName}
-            </button>
-          ))}
-        </div>
-      )}
+              {candidates.length === 0 && <p className="px-3 py-2 text-sm text-ink-muted">—</p>}
+              {candidates.map((m) => (
+                <button
+                  key={m.userId}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onPick(m.userId);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink-primary hover:bg-surface-subtle"
+                >
+                  <span aria-hidden="true">
+                    <UserAvatar userId={m.userId} name={m.user?.fullName ?? ''} />
+                  </span>
+                  {m.user?.fullName}
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
