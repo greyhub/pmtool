@@ -71,9 +71,10 @@ export class UsersService {
    * Called right after someone becomes a member of an organization (invite accepted, join request
    * approved). Every account defaults to "fox" and nothing ever forced a new member to pick a distinct
    * one before this point — without it, two people who both never opened Settings silently collide on
-   * the same character everywhere it matters (Gantt, leaderboard, the assignee picker). Reassigns to the
-   * first free character across every org they're now in; never touches someone who already has a
-   * character nobody else in those orgs is using.
+   * the same character everywhere it matters (Gantt, leaderboard, the assignee picker). Reassigns to a
+   * random free character across every org they're now in (so a wave of new members doesn't all line up
+   * in the same bear-bunny-cat order); never touches someone who already has a character nobody else in
+   * those orgs is using.
    */
   async resolveCharacterConflictOnJoin(userId: string): Promise<void> {
     const user = await this.prisma.db.user.findUnique({
@@ -97,11 +98,12 @@ export class UsersService {
     const takenByOthers = new Set(others.map((o) => o.user.mascotCharacter));
     if (!takenByOthers.has(user.mascotCharacter)) return;
 
-    const free = MASCOT_CHARACTERS.find((c) => !takenByOthers.has(c));
-    if (!free) return; // every character is in use across these orgs — extremely unlikely (52 characters)
+    const free = MASCOT_CHARACTERS.filter((c) => !takenByOthers.has(c));
+    if (free.length === 0) return; // every character is in use across these orgs — extremely unlikely (52 characters)
+    const pick = free[Math.floor(Math.random() * free.length)]!;
     await this.prisma.db.user.update({
       where: { id: userId },
-      data: { mascotCharacter: free },
+      data: { mascotCharacter: pick },
     });
   }
 

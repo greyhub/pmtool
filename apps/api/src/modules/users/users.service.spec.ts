@@ -159,7 +159,7 @@ describe('UsersService.resolveCharacterConflictOnJoin', () => {
     expect(prisma.db.user.update).not.toHaveBeenCalled();
   });
 
-  it('reassigns to the first free character when the new org already has this one', async () => {
+  it('reassigns to a free character when the new org already has this one', async () => {
     prisma.db.user.findUnique.mockResolvedValue({ mascotCharacter: 'fox' });
     prisma.db.membership.findMany
       .mockResolvedValueOnce([{ organizationId: 'org_1' }])
@@ -170,11 +170,25 @@ describe('UsersService.resolveCharacterConflictOnJoin', () => {
 
     await service.resolveCharacterConflictOnJoin('user_1');
 
-    // MASCOT_CHARACTERS starts with bear, bunny, cat, ... — bear is taken, bunny is the first free one.
-    expect(prisma.db.user.update).toHaveBeenCalledWith({
-      where: { id: 'user_1' },
-      data: { mascotCharacter: 'bunny' },
-    });
+    const call = prisma.db.user.update.mock.calls[0][0];
+    expect(call.where).toEqual({ id: 'user_1' });
+    // Never the taken ones, and never left on the conflicting "fox".
+    expect(['fox', 'bear']).not.toContain(call.data.mascotCharacter);
+  });
+
+  it('picks randomly among the free characters rather than always the first one', async () => {
+    prisma.db.user.findUnique.mockResolvedValue({ mascotCharacter: 'fox' });
+    prisma.db.membership.findMany
+      .mockResolvedValueOnce([{ organizationId: 'org_1' }])
+      .mockResolvedValueOnce([{ user: { mascotCharacter: 'fox' } }]);
+    // Force Math.random to point at the last free character instead of the first.
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.999999);
+
+    await service.resolveCharacterConflictOnJoin('user_1');
+
+    const picked = prisma.db.user.update.mock.calls[0][0].data.mascotCharacter;
+    expect(picked).not.toBe('bear'); // "bear" is MASCOT_CHARACTERS[0] — a fixed-first pick would land here
+    randomSpy.mockRestore();
   });
 
   it('does nothing for someone who belongs to no organization yet', async () => {
