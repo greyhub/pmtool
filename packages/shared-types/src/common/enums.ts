@@ -1,6 +1,9 @@
 export const ORG_ROLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
 export type OrgRole = (typeof ORG_ROLES)[number];
 
+export const JOIN_REQUEST_STATUSES = ['PENDING', 'APPROVED', 'DECLINED'] as const;
+export type JoinRequestStatus = (typeof JOIN_REQUEST_STATUSES)[number];
+
 export const ORGANIZATION_STATUSES = ['ACTIVE', 'ARCHIVED'] as const;
 export type OrganizationStatus = (typeof ORGANIZATION_STATUSES)[number];
 

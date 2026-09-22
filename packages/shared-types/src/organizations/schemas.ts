@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MASCOT_CHARACTERS, ORG_ROLES, ORGANIZATION_STATUSES } from '../common/enums';
+import { JOIN_REQUEST_STATUSES, MASCOT_CHARACTERS, ORG_ROLES, ORGANIZATION_STATUSES } from '../common/enums';
 
 const slugSchema = z
   .string()
@@ -60,3 +60,34 @@ export const updateMembershipRoleSchema = z.object({
   role: z.enum(ORG_ROLES),
 });
 export type UpdateMembershipRoleInput = z.infer<typeof updateMembershipRoleSchema>;
+
+export const createJoinRequestSchema = z.object({
+  message: z.string().max(500).optional(),
+});
+export type CreateJoinRequestInput = z.infer<typeof createJoinRequestSchema>;
+
+export const decideJoinRequestSchema = z.object({
+  role: z.enum(ORG_ROLES).exclude(['OWNER']),
+});
+export type DecideJoinRequestInput = z.infer<typeof decideJoinRequestSchema>;
+
+export const joinRequestSchema = z.object({
+  id: z.string(),
+  organizationId: z.string(),
+  organizationName: z.string(),
+  organizationSlug: z.string(),
+  userId: z.string(),
+  user: z.object({
+    id: z.string(),
+    email: z.string(),
+    fullName: z.string(),
+    avatarUrl: z.string().nullable(),
+    mascotCharacter: z.enum(MASCOT_CHARACTERS),
+  }),
+  message: z.string().nullable(),
+  status: z.enum(JOIN_REQUEST_STATUSES),
+  decidedByName: z.string().nullable(),
+  decidedAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type JoinRequestDto = z.infer<typeof joinRequestSchema>;

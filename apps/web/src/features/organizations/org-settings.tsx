@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   ApiError,
+  useApproveJoinRequest,
   useArchiveOrganization,
   useCancelInvite,
   useCreateInvite,
+  useDeclineJoinRequest,
   useDeleteOrganization,
   useExportOrganization,
+  useJoinRequests,
   useMe,
   useOrganization,
   useOrganizationInvites,
@@ -188,6 +191,88 @@ function MembersCard({ orgSlug }: { orgSlug: string }) {
   );
 }
 
+function JoinRequestsCard({ orgSlug }: { orgSlug: string }) {
+  const t = useTranslations('organizations.settings.joinRequests');
+  const { data: members } = useOrganizationMembers(orgSlug);
+  const { data: me } = useMe();
+  const isOwnerOrAdmin =
+    members?.some((m) => m.userId === me?.id && (m.role === 'OWNER' || m.role === 'ADMIN')) ??
+    false;
+  const { data: requests } = useJoinRequests(orgSlug, isOwnerOrAdmin);
+  const approve = useApproveJoinRequest(orgSlug);
+  const decline = useDeclineJoinRequest(orgSlug);
+  const [roleByRequest, setRoleByRequest] = useState<Record<string, (typeof INVITE_ROLES)[number]>>(
+    {},
+  );
+
+  if (!isOwnerOrAdmin || !requests || requests.length === 0) return null;
+
+  return (
+    <Card className="flex flex-col gap-4 p-6">
+      <h2 className="text-sm font-semibold text-ink-primary">{t('title')}</h2>
+      <ul className="flex flex-col gap-3">
+        {requests.map((r) => (
+          <li
+            key={r.id}
+            className="flex flex-col gap-2 rounded-md border border-line p-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <span className="font-medium text-ink-primary">{r.user.fullName}</span>
+              <span className="block text-xs text-ink-muted">{r.user.email}</span>
+              {r.message && (
+                <span className="mt-1 block text-sm text-ink-secondary">
+                  {t('message', { message: r.message })}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Select
+                aria-label={t('role')}
+                value={roleByRequest[r.id] ?? 'MEMBER'}
+                onChange={(e) =>
+                  setRoleByRequest((prev) => ({
+                    ...prev,
+                    [r.id]: e.target.value as (typeof INVITE_ROLES)[number],
+                  }))
+                }
+                className="w-32"
+              >
+                {INVITE_ROLES.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                size="sm"
+                disabled={approve.isPending}
+                onClick={() =>
+                  approve.mutate({ requestId: r.id, role: roleByRequest[r.id] ?? 'MEMBER' })
+                }
+              >
+                {t('approve')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={decline.isPending}
+                onClick={() => decline.mutate(r.id)}
+              >
+                {t('decline')}
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {(approve.isError || decline.isError) && (
+        <p role="alert" className="text-sm text-danger">
+          {t('genericError')}
+        </p>
+      )}
+    </Card>
+  );
+}
+
 function InvitesCard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('organizations.settings.invites');
   const { data: invites } = useOrganizationInvites(orgSlug);
@@ -218,7 +303,12 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <FormField label={t('email')} htmlFor="invite-email" className="flex-1">
-          <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="invite-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </FormField>
         <FormField label={t('role')} htmlFor="invite-role">
           <Select
@@ -234,7 +324,11 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
             ))}
           </Select>
         </FormField>
-        <Button type="button" disabled={createInvite.isPending || email.trim().length === 0} onClick={handleInvite}>
+        <Button
+          type="button"
+          disabled={createInvite.isPending || email.trim().length === 0}
+          onClick={handleInvite}
+        >
           {t('send')}
         </Button>
       </div>
@@ -247,14 +341,18 @@ function InvitesCard({ orgSlug }: { orgSlug: string }) {
 
       {lastLink && (
         <div className="rounded-md border border-line bg-surface-subtle p-3 text-xs">
-          <p className="mb-1 text-ink-secondary">{emailed ? t('linkHintEmailed') : t('linkHint')}</p>
+          <p className="mb-1 text-ink-secondary">
+            {emailed ? t('linkHintEmailed') : t('linkHint')}
+          </p>
           <code className="break-all text-ink-primary">{lastLink}</code>
         </div>
       )}
 
       {invites && invites.length > 0 && (
         <div className="mt-2">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-muted">{t('pendingTitle')}</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
+            {t('pendingTitle')}
+          </p>
           <Table>
             <TableHead>
               <TableRow>
@@ -321,7 +419,10 @@ function DataCard({ orgSlug }: { orgSlug: string }) {
           onClick={() =>
             exportOrg.mutate(undefined, {
               onSuccess: (data) =>
-                downloadJson(`pmtool-${orgSlug}-${new Date().toISOString().slice(0, 10)}.json`, data),
+                downloadJson(
+                  `pmtool-${orgSlug}-${new Date().toISOString().slice(0, 10)}.json`,
+                  data,
+                ),
             })
           }
         >
@@ -362,7 +463,9 @@ function DataCard({ orgSlug }: { orgSlug: string }) {
               variant="danger"
               disabled={typedSlug !== orgSlug || !password || deleteOrg.isPending}
               onClick={() =>
-                deleteOrg.mutate(needsEmail ? { confirmEmail: password } : { password }, { onSuccess: () => router.push('/onboarding/create-organization') })
+                deleteOrg.mutate(needsEmail ? { confirmEmail: password } : { password }, {
+                  onSuccess: () => router.push('/onboarding/create-organization'),
+                })
               }
             >
               {t('confirmDelete')}
@@ -372,9 +475,16 @@ function DataCard({ orgSlug }: { orgSlug: string }) {
       >
         <div className="flex flex-col gap-3">
           <FormField label={t('typeSlug', { slug: orgSlug })} htmlFor="delete-org-slug">
-            <Input id="delete-org-slug" value={typedSlug} onChange={(e) => setTypedSlug(e.target.value)} />
+            <Input
+              id="delete-org-slug"
+              value={typedSlug}
+              onChange={(e) => setTypedSlug(e.target.value)}
+            />
           </FormField>
-          <FormField label={needsEmail ? t('confirmEmail') : t('password')} htmlFor="delete-org-password">
+          <FormField
+            label={needsEmail ? t('confirmEmail') : t('password')}
+            htmlFor="delete-org-password"
+          >
             <Input
               id="delete-org-password"
               type={needsEmail ? 'email' : 'password'}
@@ -405,6 +515,7 @@ export function OrgSettings({ orgSlug }: { orgSlug: string }) {
       </div>
       <GeneralCard orgSlug={orgSlug} />
       <MembersCard orgSlug={orgSlug} />
+      <JoinRequestsCard orgSlug={orgSlug} />
       <InvitesCard orgSlug={orgSlug} />
       <DataCard orgSlug={orgSlug} />
     </div>

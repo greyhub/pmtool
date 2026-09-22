@@ -207,6 +207,23 @@
       "slug": "Slug (định danh trong URL)",
       "slugHint": "Chỉ gồm chữ thường, số và dấu gạch ngang, ví dụ: cong-ty-abc",
       "submit": "Tạo tổ chức"
+    },
+    "title": "Bắt đầu với PMTool",
+    "subtitle": "Tạo tổ chức mới, hoặc xin tham gia một tổ chức đã có sẵn",
+    "tabCreate": "Tạo tổ chức mới",
+    "tabJoin": "Tham gia tổ chức có sẵn",
+    "joinOrganization": {
+      "slug": "Slug tổ chức",
+      "slugHint": "Định danh trong URL, ví dụ: cong-ty-abc — hỏi người quản trị tổ chức nếu bạn chưa biết",
+      "message": "Lời nhắn (tuỳ chọn)",
+      "messagePlaceholder": "Giới thiệu ngắn để người duyệt biết bạn là ai...",
+      "submit": "Gửi yêu cầu tham gia",
+      "genericError": "Không gửi được yêu cầu, kiểm tra lại slug và thử lại",
+      "pendingListTitle": "Yêu cầu đã gửi",
+      "statusPending": "Đang chờ tổ chức \"{name}\" xét duyệt",
+      "statusDeclined": "Yêu cầu tham gia \"{name}\" đã bị từ chối",
+      "statusApproved": "Đã được chấp nhận vào \"{name}\"",
+      "goToOrg": "Vào tổ chức"
     }
   },
   "nav": {
@@ -1013,6 +1030,15 @@
         "cancel": "Huỷ",
         "confirmDelete": "Xoá vĩnh viễn",
         "confirmEmail": "Nhập lại email của bạn để xác nhận"
+      },
+      "joinRequests": {
+        "title": "Yêu cầu tham gia",
+        "empty": "Chưa có yêu cầu nào đang chờ.",
+        "message": "“{message}”",
+        "role": "Vai trò",
+        "approve": "Chấp nhận",
+        "decline": "Từ chối",
+        "genericError": "Có lỗi xảy ra, vui lòng thử lại"
       }
     }
   },

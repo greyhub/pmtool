@@ -34,6 +34,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'SprintDailySnapshot',
   'Artifact',
   'EntityHistory',
+  'OrgJoinRequest',
 ]);
 
 const FILTERABLE_READ_OPS = new Set([

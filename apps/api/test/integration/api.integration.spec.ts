@@ -5030,3 +5030,142 @@ describe('Feedback', () => {
     expect(spoofed.body.data.organizationId).toBeNull();
   });
 });
+
+describe('Join requests', () => {
+  const http = () => request(app.getHttpServer());
+
+  it('lets a non-member request to join by slug, and only an OWNER/ADMIN can review it', async () => {
+    const owner = await registerUser('Join Org Owner');
+    const org = await createOrg(owner.accessToken, 'Join Target Org');
+    const requester = await registerUser('Requester One');
+
+    // Not yet a member: the org's own settings are off-limits.
+    await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .expect(403);
+
+    const created = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({ message: 'Mình làm cùng nhóm marketing, cho mình tham gia nhé' })
+      .expect(201);
+    expect(created.body.data.status).toBe('PENDING');
+    expect(created.body.data.organizationSlug).toBe(org.slug);
+
+    // Re-sending while still pending is idempotent, not a duplicate row.
+    const again = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({})
+      .expect(201);
+    expect(again.body.data.id).toBe(created.body.data.id);
+
+    // The requester themselves cannot list or decide requests.
+    await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .expect(403);
+
+    const list = await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    expect(list.body.data).toHaveLength(1);
+    expect(list.body.data[0].user.email).toBe(requester.email);
+
+    const mineBefore = await http()
+      .get(`${API_PREFIX}/join-requests/mine`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .expect(200);
+    expect(mineBefore.body.data[0].status).toBe('PENDING');
+
+    const approved = await http()
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/join-requests/${created.body.data.id}/approve`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ role: 'MEMBER' })
+      .expect(201);
+    expect(approved.body.data.role).toBe('MEMBER');
+
+    // Now a real member: the org page is reachable.
+    await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .expect(200);
+
+    // Approving twice is rejected — already decided.
+    await http()
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/join-requests/${created.body.data.id}/approve`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ role: 'MEMBER' })
+      .expect(409);
+
+    // Already a member: asking again is rejected outright.
+    await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({})
+      .expect(409);
+  });
+
+  it('lets an OWNER decline a request, and the requester can ask again afterwards', async () => {
+    const owner = await registerUser('Decline Org Owner');
+    const org = await createOrg(owner.accessToken, 'Decline Target Org');
+    const requester = await registerUser('Requester Two');
+
+    const created = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({})
+      .expect(201);
+
+    const declined = await http()
+      .post(
+        `${API_PREFIX}/organizations/${org.slug}/join-requests/${created.body.data.id}/decline`,
+      )
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(201);
+    expect(declined.body.data.status).toBe('DECLINED');
+
+    // Declined, not a member — asking again re-opens the same request as PENDING.
+    const reopened = await http()
+      .post(`${API_PREFIX}/organizations/${org.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({})
+      .expect(201);
+    expect(reopened.body.data.id).toBe(created.body.data.id);
+    expect(reopened.body.data.status).toBe('PENDING');
+  });
+
+  it('keeps join requests tenant-isolated: an admin of org B cannot see or decide org A requests', async () => {
+    const ownerA = await registerUser('Tenant A Owner');
+    const orgA = await createOrg(ownerA.accessToken, 'Tenant A Org');
+    const requester = await registerUser('Tenant Requester');
+    const created = await http()
+      .post(`${API_PREFIX}/organizations/${orgA.slug}/join-requests`)
+      .set('Authorization', `Bearer ${requester.accessToken}`)
+      .send({})
+      .expect(201);
+
+    const ownerB = await registerUser('Tenant B Owner');
+    const orgB = await createOrg(ownerB.accessToken, 'Tenant B Org');
+
+    await http()
+      .get(`${API_PREFIX}/organizations/${orgB.slug}/join-requests`)
+      .set('Authorization', `Bearer ${ownerB.accessToken}`)
+      .expect(200)
+      .then((res) => expect(res.body.data).toHaveLength(0));
+
+    await http()
+      .post(
+        `${API_PREFIX}/organizations/${orgB.slug}/join-requests/${created.body.data.id}/approve`,
+      )
+      .set('Authorization', `Bearer ${ownerB.accessToken}`)
+      .send({ role: 'MEMBER' })
+      .expect(404);
+  });
+});

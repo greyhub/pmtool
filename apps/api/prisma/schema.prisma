@@ -65,6 +65,8 @@ model User {
   stakeholderProfiles   Stakeholder[]
   ownedProjectDocuments ProjectDocument[]
   feedback              AppFeedback[]
+  joinRequestsMade      OrgJoinRequest[] @relation("JoinRequestUser")
+  joinRequestsDecided   OrgJoinRequest[] @relation("JoinRequestDecider")
 
   historyActed EntityHistory[] @relation("HistoryActor")
   @@map("users")
@@ -80,6 +82,7 @@ model Organization {
 
   memberships      Membership[]
   invites          MembershipInvite[]
+  joinRequests     OrgJoinRequest[]
   projects         Project[]
   projectMembers   ProjectMember[]
   tasks            Task[]
@@ -141,6 +144,35 @@ model MembershipInvite {
   @@index([organizationId])
   @@index([email])
   @@map("membership_invites")
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+/// A user-initiated request to join an organization by its slug, reviewed by an OWNER/ADMIN —
+/// the opposite direction of MembershipInvite (which an admin sends to an email).
+model OrgJoinRequest {
+  id             String            @id @default(cuid())
+  organizationId String
+  userId         String
+  message        String?
+  status         JoinRequestStatus @default(PENDING)
+  decidedById    String?
+  decidedAt      DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("JoinRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+  decidedBy    User?        @relation("JoinRequestDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, status])
+  @@index([userId])
+  @@map("org_join_requests")
 }
 
 model RefreshToken {

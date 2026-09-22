@@ -67,6 +67,37 @@ const T = {
       footer:
         'Lời mời có hiệu lực trong 7 ngày và chỉ dành cho địa chỉ email này.',
     },
+    joinRequest: {
+      subject: (org: string) => `Có người muốn tham gia "${org}"`,
+      heading: (org: string) => `Yêu cầu tham gia ${org}`,
+      body: (requester: string, org: string, message?: string) => [
+        `${requester} muốn tham gia tổ chức "${org}" của bạn.`,
+        ...(message ? [`Lời nhắn: "${message}"`] : []),
+      ],
+      cta: 'Xem yêu cầu',
+      footer:
+        'Bạn nhận được email này vì là Chủ sở hữu hoặc Quản trị viên của tổ chức.',
+    },
+    joinRequestApproved: {
+      subject: (org: string) => `Bạn đã được chấp nhận vào "${org}"`,
+      heading: (org: string) => `Chào mừng đến với ${org}`,
+      body: (org: string) => [
+        `Yêu cầu tham gia tổ chức "${org}" của bạn đã được chấp nhận.`,
+      ],
+      cta: 'Vào tổ chức',
+      footer:
+        'Bạn nhận được email này vì đã gửi yêu cầu tham gia tổ chức trên PMTool.',
+    },
+    joinRequestDeclined: {
+      subject: (org: string) => `Yêu cầu tham gia "${org}" đã bị từ chối`,
+      heading: (org: string) => `Yêu cầu vào ${org} không được chấp nhận`,
+      body: (org: string) => [
+        `Yêu cầu tham gia tổ chức "${org}" của bạn không được chấp nhận. Bạn có thể liên hệ trực tiếp với tổ chức hoặc tạo tổ chức riêng của mình.`,
+      ],
+      cta: 'Tạo tổ chức của bạn',
+      footer:
+        'Bạn nhận được email này vì đã gửi yêu cầu tham gia tổ chức trên PMTool.',
+    },
   },
   en: {
     reset: {
@@ -99,6 +130,37 @@ const T = {
       cta: 'Accept invitation',
       footer:
         'The invitation is valid for 7 days and only for this email address.',
+    },
+    joinRequest: {
+      subject: (org: string) => `Someone wants to join "${org}"`,
+      heading: (org: string) => `Request to join ${org}`,
+      body: (requester: string, org: string, message?: string) => [
+        `${requester} wants to join your organization "${org}".`,
+        ...(message ? [`Message: "${message}"`] : []),
+      ],
+      cta: 'Review request',
+      footer:
+        "You're receiving this because you're an Owner or Admin of this organization.",
+    },
+    joinRequestApproved: {
+      subject: (org: string) => `You've been approved to join "${org}"`,
+      heading: (org: string) => `Welcome to ${org}`,
+      body: (org: string) => [
+        `Your request to join "${org}" has been approved.`,
+      ],
+      cta: 'Go to organization',
+      footer:
+        "You're receiving this because you requested to join this organization on PMTool.",
+    },
+    joinRequestDeclined: {
+      subject: (org: string) => `Your request to join "${org}" was declined`,
+      heading: (org: string) => `Request to join ${org} was declined`,
+      body: (org: string) => [
+        `Your request to join "${org}" was not approved. You can reach out to the organization directly, or create your own organization.`,
+      ],
+      cta: 'Create your organization',
+      footer:
+        "You're receiving this because you requested to join this organization on PMTool.",
     },
   },
 } as const;
@@ -140,6 +202,68 @@ export function inviteMail(
 ): MailContent {
   const t = T[locale].invite;
   const body = t.body(inviter, orgName, role);
+  return {
+    subject: t.subject(orgName),
+    text: `${body.join('\n\n')}\n\n${url}\n\n${t.footer}`,
+    html: layout(
+      locale,
+      t.heading(orgName),
+      body,
+      { label: t.cta, url },
+      t.footer,
+    ),
+  };
+}
+
+export function joinRequestMail(
+  locale: MailLocale,
+  url: string,
+  requester: string,
+  orgName: string,
+  message: string | null,
+): MailContent {
+  const t = T[locale].joinRequest;
+  const body = t.body(requester, orgName, message ?? undefined);
+  return {
+    subject: t.subject(orgName),
+    text: `${body.join('\n\n')}\n\n${url}\n\n${t.footer}`,
+    html: layout(
+      locale,
+      t.heading(orgName),
+      body,
+      { label: t.cta, url },
+      t.footer,
+    ),
+  };
+}
+
+export function joinRequestApprovedMail(
+  locale: MailLocale,
+  url: string,
+  orgName: string,
+): MailContent {
+  const t = T[locale].joinRequestApproved;
+  const body = t.body(orgName);
+  return {
+    subject: t.subject(orgName),
+    text: `${body.join('\n\n')}\n\n${url}\n\n${t.footer}`,
+    html: layout(
+      locale,
+      t.heading(orgName),
+      body,
+      { label: t.cta, url },
+      t.footer,
+    ),
+  };
+}
+
+export function joinRequestDeclinedMail(
+  locale: MailLocale,
+  url: string,
+  orgName: string,
+): MailContent {
+  const t = T[locale].joinRequestDeclined;
+  const body = t.body(orgName);
   return {
     subject: t.subject(orgName),
     text: `${body.join('\n\n')}\n\n${url}\n\n${t.footer}`,

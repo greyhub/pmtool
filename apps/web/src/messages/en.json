@@ -207,6 +207,23 @@
       "slug": "Slug (URL identifier)",
       "slugHint": "Lowercase letters, numbers and hyphens only, e.g. acme-corp",
       "submit": "Create organization"
+    },
+    "title": "Get started with PMTool",
+    "subtitle": "Create a new organization, or ask to join one that already exists",
+    "tabCreate": "Create new organization",
+    "tabJoin": "Join an existing organization",
+    "joinOrganization": {
+      "slug": "Organization slug",
+      "slugHint": "The identifier in the URL, e.g. acme-co — ask the organization's admin if you don't know it",
+      "message": "Message (optional)",
+      "messagePlaceholder": "A short note so the reviewer knows who you are...",
+      "submit": "Send join request",
+      "genericError": "Couldn't send the request, check the slug and try again",
+      "pendingListTitle": "Requests sent",
+      "statusPending": "Waiting for \"{name}\" to review",
+      "statusDeclined": "Your request to join \"{name}\" was declined",
+      "statusApproved": "You were approved to join \"{name}\"",
+      "goToOrg": "Go to organization"
     }
   },
   "nav": {
@@ -1013,6 +1030,15 @@
         "cancel": "Cancel",
         "confirmDelete": "Delete permanently",
         "confirmEmail": "Type your email address to confirm"
+      },
+      "joinRequests": {
+        "title": "Join requests",
+        "empty": "No pending requests.",
+        "message": "“{message}”",
+        "role": "Role",
+        "approve": "Approve",
+        "decline": "Decline",
+        "genericError": "Something went wrong, please try again"
       }
     }
   },
