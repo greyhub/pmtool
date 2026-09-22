@@ -11,6 +11,7 @@ import {
 } from '@pmtool/api-client';
 import { Input, Select } from '@pmtool/ui';
 import { HistoryList } from './history-list';
+import { OrgLoginHistoryList } from '../presence/org-login-history-list';
 
 const PROJECT_TYPES = HISTORY_ENTITY_TYPES.filter(
   (x) => x !== 'Organization' && x !== 'Membership',
@@ -183,6 +184,8 @@ export function ProjectHistoryView({
 /** The organization-wide audit trail: every project, members and settings (owners and admins). */
 export function AuditView({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('history');
+  const tPresence = useTranslations('presence');
+  const [tab, setTab] = useState<'changes' | 'logins'>('changes');
   const [filters, setFilters] = useState<Filters>(NONE);
   const query = useAuditTrail(orgSlug, {
     ...clean(filters),
@@ -194,16 +197,42 @@ export function AuditView({ orgSlug }: { orgSlug: string }) {
         <h1 className="text-lg font-semibold text-ink-primary">{t('auditTitle')}</h1>
         <p className="text-sm text-ink-secondary">{t('auditSubtitle')}</p>
       </div>
-      <FilterBar
-        orgSlug={orgSlug}
-        filters={filters}
-        setFilters={setFilters}
-        types={HISTORY_ENTITY_TYPES}
-        withProject
-      />
-      <div className="glass rounded-xl p-4">
-        <HistoryList orgSlug={orgSlug} query={query} showProject />
+      <div role="tablist" className="flex gap-1 rounded-full bg-surface-subtle p-1 sm:w-fit">
+        {(['changes', 'logins'] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => setTab(key)}
+            className={`flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none ${
+              tab === key
+                ? 'glass-field text-ink-primary'
+                : 'text-ink-secondary hover:text-ink-primary'
+            }`}
+          >
+            {tPresence(key === 'changes' ? 'tabChanges' : 'tabLogins')}
+          </button>
+        ))}
       </div>
+      {tab === 'changes' ? (
+        <>
+          <FilterBar
+            orgSlug={orgSlug}
+            filters={filters}
+            setFilters={setFilters}
+            types={HISTORY_ENTITY_TYPES}
+            withProject
+          />
+          <div className="glass rounded-xl p-4">
+            <HistoryList orgSlug={orgSlug} query={query} showProject />
+          </div>
+        </>
+      ) : (
+        <div className="glass rounded-xl p-4">
+          <OrgLoginHistoryList orgSlug={orgSlug} />
+        </div>
+      )}
     </div>
   );
 }

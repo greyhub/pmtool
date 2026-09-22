@@ -11,12 +11,14 @@ import { GoogleClient } from './google-client';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { GamificationModule } from '../gamification/gamification.module';
+import { PresenceModule } from '../presence/presence.module';
 import { EnvConfig } from '../../config/env.schema';
 
 @Module({
   imports: [
     UsersModule,
     GamificationModule,
+    PresenceModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

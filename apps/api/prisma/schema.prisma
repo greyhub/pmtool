@@ -41,6 +41,9 @@ model User {
   dailyDigestEnabled      Boolean   @default(true)
   dailyDigestHour         Int       @default(17)
   dailyDigestLastSentDate DateTime? @db.Date
+  // Updated (throttled, at most once every ~30s) on any authenticated request — powers "online now" in an org's
+  // member list. Not tenant-scoped: presence is a property of the account, not of any one organization.
+  lastActiveAt   DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -67,6 +70,7 @@ model User {
   feedback              AppFeedback[]
   joinRequestsMade      OrgJoinRequest[] @relation("JoinRequestUser")
   joinRequestsDecided   OrgJoinRequest[] @relation("JoinRequestDecider")
+  loginEvents           LoginEvent[]
 
   historyActed EntityHistory[] @relation("HistoryActor")
   @@map("users")
@@ -189,6 +193,27 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+enum LoginMethod {
+  PASSWORD
+  GOOGLE
+}
+
+/// One row per real sign-in (register, password login, Google) — deliberately NOT written on every silent
+/// token refresh (RefreshToken rotates every ~15 minutes while a tab stays open, which would flood this).
+model LoginEvent {
+  id        String      @id @default(cuid())
+  userId    String
+  method    LoginMethod
+  ip        String?
+  userAgent String?
+  createdAt DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("login_events")
 }
 
 enum ProjectStatus {

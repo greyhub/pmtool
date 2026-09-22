@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   ApiError,
   useApproveJoinRequest,
@@ -37,6 +37,7 @@ import {
   TableRow,
 } from '@pmtool/ui';
 import { downloadJson } from '../../lib/download-json';
+import { formatRelativeTime } from '../../lib/relative-time';
 import { useRouter } from '../../i18n/navigation';
 
 const ORG_ROLES = ['OWNER', 'ADMIN', 'PM', 'MEMBER', 'VIEWER'] as const;
@@ -110,7 +111,10 @@ function GeneralCard({ orgSlug }: { orgSlug: string }) {
 
 function MembersCard({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations('organizations.settings.members');
-  const { data: members } = useOrganizationMembers(orgSlug);
+  const tPresence = useTranslations('presence');
+  const locale = useLocale();
+  // Polled while this card is on screen so the online dots stay live without a manual refresh.
+  const { data: members } = useOrganizationMembers(orgSlug, { refetchInterval: 30_000 });
   const updateRole = useUpdateMembershipRole(orgSlug);
   const removeMember = useRemoveMember(orgSlug);
   const { data: me } = useMe();
@@ -136,8 +140,23 @@ function MembersCard({ orgSlug }: { orgSlug: string }) {
               {members.map((m) => (
                 <TableRow key={m.id}>
                   <TableCell>
-                    <span className="font-medium">{m.user?.fullName}</span>
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        aria-hidden="true"
+                        className={`h-2 w-2 shrink-0 rounded-full ${m.online ? 'bg-success' : 'bg-ink-muted/40'}`}
+                      />
+                      <span className="font-medium">{m.user?.fullName}</span>
+                    </span>
                     <span className="block text-xs text-ink-muted">{m.user?.email}</span>
+                    <span className="block text-xs text-ink-muted">
+                      {m.online
+                        ? tPresence('online')
+                        : m.lastActiveAt
+                          ? tPresence('lastSeen', {
+                              time: formatRelativeTime(m.lastActiveAt, locale),
+                            })
+                          : tPresence('neverActive')}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <Select

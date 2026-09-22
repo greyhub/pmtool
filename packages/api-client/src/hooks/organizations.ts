@@ -105,11 +105,15 @@ export function useUnarchiveOrganization(slug: string | undefined) {
   });
 }
 
-export function useOrganizationMembers(slug: string | undefined) {
+export function useOrganizationMembers(
+  slug: string | undefined,
+  options?: { refetchInterval?: number },
+) {
   return useQuery({
     queryKey: organizationKeys.members(slug ?? ''),
     queryFn: () => apiRequest<MembershipDto[]>(`/api/v1/organizations/${slug}/members`),
     enabled: Boolean(slug),
+    refetchInterval: options?.refetchInterval,
   });
 }
 

@@ -3,6 +3,7 @@ import * as argon2 from 'argon2';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
+import { PresenceService } from '../presence/presence.service';
 import { AuthService } from './auth.service';
 import { GoogleProfile } from './google-client';
 
@@ -15,9 +16,10 @@ export class GoogleAuthService {
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
     private readonly gamification: GamificationService,
+    private readonly presence: PresenceService,
   ) {}
 
-  async signIn(profile: GoogleProfile, userAgent?: string) {
+  async signIn(profile: GoogleProfile, userAgent?: string, ip?: string) {
     if (!profile.emailVerified) throw new Error('Google email is not verified');
     if (profile.email.endsWith('@deleted.invalid'))
       throw new Error('Reserved address');
@@ -58,6 +60,7 @@ export class GoogleAuthService {
       this.logger.log(`Created account from Google sign-in: ${userId}`);
     }
     await this.gamification.recordLogin(userId);
+    await this.presence.recordLogin(userId, 'GOOGLE', ip, userAgent);
     return this.auth.issueSession(userId, email, userAgent);
   }
 }

@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
+import { PresenceService } from '../presence/presence.service';
 import { hashRefreshToken } from './refresh-token.util';
 
 function makeConfigService(): ConfigService {
@@ -65,6 +66,7 @@ describe('AuthService.refresh', () => {
       jwtService,
       makeConfigService() as never,
       { recordLogin: vi.fn() } as unknown as GamificationService,
+      { recordLogin: vi.fn() } as unknown as PresenceService,
     );
   });
 

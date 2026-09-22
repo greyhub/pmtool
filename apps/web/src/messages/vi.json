@@ -1687,5 +1687,32 @@
       "org": "Tổ chức: {name}",
       "save": "Lưu"
     }
+  },
+  "presence": {
+    "deviceBoth": "{browser} trên {os}",
+    "deviceUnknown": "Không xác định được thiết bị",
+    "methods": {
+      "PASSWORD": "Mật khẩu",
+      "GOOGLE": "Google"
+    },
+    "online": "Đang online",
+    "lastSeen": "Hoạt động {time}",
+    "neverActive": "Chưa từng hoạt động",
+    "loginHistory": {
+      "title": "Lịch sử đăng nhập",
+      "subtitle": "Các lần đăng nhập gần đây vào tài khoản của bạn.",
+      "empty": "Chưa có lịch sử đăng nhập.",
+      "columnWho": "Người dùng",
+      "columnMethod": "Cách đăng nhập",
+      "columnDevice": "Thiết bị",
+      "columnWhen": "Thời gian"
+    },
+    "orgLoginHistory": {
+      "title": "Đăng nhập",
+      "subtitle": "Lịch sử đăng nhập của các thành viên hiện tại trong tổ chức.",
+      "empty": "Chưa có lượt đăng nhập nào."
+    },
+    "tabChanges": "Thay đổi dữ liệu",
+    "tabLogins": "Đăng nhập"
   }
 }

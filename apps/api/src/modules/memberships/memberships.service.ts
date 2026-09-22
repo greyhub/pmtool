@@ -36,6 +36,7 @@ export class MembershipsService {
             fullName: true,
             avatarUrl: true,
             mascotCharacter: true,
+            lastActiveAt: true,
           },
         },
       },

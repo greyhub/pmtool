@@ -5192,3 +5192,90 @@ describe('Join requests', () => {
       .expect(404);
   });
 });
+
+describe('Presence: login history and online status', () => {
+  const http = () => request(app.getHttpServer());
+
+  it('records a login event on register and on each password login, but not on token refresh', async () => {
+    const email = `${uniqueSuffix()}@example.com`;
+    const password = 'Password123';
+    const reg = await http()
+      .post(`${API_PREFIX}/auth/register`)
+      .send({ email, password, fullName: 'Presence Tester' })
+      .expect(201);
+    const accessToken1 = reg.body.data.accessToken as string;
+
+    const afterRegister = await http()
+      .get(`${API_PREFIX}/users/me/login-history`)
+      .set('Authorization', `Bearer ${accessToken1}`)
+      .expect(200);
+    expect(afterRegister.body.data).toHaveLength(1);
+    expect(afterRegister.body.data[0]).toMatchObject({ method: 'PASSWORD' });
+
+    // A silent refresh must not add another entry.
+    await http()
+      .post(`${API_PREFIX}/auth/refresh`)
+      .set('Cookie', reg.headers['set-cookie'])
+      .expect(200);
+    const afterRefresh = await http()
+      .get(`${API_PREFIX}/users/me/login-history`)
+      .set('Authorization', `Bearer ${accessToken1}`)
+      .expect(200);
+    expect(afterRefresh.body.data).toHaveLength(1);
+
+    // A real second login adds a second entry, newest first.
+    const login = await http()
+      .post(`${API_PREFIX}/auth/login`)
+      .send({ email, password })
+      .expect(200);
+    const afterLogin = await http()
+      .get(`${API_PREFIX}/users/me/login-history`)
+      .set('Authorization', `Bearer ${login.body.data.accessToken}`)
+      .expect(200);
+    expect(afterLogin.body.data).toHaveLength(2);
+    expect(
+      afterLogin.body.data.every(
+        (e: { method: string }) => e.method === 'PASSWORD',
+      ),
+    ).toBe(true);
+  });
+
+  it('shows an org member as online shortly after an authenticated request, and lets only an OWNER/ADMIN read the org-wide login history', async () => {
+    const owner = await registerUser('Presence Org Owner');
+    const org = await createOrg(owner.accessToken, 'Presence Org');
+    const member = await inviteAndAccept(
+      owner.accessToken,
+      org.slug,
+      'MEMBER',
+      'Presence Member',
+    );
+
+    // The member has now made at least one authenticated request (accepting the invite) — presence.touch()
+    // fires-and-forgets a DB write, so give it a brief moment to land before reading it back.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    const members = await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}/members`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    const memberEntry = members.body.data.find(
+      (m: { user?: { email: string } }) => m.user?.email === member.email,
+    );
+    expect(memberEntry.online).toBe(true);
+    expect(memberEntry.lastActiveAt).not.toBeNull();
+
+    await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}/audit/logins`)
+      .set('Authorization', `Bearer ${member.accessToken}`)
+      .expect(403);
+
+    const logins = await http()
+      .get(`${API_PREFIX}/organizations/${org.slug}/audit/logins`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .expect(200);
+    const emails = logins.body.data.map(
+      (e: { user: { email: string } }) => e.user.email,
+    );
+    expect(emails).toEqual(expect.arrayContaining([owner.email, member.email]));
+  });
+});

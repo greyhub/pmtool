@@ -1687,5 +1687,32 @@
       "org": "Organization: {name}",
       "save": "Save"
     }
+  },
+  "presence": {
+    "deviceBoth": "{browser} on {os}",
+    "deviceUnknown": "Unknown device",
+    "methods": {
+      "PASSWORD": "Password",
+      "GOOGLE": "Google"
+    },
+    "online": "Online now",
+    "lastSeen": "Active {time}",
+    "neverActive": "Never active",
+    "loginHistory": {
+      "title": "Login history",
+      "subtitle": "Recent sign-ins to your account.",
+      "empty": "No sign-ins yet.",
+      "columnWho": "User",
+      "columnMethod": "Method",
+      "columnDevice": "Device",
+      "columnWhen": "When"
+    },
+    "orgLoginHistory": {
+      "title": "Logins",
+      "subtitle": "Sign-in history of the organization's current members.",
+      "empty": "No sign-ins yet."
+    },
+    "tabChanges": "Data changes",
+    "tabLogins": "Logins"
   }
 }

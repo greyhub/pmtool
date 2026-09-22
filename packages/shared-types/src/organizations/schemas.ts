@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { JOIN_REQUEST_STATUSES, MASCOT_CHARACTERS, ORG_ROLES, ORGANIZATION_STATUSES } from '../common/enums';
+import {
+  JOIN_REQUEST_STATUSES,
+  MASCOT_CHARACTERS,
+  ORG_ROLES,
+  ORGANIZATION_STATUSES,
+} from '../common/enums';
 
 const slugSchema = z
   .string()
@@ -41,6 +46,9 @@ export const membershipSchema = z.object({
       mascotCharacter: z.enum(MASCOT_CHARACTERS),
     })
     .optional(),
+  lastActiveAt: z.string().nullable(),
+  /** Active within the last few minutes — computed server-side so every viewer agrees on the same cutoff. */
+  online: z.boolean(),
 });
 export type MembershipDto = z.infer<typeof membershipSchema>;
 

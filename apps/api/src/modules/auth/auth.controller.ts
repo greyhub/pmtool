@@ -64,6 +64,7 @@ export class AuthController {
     const { tokens, refreshToken } = await this.authService.register(
       body,
       req.headers['user-agent'],
+      req.ip,
     );
     // Verification email goes out after the account exists; a mail outage must not fail sign-up.
     void this.accountService
@@ -89,6 +90,7 @@ export class AuthController {
     const { tokens, refreshToken } = await this.authService.login(
       body,
       req.headers['user-agent'],
+      req.ip,
     );
     this.setRefreshCookie(res, refreshToken);
     return { data: tokens };

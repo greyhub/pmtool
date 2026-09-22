@@ -122,6 +122,7 @@ export class GoogleAuthController {
       const { refreshToken } = await this.googleAuth.signIn(
         profile,
         req.headers['user-agent'],
+        req.ip,
       );
       res.cookie(REFRESH_COOKIE_NAME, refreshToken.rawToken, {
         httpOnly: true,

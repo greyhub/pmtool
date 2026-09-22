@@ -9,6 +9,7 @@ import * as argon2 from 'argon2';
 import { AuthTokens, LoginInput, RegisterInput } from '@pmtool/shared-types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
+import { PresenceService } from '../presence/presence.service';
 import { EnvConfig } from '../../config/env.schema';
 import { AccessTokenPayload } from './token.types';
 import { generateRefreshToken, hashRefreshToken } from './refresh-token.util';
@@ -26,11 +27,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<EnvConfig, true>,
     private readonly gamificationService: GamificationService,
+    private readonly presenceService: PresenceService,
   ) {}
 
   async register(
     input: RegisterInput,
     userAgent?: string,
+    ip?: string,
   ): Promise<{ tokens: AuthTokens; refreshToken: IssuedRefreshToken }> {
     const existing = await this.prisma.db.user.findUnique({
       where: { email: input.email },
@@ -43,6 +46,7 @@ export class AuthService {
     const user = await this.prisma.db.user.create({
       data: { email: input.email, passwordHash, fullName: input.fullName },
     });
+    await this.presenceService.recordLogin(user.id, 'PASSWORD', ip, userAgent);
 
     return this.issueSession(user.id, user.email, userAgent);
   }
@@ -50,6 +54,7 @@ export class AuthService {
   async login(
     input: LoginInput,
     userAgent?: string,
+    ip?: string,
   ): Promise<{ tokens: AuthTokens; refreshToken: IssuedRefreshToken }> {
     const user = await this.prisma.db.user.findUnique({
       where: { email: input.email },
@@ -67,6 +72,7 @@ export class AuthService {
     }
 
     await this.gamificationService.recordLogin(user.id);
+    await this.presenceService.recordLogin(user.id, 'PASSWORD', ip, userAgent);
 
     return this.issueSession(user.id, user.email, userAgent);
   }

@@ -4,6 +4,9 @@ export type OrgRole = (typeof ORG_ROLES)[number];
 export const JOIN_REQUEST_STATUSES = ['PENDING', 'APPROVED', 'DECLINED'] as const;
 export type JoinRequestStatus = (typeof JOIN_REQUEST_STATUSES)[number];
 
+export const LOGIN_METHODS = ['PASSWORD', 'GOOGLE'] as const;
+export type LoginMethod = (typeof LOGIN_METHODS)[number];
+
 export const ORGANIZATION_STATUSES = ['ACTIVE', 'ARCHIVED'] as const;
 export type OrganizationStatus = (typeof ORGANIZATION_STATUSES)[number];
 
@@ -92,7 +95,13 @@ export type DependencyType = (typeof DEPENDENCY_TYPES)[number];
 export const RISK_ISSUE_TYPES = ['RISK', 'ISSUE'] as const;
 export type RiskIssueType = (typeof RISK_ISSUE_TYPES)[number];
 
-export const RISK_STATUSES = ['IDENTIFIED', 'ANALYZING', 'MITIGATING', 'RESOLVED', 'CLOSED'] as const;
+export const RISK_STATUSES = [
+  'IDENTIFIED',
+  'ANALYZING',
+  'MITIGATING',
+  'RESOLVED',
+  'CLOSED',
+] as const;
 export type RiskStatus = (typeof RISK_STATUSES)[number];
 
 export const FEEDBACK_CATEGORIES = ['BUG', 'IDEA', 'OTHER'] as const;
@@ -111,7 +120,13 @@ export const BADGE_KEYS = [
 ] as const;
 export type BadgeKey = (typeof BADGE_KEYS)[number];
 
-export const DELIVERABLE_STATUSES = ['PLANNED', 'IN_PROGRESS', 'SUBMITTED', 'ACCEPTED', 'REJECTED'] as const;
+export const DELIVERABLE_STATUSES = [
+  'PLANNED',
+  'IN_PROGRESS',
+  'SUBMITTED',
+  'ACCEPTED',
+  'REJECTED',
+] as const;
 export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
 
 /** PMBOK role of a task in the WBS, highest level first. */
